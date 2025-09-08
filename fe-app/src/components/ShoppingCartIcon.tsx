@@ -1,13 +1,15 @@
+// chua dung den
 import { Plane } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function ShoppingCartIcon() {
     return (
-        <Link to='/cart' className='relative inline-block'>
+        <Link
+            to='/cart'
+            className='hover:bg-accent rounded-md p-2 transition-colors'
+        >
             {/* Icon */}
-            <div className='hover:bg-accent rounded-md p-2 transition-colors'>
-                <Plane className='h-5 w-5' />
-            </div>
+            <Plane className='w-5 h-5 text-gray-600' />
         </Link>
     );
 }
