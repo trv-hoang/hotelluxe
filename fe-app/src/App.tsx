@@ -6,15 +6,11 @@ import HomePage from '@/pages/HomePage.tsx';
 import Navbar from '@/components/NavBar.tsx';
 import BackToTop from '@/components/BackToTop.tsx';
 
-import { useEffect } from 'react';
-import { useThemeStore } from '@/store/useThemeStore.ts';
+
 
 function App() {
     const hideNavbar = ['/login', '/register'].includes(location.pathname);
-    const initTheme = useThemeStore((state) => state.initTheme);
-    useEffect(() => {
-        initTheme();
-    }, [initTheme]);
+
     return (
         <BrowserRouter>
             <div className='min-h-screen mx-auto '>
