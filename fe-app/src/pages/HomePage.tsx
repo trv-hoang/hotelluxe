@@ -1,9 +1,10 @@
 import bg from '@/assets/bg.jpg';
+import StaySearchForm from '@/components/StaySearchForm';
 
 export default function HomePage() {
     return (
-        <div className='container mb-24 md:px-0 2xl:px-10 relative overflow-hidden'>
-            <div className='relative'>
+        <div className='container mb-24 md:px-0 2xl:px-10 relative '>
+            <div className='relative overflow-hidden rounded-3xl'>
                 {/* Background image */}
                 <div className='aspect-[16/9] relative w-full'>
                     <img
@@ -28,11 +29,14 @@ export default function HomePage() {
 
                     <button
                         type='button'
-                        className='mt-10 sm:mt-20 sm:text-lg relative inline-flex items-center justify-center px-6 py-3 font-medium rounded-full bg-black text-white hover:bg-gray-800'
+                        className='mt-10 sm:mt-20 sm:text-lg relative inline-flex items-center justify-center px-6 py-3 font-medium rounded-full bg-primary text-white hover:bg-primary/80 focus:outline-none focus:ring-4 focus:ring-primary/50 transition-all duration-300 ease-in-out'
                     >
                         Bắt đầu khám phá
                     </button>
                 </div>
+            </div>
+            <div className='absolute left-1/2 -translate-x-1/2 bottom-8 w-full max-w-6xl px-4 sm:px-8 z-20 '>
+                <StaySearchForm />
             </div>
         </div>
     );
