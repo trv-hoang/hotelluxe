@@ -1,4 +1,5 @@
 import SearchBar from '@/components/SearchBar';
+import logo from '@/assets/logo.png';
 import { Button } from '@/components/ui/button';
 import { Bell, MapPin, Plane } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -18,7 +19,7 @@ const Navbar = () => {
             {/* left */}
             <Link to='/' className='flex items-center'>
                 <img
-                    src='src/assets/logo.png'
+                    src={logo}
                     alt='logo'
                     className='w-6 h-6 md:w-8 md:h-8'
                     loading='lazy'
