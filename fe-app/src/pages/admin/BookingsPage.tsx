@@ -1,25 +1,19 @@
 import React from 'react';
 import AdminCard from '../../components/admin/AdminCard';
 import AdminButton from '../../components/admin/AdminButton';
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
 
 const BookingsPage: React.FC = () => (
     <div>
-        <div style={{
-            background: '#fff',
-            borderRadius: 8,
-            padding: '2rem',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            marginBottom: '2rem'
-        }}>
-            <h1 style={{ margin: '0 0 1rem 0', color: '#222', fontSize: 28, fontWeight: 700 }}>Bookings Management</h1>
-            <p style={{ margin: '0 0 1.5rem 0', color: '#666', fontSize: 16, lineHeight: 1.6 }}>Manage all hotel bookings, reservations, and customer information.</p>
-            
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <AdminButton variant="primary">Add New Booking</AdminButton>
-                <AdminButton variant="secondary">Export Data</AdminButton>
-                <AdminButton variant="success">Import Bookings</AdminButton>
-            </div>
-        </div>
+        <AdminPageHeader
+            title="Bookings Management"
+            description="Manage all hotel bookings, reservations, and customer information"
+            breadcrumb="Bookings"
+        >
+            <AdminButton variant="primary">Add New Booking</AdminButton>
+            <AdminButton variant="secondary">Export Data</AdminButton>
+            <AdminButton variant="success">Import Data</AdminButton>
+        </AdminPageHeader>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
             <AdminCard

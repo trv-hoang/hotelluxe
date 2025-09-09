@@ -1,19 +1,15 @@
 import React from 'react';
 import AdminCard from '../../components/admin/AdminCard';
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
 
 const AdminDashboardPage: React.FC = () => {
     return (
         <div>
-            <div style={{
-                background: '#fff',
-                borderRadius: 8,
-                padding: '2rem',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                marginBottom: '2rem'
-            }}>
-                <h1 style={{ margin: '0 0 1rem 0', color: '#222', fontSize: 28, fontWeight: 700 }}>Admin Dashboard</h1>
-                <p style={{ margin: 0, color: '#666', fontSize: 16, lineHeight: 1.6 }}>Welcome to the admin dashboard. Select an option from the sidebar to manage your application.</p>
-            </div>
+            <AdminPageHeader
+                title="Admin Dashboard"
+                description="Welcome to the admin dashboard. Monitor your application performance and manage resources."
+                breadcrumb="Dashboard"
+            />
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
                 <AdminCard
@@ -29,7 +25,7 @@ const AdminDashboardPage: React.FC = () => {
                     value="567"
                     description="Completed bookings"
                     color="#2196f3"
-                    icon="📅"
+                    icon="🏨"
                 />
                 
                 <AdminCard

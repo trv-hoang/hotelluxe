@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AdminCard from '../../components/admin/AdminCard';
 import AdminButton from '../../components/admin/AdminButton';
 import AdminInput from '../../components/admin/AdminInput';
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
 
 const SettingsPage: React.FC = () => {
     const [settings, setSettings] = useState({
@@ -18,16 +19,15 @@ const SettingsPage: React.FC = () => {
 
     return (
         <div>
-            <div style={{
-                background: '#fff',
-                borderRadius: 8,
-                padding: '2rem',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                marginBottom: '2rem'
-            }}>
-                <h1 style={{ margin: '0 0 1rem 0', color: '#222', fontSize: 28, fontWeight: 700 }}>Admin Settings</h1>
-                <p style={{ margin: 0, color: '#666', fontSize: 16, lineHeight: 1.6 }}>Configure your application settings and preferences.</p>
-            </div>
+            <AdminPageHeader
+                title="Admin Settings"
+                description="Configure your application settings and preferences"
+                breadcrumb="Settings"
+            >
+                <AdminButton variant="primary" onClick={handleSave}>Save Changes</AdminButton>
+                <AdminButton variant="secondary">Reset to Default</AdminButton>
+                <AdminButton variant="danger">Clear Cache</AdminButton>
+            </AdminPageHeader>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
                 <AdminCard
@@ -120,12 +120,6 @@ const SettingsPage: React.FC = () => {
                             <option value="UTC">UTC</option>
                         </select>
                     </div>
-                </div>
-                
-                <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
-                    <AdminButton variant="primary" onClick={handleSave}>Save Changes</AdminButton>
-                    <AdminButton variant="secondary">Reset to Default</AdminButton>
-                    <AdminButton variant="danger">Clear Cache</AdminButton>
                 </div>
             </div>
         </div>
