@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminButton from '../../components/admin/AdminButton';
 import AdminModal from '../../components/admin/AdminModal';
 import AdminInput from '../../components/admin/AdminInput';
 import '../../styles/_custom_checkbox.css';
-// For avatar demo
 import avatar from '@/assets/user.jpg';
 
 interface User {
@@ -14,7 +12,6 @@ interface User {
     role: string;
 }
 
-// Replace with API integration later
 const initialUsers: User[] = [
     { id: 1, name: 'Hoang', email: '24210127@ms.uit.edu.vn', role: 'Admin' },
     { id: 2, name: 'Johnson Baby', email: 'bob@example.com', role: 'User' },
@@ -23,8 +20,19 @@ const initialUsers: User[] = [
 
 const pageSize = 5;
 const roles = ['Admin', 'User', 'Manager'];
+
 const UsersPage: React.FC = () => {
-    // Sorting
+    const [users, setUsers] = useState<User[]>(initialUsers);
+    const [showForm, setShowForm] = useState(false);
+    const [formType, setFormType] = useState<'add' | 'edit' | null>(null);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [formData, setFormData] = useState({ name: '', email: '', role: 'User' });
+    const [notification, setNotification] = useState<string | null>(null);
+    const [search, setSearch] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
+    const [showConfirm, setShowConfirm] = useState<{ id: number | null, bulk?: boolean }>({ id: null });
+    const [currentPage, setCurrentPage] = useState(1);
     const [sortBy, setSortBy] = useState<'name' | 'email' | 'role' | null>(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
@@ -53,44 +61,6 @@ const UsersPage: React.FC = () => {
         window.URL.revokeObjectURL(url);
     };
 
-    // Import CSV
-    const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const text = event.target?.result as string;
-            // Simple CSV parse
-            const lines = text.split('\n').filter(Boolean);
-            const imported = lines.slice(1).map(line => {
-                const [name, email, role] = line.split(',');
-                return { id: Date.now() + Math.random(), name: name?.trim(), email: email?.trim(), role: role?.trim() || 'User' };
-            }).filter(u => u.name && u.email);
-            setUsers(prev => [...prev, ...imported]);
-            setNotification('Users imported successfully');
-            setTimeout(() => setNotification(null), 2000);
-        };
-        reader.readAsText(file);
-    };
-    const [users, setUsers] = useState<User[]>(initialUsers);
-    const [showForm, setShowForm] = useState(false);
-    const [formType, setFormType] = useState<'add' | 'edit' | null>(null);
-    const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [formData, setFormData] = useState({ name: '', email: '', role: 'User' });
-    const [notification, setNotification] = useState<string | null>(null);
-    const [search, setSearch] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [showDetails, setShowDetails] = useState(false);
-    const [bulkSelected, setBulkSelected] = useState<number[]>([]);
-    const [showConfirm, setShowConfirm] = useState<{ id: number | null, bulk?: boolean }>({ id: null });
-    const [currentPage, setCurrentPage] = useState(1);
-
-    // Placeholder for API integration
-    // useEffect(() => {
-    //   setLoading(true);
-    //   fetchUsers().then(data => { setUsers(data); setLoading(false); });
-    // }, []);
-
     // Validation
     const validateForm = () => {
         if (!formData.name.trim()) return 'Name is required.';
@@ -106,6 +76,7 @@ const UsersPage: React.FC = () => {
         u.email.toLowerCase().includes(search.toLowerCase()) ||
         u.role.toLowerCase().includes(search.toLowerCase())
     );
+    
     // Sorting
     if (sortBy) {
         filteredUsers = [...filteredUsers].sort((a, b) => {
@@ -119,39 +90,31 @@ const UsersPage: React.FC = () => {
     const totalPages = Math.ceil(filteredUsers.length / pageSize);
     const paginatedUsers = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-    // Bulk actions
-    const handleBulkSelect = (id: number) => {
-        setBulkSelected(selected => selected.includes(id) ? selected.filter(i => i !== id) : [...selected, id]);
-    };
-    const handleBulkDelete = () => {
-        setUsers(users.filter(u => !bulkSelected.includes(u.id)));
-        setBulkSelected([]);
-        setShowConfirm({ id: null, bulk: false });
-        setNotification('Selected users deleted successfully');
-        setTimeout(() => setNotification(null), 2000);
-    };
-
     // CRUD
     const handleAddUser = () => {
         setFormType('add');
         setFormData({ name: '', email: '', role: 'User' });
         setShowForm(true);
     };
+    
     const handleEditUser = (user: User) => {
         setFormType('edit');
         setSelectedUser(user);
         setFormData({ name: user.name, email: user.email, role: user.role });
         setShowForm(true);
     };
+    
     const handleDeleteUser = (id: number) => {
         setShowConfirm({ id });
     };
+    
     const confirmDeleteUser = (id: number) => {
         setUsers(users.filter(u => u.id !== id));
         setShowConfirm({ id: null });
         setNotification('User deleted successfully');
         setTimeout(() => setNotification(null), 2000);
     };
+    
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const error = validateForm();
@@ -178,22 +141,16 @@ const UsersPage: React.FC = () => {
             setTimeout(() => setNotification(null), 2000);
         }, 800);
     };
+    
     // Details modal
     const handleShowDetails = (user: User) => {
         setSelectedUser(user);
         setShowDetails(true);
     };
-    // Responsive styles
-    const containerStyle: React.CSSProperties = {
-        padding: '2rem',
-        maxWidth: '100vw',
-        overflowX: 'auto',
-    };
 
     return (
-        <AdminSidebar>
-            <div style={containerStyle}>
-                <h1>Users</h1>
+        <div>
+            <h1>Users Management</h1>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
                 <AdminButton onClick={handleAddUser} variant="primary">
                     Add User
@@ -206,26 +163,16 @@ const UsersPage: React.FC = () => {
                     style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minWidth: '220px', background: '#fff', color: '#222' }}
                 />
                 <AdminButton onClick={() => handleExportCSV()} variant="success">Export CSV</AdminButton>
-                <label style={{ padding: '8px 16px', background: '#f59e42', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                    Import CSV
-                    <input type='file' accept='.csv' style={{ display: 'none' }} onChange={handleImportCSV} />
-                </label>
-                {bulkSelected.length > 0 && (
-                    <AdminButton onClick={() => setShowConfirm({ id: null, bulk: true })} variant="danger">
-                        Delete Selected ({bulkSelected.length})
-                    </AdminButton>
-                )}
             </div>
+            
             {notification && (
                 <div style={{ marginBottom: '1rem', color: notification.includes('successfully') ? 'green' : 'red' }}>{notification}</div>
             )}
+            
             <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem', minWidth: '600px' }}>
                     <thead>
                         <tr>
-                            <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: '8px' }}>
-                                <input type='checkbox' className='custom-checkbox' checked={bulkSelected.length === paginatedUsers.length && paginatedUsers.length > 0} onChange={e => setBulkSelected(e.target.checked ? paginatedUsers.map(u => u.id) : [])} />
-                            </th>
                             <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: '8px' }}>Avatar</th>
                             <th style={{ borderBottom: '1px solid #ddd', textAlign: 'left', padding: '8px', cursor: 'pointer' }} onClick={() => handleSort('name')}>
                                 Name {sortBy === 'name' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
@@ -241,14 +188,11 @@ const UsersPage: React.FC = () => {
                     </thead>
                     <tbody>
                         {loading ? (
-                            <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</td></tr>
+                            <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</td></tr>
                         ) : paginatedUsers.length === 0 ? (
-                            <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No users found.</td></tr>
+                            <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>No users found.</td></tr>
                         ) : paginatedUsers.map(user => (
                             <tr key={user.id}>
-                                <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>
-                                    <input type='checkbox' className='custom-checkbox' checked={bulkSelected.includes(user.id)} onChange={() => handleBulkSelect(user.id)} />
-                                </td>
                                 <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>
                                     <img src={avatar} alt='avatar' style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                                 </td>
@@ -264,6 +208,7 @@ const UsersPage: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+            
             {/* Pagination */}
             {totalPages > 1 && (
                 <div style={{ display: 'flex', gap: '8px', marginTop: '1rem', justifyContent: 'center' }}>
@@ -274,6 +219,7 @@ const UsersPage: React.FC = () => {
                     <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ddd', background: currentPage === totalPages ? '#eee' : '#fff', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}>Next</button>
                 </div>
             )}
+            
             {/* Add/Edit User Modal */}
             <AdminModal
                 isOpen={showForm}
@@ -324,6 +270,7 @@ const UsersPage: React.FC = () => {
                     </div>
                 </form>
             </AdminModal>
+            
             {/* User Details Modal */}
             <AdminModal
                 isOpen={showDetails}
@@ -343,6 +290,7 @@ const UsersPage: React.FC = () => {
                     </div>
                 )}
             </AdminModal>
+            
             {/* Confirmation Dialog */}
             <AdminModal
                 isOpen={showConfirm.id !== null}
@@ -358,23 +306,7 @@ const UsersPage: React.FC = () => {
                     </div>
                 </div>
             </AdminModal>
-            {/* Bulk Confirmation Dialog */}
-            <AdminModal
-                isOpen={!!showConfirm.bulk}
-                onClose={() => setShowConfirm({ id: null, bulk: false })}
-                title="Confirm Bulk Delete"
-                size="small"
-            >
-                <div style={{ textAlign: 'center' }}>
-                    <p style={{ margin: '1rem 0' }}>Are you sure you want to delete selected users?</p>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '1.5rem' }}>
-                        <AdminButton onClick={() => setShowConfirm({ id: null, bulk: false })} variant="secondary">Cancel</AdminButton>
-                        <AdminButton onClick={handleBulkDelete} variant="danger">Delete</AdminButton>
-                    </div>
-                </div>
-            </AdminModal>
-            </div>
-        </AdminSidebar>
+        </div>
     );
 };
 
