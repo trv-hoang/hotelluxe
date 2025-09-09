@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import LoginPage from './pages/LoginPage.tsx';
 import RegisterPage from './pages/RegisterPage.tsx';
 import ProfilePage from './pages/ProfilePage.tsx';
@@ -9,27 +9,38 @@ import AdminApp from './AdminApp.tsx';
 
 
 
-
 function App() {
+    return (
+        <BrowserRouter>
+            <Routes>
+                {/* Admin routes - sử dụng AdminApp độc lập */}
+                <Route path='/admin/*' element={<AdminApp />} />
+                
+                {/* Client routes */}
+                <Route path='/*' element={<ClientApp />} />
+            </Routes>
+        </BrowserRouter>
+    );
+}
+
+// Component cho client routes
+function ClientApp() {
+    const location = useLocation();
     const hideNavbar = ['/login', '/register'].includes(location.pathname);
 
     return (
-        <BrowserRouter>
-            <div className='min-h-screen mx-auto '>
-                {!hideNavbar && <Navbar />}
-                <main className='py-12'>
-                    <Routes>
-                        <Route path='/' element={<HomePage />} />
-                        <Route path='/login' element={<LoginPage />} />
-                        <Route path='/register' element={<RegisterPage />} />
-                        <Route path='/profile' element={<ProfilePage />} />
-                        {/* Admin routes */}
-                        <Route path='/admin/*' element={<AdminApp />} />
-                    </Routes>
-                </main>
-                <BackToTop />
-            </div>
-        </BrowserRouter>
+        <div className='min-h-screen mx-auto'>
+            {!hideNavbar && <Navbar />}
+            <main className='py-12'>
+                <Routes>
+                    <Route path='/' element={<HomePage />} />
+                    <Route path='/login' element={<LoginPage />} />
+                    <Route path='/register' element={<RegisterPage />} />
+                    <Route path='/profile' element={<ProfilePage />} />
+                </Routes>
+            </main>
+            <BackToTop />
+        </div>
     );
 }
 
