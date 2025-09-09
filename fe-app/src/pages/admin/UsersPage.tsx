@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AdminButton from '../../components/admin/AdminButton';
 import AdminModal from '../../components/admin/AdminModal';
 import AdminInput from '../../components/admin/AdminInput';
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
 import '../../styles/_custom_checkbox.css';
 import avatar from '@/assets/user.jpg';
 
@@ -150,11 +151,20 @@ const UsersPage: React.FC = () => {
 
     return (
         <div>
-            <h1>Users Management</h1>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+            <AdminPageHeader
+                title="Users Management"
+                description="Manage user accounts, roles and permissions"
+                breadcrumb="Users"
+            >
                 <AdminButton onClick={handleAddUser} variant="primary">
                     Add User
                 </AdminButton>
+                <AdminButton onClick={() => handleExportCSV()} variant="success">
+                    Export CSV
+                </AdminButton>
+            </AdminPageHeader>
+            
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
                 <input
                     type='text'
                     placeholder='Search by name, email, role...'
@@ -162,7 +172,6 @@ const UsersPage: React.FC = () => {
                     onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                     style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minWidth: '220px', background: '#fff', color: '#222' }}
                 />
-                <AdminButton onClick={() => handleExportCSV()} variant="success">Export CSV</AdminButton>
             </div>
             
             {notification && (
