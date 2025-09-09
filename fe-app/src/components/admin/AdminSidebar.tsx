@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const sidebarItems = [
     { name: 'Dashboard', link: '/admin/dashboard' },
@@ -89,8 +90,8 @@ const Sidebar: React.FC<{collapsed: boolean, onToggle: () => void, currentPath: 
                     const isActive = currentPath === item.link;
                     return (
                         <li key={item.name} style={{ marginBottom: '1rem' }}>
-                            <a
-                                href={item.link}
+                            <Link
+                                to={item.link}
                                 style={{
                                     display: 'block',
                                     textDecoration: 'none',
@@ -132,7 +133,7 @@ const Sidebar: React.FC<{collapsed: boolean, onToggle: () => void, currentPath: 
                                     }} />
                                 )}
                                 {collapsed ? <span style={{ fontSize: 18, fontWeight: 600 }}>{item.name[0]}</span> : item.name}
-                            </a>
+                            </Link>
                         </li>
                     );
                 })}
