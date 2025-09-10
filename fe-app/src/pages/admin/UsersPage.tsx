@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AdminButton from '../../components/admin/AdminButton';
 import AdminModal from '../../components/admin/AdminModal';
 import AdminInput from '../../components/admin/AdminInput';
+import AdminSelect from '../../components/admin/AdminSelect';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
 import '../../styles/_custom_checkbox.css';
 import avatar from '@/assets/user.jpg';
@@ -20,7 +21,11 @@ const initialUsers: User[] = [
 ];
 
 const pageSize = 5;
-const roles = ['Admin', 'User', 'Manager'];
+const roleOptions = [
+    { value: 'Admin', label: 'Admin' },
+    { value: 'User', label: 'User' },
+    { value: 'Manager', label: 'Manager' }
+];
 
 const UsersPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>(initialUsers);
@@ -254,25 +259,13 @@ const UsersPage: React.FC = () => {
                         error={!formData.email.trim() ? 'Email is required' : undefined}
                         style={{ marginTop: '1rem' }}
                     />
-                    <div style={{ marginTop: '1rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#374151' }}>Role:</label>
-                        <select 
-                            value={formData.role} 
-                            onChange={e => setFormData({ ...formData, role: e.target.value })} 
-                            style={{ 
-                                width: '100%', 
-                                padding: '0.75rem', 
-                                borderRadius: '6px', 
-                                border: '1px solid #d1d5db', 
-                                background: '#fff', 
-                                color: '#374151',
-                                fontSize: '14px',
-                                transition: 'border-color 0.2s'
-                            }}
-                        >
-                            {roles.map(role => <option key={role} value={role}>{role}</option>)}
-                        </select>
-                    </div>
+                    <AdminSelect
+                        label="Role"
+                        value={formData.role}
+                        onChange={e => setFormData({ ...formData, role: e.target.value })}
+                        options={roleOptions}
+                        style={{ marginTop: '1rem' }}
+                    />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1.5rem' }}>
                         <AdminButton type="button" onClick={() => setShowForm(false)} variant="secondary">Cancel</AdminButton>
                         <AdminButton type="submit" variant="primary">{formType === 'add' ? 'Add' : 'Update'}</AdminButton>

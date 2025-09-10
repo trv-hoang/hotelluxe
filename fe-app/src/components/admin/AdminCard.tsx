@@ -16,27 +16,25 @@ const AdminCard: React.FC<AdminCardProps> = ({
     icon 
 }) => {
     return (
-        <div style={{
-            background: '#fff',
+        <div className="admin-card" style={{
             borderRadius: 8,
             padding: '1.5rem',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
             borderLeft: `4px solid ${color}`,
             transition: 'transform 0.2s, box-shadow 0.2s',
         }}
         onMouseEnter={e => {
             e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+            e.currentTarget.style.boxShadow = '0 4px 12px var(--admin-shadow-color)';
         }}
         onMouseLeave={e => {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+            e.currentTarget.style.boxShadow = 'var(--admin-box-shadow)';
         }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                 <div style={{ flex: 1 }}>
                     <h3 style={{ 
                         margin: '0 0 0.5rem 0', 
-                        color: '#222', 
+                        color: 'var(--admin-text-primary)', 
                         fontSize: 18,
                         fontWeight: 600 
                     }}>
@@ -54,7 +52,7 @@ const AdminCard: React.FC<AdminCardProps> = ({
                     {description && (
                         <p style={{ 
                             margin: 0, 
-                            color: '#666', 
+                            color: 'var(--admin-text-secondary)', 
                             fontSize: 14,
                             lineHeight: 1.4
                         }}>

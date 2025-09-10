@@ -12,4 +12,20 @@ export interface PropertyType {
     checked: boolean;
 }
 
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: "admin" | "staff" | "customer";
+}
+
+export interface Hotel {
+  id: number;
+  name: string;
+  location: string;
+  totalRooms: number;
+  availableRooms: number;
+}
+
+
 export type DateRange = [Date | null, Date | null];

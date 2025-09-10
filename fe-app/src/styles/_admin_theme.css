@@ -1,0 +1,115 @@
+/* Admin Theme Variables */
+:root {
+    --admin-bg-primary: #ffffff;
+    --admin-bg-secondary: #f8fafc;
+    --admin-bg-tertiary: #f1f5f9;
+    --admin-text-primary: #1e293b;
+    --admin-text-secondary: #64748b;
+    --admin-text-tertiary: #94a3b8;
+    --admin-border-primary: #e2e8f0;
+    --admin-border-secondary: #cbd5e1;
+    --admin-shadow: rgba(0, 0, 0, 0.1);
+    --admin-shadow-lg: rgba(0, 0, 0, 0.15);
+    --admin-sidebar-bg: #1e293b;
+    --admin-sidebar-text: #f1f5f9;
+    --admin-sidebar-hover: #334155;
+    --admin-sidebar-active: #0ea5e9;
+}
+
+[data-admin-theme="dark"] {
+    --admin-bg-primary: #0f172a;
+    --admin-bg-secondary: #1e293b;
+    --admin-bg-tertiary: #334155;
+    --admin-text-primary: #f1f5f9;
+    --admin-text-secondary: #cbd5e1;
+    --admin-text-tertiary: #94a3b8;
+    --admin-border-primary: #475569;
+    --admin-border-secondary: #64748b;
+    --admin-shadow: rgba(0, 0, 0, 0.3);
+    --admin-shadow-lg: rgba(0, 0, 0, 0.4);
+    --admin-sidebar-bg: #020617;
+    --admin-sidebar-text: #f1f5f9;
+    --admin-sidebar-hover: #1e293b;
+    --admin-sidebar-active: #0ea5e9;
+}
+
+/* Admin Component Styles */
+.admin-container {
+    background-color: var(--admin-bg-primary);
+    color: var(--admin-text-primary);
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.admin-card {
+    background-color: var(--admin-bg-primary);
+    border: 1px solid var(--admin-border-primary);
+    box-shadow: 0 2px 8px var(--admin-shadow);
+    transition: all 0.3s ease;
+}
+
+.admin-sidebar {
+    background-color: var(--admin-sidebar-bg);
+    color: var(--admin-sidebar-text);
+    border-right: 1px solid var(--admin-border-primary);
+}
+
+.admin-sidebar-item {
+    color: var(--admin-sidebar-text);
+    transition: all 0.2s ease;
+}
+
+.admin-sidebar-item:hover {
+    background-color: var(--admin-sidebar-hover);
+}
+
+.admin-sidebar-item.active {
+    background-color: var(--admin-sidebar-active);
+    color: white;
+}
+
+.admin-input {
+    background-color: var(--admin-bg-primary);
+    border: 1px solid var(--admin-border-primary);
+    color: var(--admin-text-primary);
+    transition: all 0.2s ease;
+}
+
+.admin-input:focus {
+    border-color: var(--admin-sidebar-active);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.1);
+}
+
+.admin-table {
+    background-color: var(--admin-bg-primary);
+    border: 1px solid var(--admin-border-primary);
+}
+
+.admin-table th {
+    background-color: var(--admin-bg-secondary);
+    color: var(--admin-text-primary);
+    border-bottom: 1px solid var(--admin-border-primary);
+}
+
+.admin-table td {
+    border-bottom: 1px solid var(--admin-border-secondary);
+    color: var(--admin-text-primary);
+}
+
+.admin-modal {
+    background-color: var(--admin-bg-primary);
+    border: 1px solid var(--admin-border-primary);
+    box-shadow: 0 10px 25px var(--admin-shadow-lg);
+}
+
+.admin-theme-toggle {
+    background-color: var(--admin-bg-secondary);
+    border: 1px solid var(--admin-border-primary);
+    color: var(--admin-text-primary);
+    transition: all 0.2s ease;
+}
+
+.admin-theme-toggle:hover {
+    background-color: var(--admin-bg-tertiary);
+}
