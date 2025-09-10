@@ -3,7 +3,7 @@ import StaySearchForm from '@/components/StaySearchForm';
 
 export default function HomePage() {
     return (
-        <div className='container mb-24 md:px-0 2xl:px-10 relative mt-20'>
+        <div className='container mb-24 md:px-0 2xl:px-10 relative mt-20 mx-auto'>
             <div className='relative overflow-hidden rounded-3xl'>
                 {/* Background image */}
                 <div className='aspect-[16/9] relative w-full'>
