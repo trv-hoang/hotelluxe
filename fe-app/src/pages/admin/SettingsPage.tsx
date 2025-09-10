@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AdminCard from '../../components/admin/AdminCard';
 import AdminButton from '../../components/admin/AdminButton';
 import AdminInput from '../../components/admin/AdminInput';
+import AdminSelect from '../../components/admin/AdminSelect';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
 
 const SettingsPage: React.FC = () => {
@@ -16,6 +17,18 @@ const SettingsPage: React.FC = () => {
         // Save settings logic here
         alert('Settings saved successfully!');
     };
+
+    const currencyOptions = [
+        { value: 'VND', label: 'Vietnamese Dong (VND)' },
+        { value: 'USD', label: 'US Dollar (USD)' },
+        { value: 'EUR', label: 'Euro (EUR)' }
+    ];
+
+    const timezoneOptions = [
+        { value: 'Asia/Ho_Chi_Minh', label: 'Ho Chi Minh City' },
+        { value: 'Asia/Bangkok', label: 'Bangkok' },
+        { value: 'UTC', label: 'UTC' }
+    ];
 
     return (
         <div>
@@ -55,14 +68,17 @@ const SettingsPage: React.FC = () => {
                 />
             </div>
             
-            <div style={{
-                background: '#fff',
+            <div className="admin-card" style={{
                 borderRadius: 8,
                 padding: '2rem',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                 marginBottom: '2rem'
             }}>
-                <h2 style={{ margin: '0 0 1.5rem 0', color: '#222', fontSize: 20, fontWeight: 600 }}>General Settings</h2>
+                <h2 style={{ 
+                    margin: '0 0 1.5rem 0', 
+                    color: 'var(--admin-text-primary)', 
+                    fontSize: 20, 
+                    fontWeight: 600 
+                }}>General Settings</h2>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
                     <AdminInput
@@ -79,47 +95,19 @@ const SettingsPage: React.FC = () => {
                         onChange={(e) => setSettings({...settings, siteEmail: e.target.value})}
                     />
                     
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#374151' }}>Currency:</label>
-                        <select 
-                            value={settings.currency}
-                            onChange={(e) => setSettings({...settings, currency: e.target.value})}
-                            style={{ 
-                                width: '100%', 
-                                padding: '0.75rem', 
-                                borderRadius: '6px', 
-                                border: '1px solid #d1d5db', 
-                                background: '#fff', 
-                                color: '#374151',
-                                fontSize: '14px'
-                            }}
-                        >
-                            <option value="VND">Vietnamese Dong (VND)</option>
-                            <option value="USD">US Dollar (USD)</option>
-                            <option value="EUR">Euro (EUR)</option>
-                        </select>
-                    </div>
+                    <AdminSelect
+                        label="Currency"
+                        value={settings.currency}
+                        onChange={(e) => setSettings({...settings, currency: e.target.value})}
+                        options={currencyOptions}
+                    />
                     
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#374151' }}>Timezone:</label>
-                        <select 
-                            value={settings.timezone}
-                            onChange={(e) => setSettings({...settings, timezone: e.target.value})}
-                            style={{ 
-                                width: '100%', 
-                                padding: '0.75rem', 
-                                borderRadius: '6px', 
-                                border: '1px solid #d1d5db', 
-                                background: '#fff', 
-                                color: '#374151',
-                                fontSize: '14px'
-                            }}
-                        >
-                            <option value="Asia/Ho_Chi_Minh">Ho Chi Minh City</option>
-                            <option value="Asia/Bangkok">Bangkok</option>
-                            <option value="UTC">UTC</option>
-                        </select>
-                    </div>
+                    <AdminSelect
+                        label="Timezone"
+                        value={settings.timezone}
+                        onChange={(e) => setSettings({...settings, timezone: e.target.value})}
+                        options={timezoneOptions}
+                    />
                 </div>
             </div>
         </div>

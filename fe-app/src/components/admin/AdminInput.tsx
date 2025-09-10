@@ -1,4 +1,5 @@
 import React from 'react';
+import '../../styles/_admin_theme.css';
 
 interface AdminInputProps {
     type?: 'text' | 'email' | 'password' | 'number' | 'search';
@@ -25,31 +26,18 @@ const AdminInput: React.FC<AdminInputProps> = ({
     required = false,
     style = {}
 }) => {
-    const inputStyles: React.CSSProperties = {
-        width: '100%',
-        padding: '8px 12px',
-        border: error ? '2px solid #ef4444' : '1px solid #d1d5db',
-        borderRadius: '4px',
-        fontSize: '16px',
-        outline: 'none',
-        transition: 'border-color 0.2s',
-        background: disabled ? '#f9fafb' : '#fff',
-        color: disabled ? '#6b7280' : '#111827',
-        ...style
-    };
-
     return (
-        <div style={{ marginBottom: '1rem' }}>
+        <div style={style}>
             {label && (
                 <label style={{
                     display: 'block',
                     marginBottom: '0.5rem',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    color: '#374151'
+                    fontWeight: 600,
+                    color: 'var(--admin-text-primary)',
+                    fontSize: '14px'
                 }}>
                     {label}
-                    {required && <span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>}
+                    {required && <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>}
                 </label>
             )}
             <input
@@ -60,28 +48,41 @@ const AdminInput: React.FC<AdminInputProps> = ({
                 onKeyDown={onKeyDown}
                 disabled={disabled}
                 required={required}
-                style={inputStyles}
+                className="admin-input"
+                style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '6px',
+                    border: error ? '2px solid #ef4444' : '1px solid var(--admin-border-primary)',
+                    background: disabled ? 'var(--admin-bg-tertiary)' : 'var(--admin-bg-primary)',
+                    color: disabled ? 'var(--admin-text-tertiary)' : 'var(--admin-text-primary)',
+                    fontSize: '14px',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    transition: 'all 0.2s ease',
+                    cursor: disabled ? 'not-allowed' : 'text'
+                }}
                 onFocus={e => {
                     if (!error) {
-                        e.target.style.borderColor = '#2563eb';
-                        e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
+                        e.target.style.borderColor = 'var(--admin-sidebar-active)';
+                        e.target.style.boxShadow = '0 0 0 2px rgba(14, 165, 233, 0.1)';
                     }
                 }}
                 onBlur={e => {
-                    e.target.style.borderColor = error ? '#ef4444' : '#d1d5db';
+                    e.target.style.borderColor = error ? '#ef4444' : 'var(--admin-border-primary)';
                     e.target.style.boxShadow = 'none';
                 }}
             />
             {error && (
                 <div style={{
+                    marginTop: '0.5rem',
+                    fontSize: '12px',
                     color: '#ef4444',
-                    fontSize: '14px',
-                    marginTop: '0.25rem',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.25rem'
+                    gap: '4px'
                 }}>
-                    <span>⚠</span>
+                    <span>⚠️</span>
                     {error}
                 </div>
             )}

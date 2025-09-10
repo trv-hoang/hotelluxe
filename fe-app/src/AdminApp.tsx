@@ -1,5 +1,10 @@
 import React, { Suspense, useState } from 'react';
 import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import AdminThemeProvider from './contexts/AdminThemeContext';
+import NotificationProvider from './contexts/NotificationContext';
+import AdminNotificationContainer from './components/admin/AdminNotificationContainer';
+import AdminThemeToggle from './components/admin/AdminThemeToggle';
+import './styles/_admin_theme.css';
 
 // Lazy load admin pages for better performance
 const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminDashboardPage'));
@@ -24,7 +29,7 @@ const BurgerIcon = () => (
             left: 0,
             width: '100%',
             height: 3,
-            background: '#333',
+            background: 'var(--admin-sidebar-text)',
             borderRadius: 2,
         }} />
         <span style={{
@@ -33,7 +38,7 @@ const BurgerIcon = () => (
             left: 0,
             width: '100%',
             height: 3,
-            background: '#333',
+            background: 'var(--admin-sidebar-text)',
             borderRadius: 2,
         }} />
         <span style={{
@@ -42,7 +47,7 @@ const BurgerIcon = () => (
             left: 0,
             width: '100%',
             height: 3,
-            background: '#333',
+            background: 'var(--admin-sidebar-text)',
             borderRadius: 2,
         }} />
     </span>
@@ -67,19 +72,16 @@ const AdminSidebarStandalone: React.FC<{collapsed: boolean, onToggle: () => void
     const location = useLocation();
     
     return (
-        <aside style={{
+        <aside className="admin-sidebar" style={{
             width: collapsed ? '64px' : '220px',
-            background: '#fff',
-            color: '#222',
             height: '100vh',
             boxSizing: 'border-box',
-            borderRight: '1px solid #eee',
             transition: 'width 0.3s',
             position: 'relative',
             display: 'flex',
             flexDirection: 'column',
             alignItems: collapsed ? 'center' : 'flex-start',
-            boxShadow: '2px 0 8px rgba(0,0,0,0.04)',
+            boxShadow: '2px 0 8px var(--admin-shadow)',
         }}>
             <div style={{
                 width: '100%',
@@ -88,11 +90,10 @@ const AdminSidebarStandalone: React.FC<{collapsed: boolean, onToggle: () => void
                 alignItems: 'center',
                 justifyContent: collapsed ? 'center' : 'space-between',
                 padding: collapsed ? '0' : '0 18px',
-                borderBottom: '1px solid #eee',
+                borderBottom: '1px solid var(--admin-border-primary)',
                 boxSizing: 'border-box',
-                background: '#fff',
             }}>
-                {!collapsed && <h2 style={{ fontWeight: 700, fontSize: 22, letterSpacing: 1, color: '#222', margin: 0 }}>Admin Panel</h2>}
+                {!collapsed && <h2 style={{ fontWeight: 700, fontSize: 22, letterSpacing: 1, color: 'var(--admin-sidebar-text)', margin: 0 }}>Admin Panel</h2>}
                 <button
                     onClick={onToggle}
                     style={{
@@ -104,13 +105,22 @@ const AdminSidebarStandalone: React.FC<{collapsed: boolean, onToggle: () => void
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        color: 'var(--admin-sidebar-text)'
                     }}
                     title={collapsed ? 'Mở rộng' : 'Thu nhỏ'}
                 >
                     <BurgerIcon />
                 </button>
             </div>
-            <nav style={{ width: '100%', marginTop: 24, padding: '0 8px' }}>
+            
+            {/* Theme Toggle */}
+            {!collapsed && (
+                <div style={{ padding: '16px', width: '100%', boxSizing: 'border-box' }}>
+                    <AdminThemeToggle />
+                </div>
+            )}
+            
+            <nav style={{ width: '100%', padding: '0 8px', flex: 1 }}>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                     {sidebarItems.map(item => {
                         const isActive = location.pathname === item.link;
@@ -118,32 +128,17 @@ const AdminSidebarStandalone: React.FC<{collapsed: boolean, onToggle: () => void
                             <li key={item.name} style={{ marginBottom: '1rem' }}>
                                 <Link
                                     to={item.link}
+                                    className={`admin-sidebar-item ${isActive ? 'active' : ''}`}
                                     style={{
                                         display: 'block',
                                         textDecoration: 'none',
-                                        color: isActive ? '#1976d2' : '#222',
-                                        background: isActive ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
                                         borderRadius: 8,
                                         padding: collapsed ? '12px 0' : '12px 16px',
                                         fontSize: collapsed ? 0 : 16,
                                         fontWeight: isActive ? 600 : 500,
                                         letterSpacing: 0.5,
-                                        transition: 'all 0.3s',
-                                        opacity: collapsed ? 0 : 1,
                                         textAlign: collapsed ? 'center' : 'left',
                                         position: 'relative',
-                                    }}
-                                    onMouseEnter={e => {
-                                        if (!isActive) {
-                                            e.currentTarget.style.color = '#1976d2';
-                                            e.currentTarget.style.background = 'rgba(25, 118, 210, 0.04)';
-                                        }
-                                    }}
-                                    onMouseLeave={e => {
-                                        if (!isActive) {
-                                            e.currentTarget.style.color = '#222';
-                                            e.currentTarget.style.background = 'transparent';
-                                        }
                                     }}
                                 >
                                     {isActive && !collapsed && (
@@ -154,7 +149,7 @@ const AdminSidebarStandalone: React.FC<{collapsed: boolean, onToggle: () => void
                                             transform: 'translateY(-50%)',
                                             width: 3,
                                             height: 20,
-                                            background: '#1976d2',
+                                            background: 'var(--admin-sidebar-active)',
                                             borderRadius: '0 2px 2px 0',
                                         }} />
                                     )}
@@ -170,13 +165,23 @@ const AdminSidebarStandalone: React.FC<{collapsed: boolean, onToggle: () => void
 };
 
 const AdminApp: React.FC = () => {
+    return (
+        <AdminThemeProvider>
+            <NotificationProvider>
+                <AdminAppContent />
+                <AdminNotificationContainer />
+            </NotificationProvider>
+        </AdminThemeProvider>
+    );
+};
+
+const AdminAppContent: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
     
     return (
-        <div style={{ 
+        <div className="admin-container" style={{ 
             minHeight: '100vh', 
-            display: 'flex',
-            background: '#f8f9fa' 
+            display: 'flex'
         }}>
             <AdminSidebarStandalone 
                 collapsed={collapsed} 
@@ -185,7 +190,7 @@ const AdminApp: React.FC = () => {
             <div style={{ 
                 flex: 1, 
                 padding: '24px',
-                background: '#f8f9fa',
+                background: 'var(--admin-bg-secondary)',
                 overflow: 'auto'
             }}>
                 <Suspense fallback={<AdminLoading />}>
