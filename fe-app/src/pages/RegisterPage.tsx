@@ -28,8 +28,17 @@ export default function RegisterPage() {
             );
             localStorage.setItem('token', res.token);
             navigate('/profile');
-        } catch (err: any) {
-            alert(err.response?.data?.message || 'Register failed');
+        } catch (err: unknown) {
+            let errorMessage = 'Register failed';
+            
+            if (err && typeof err === 'object' && 'response' in err) {
+                const apiError = err as { response?: { data?: { message?: string } } };
+                errorMessage = apiError.response?.data?.message || 'Register failed';
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            
+            alert(errorMessage);
         }
     };
 

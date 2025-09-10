@@ -4,6 +4,8 @@ import AdminThemeProvider from './contexts/AdminThemeContext';
 import NotificationProvider from './contexts/NotificationContext';
 import AdminNotificationContainer from './components/admin/AdminNotificationContainer';
 import AdminThemeToggle from './components/admin/AdminThemeToggle';
+import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
+import { useAdminAuth } from './hooks/useAdminAuth';
 import './styles/_admin_theme.css';
 
 // Lazy load admin pages for better performance
@@ -11,6 +13,7 @@ const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminDashboard
 const UsersPage = React.lazy(() => import('./pages/admin/UsersPage'));
 const BookingsPage = React.lazy(() => import('./pages/admin/BookingsPage'));
 const SettingsPage = React.lazy(() => import('./pages/admin/SettingsPage'));
+const AdminLoginPage = React.lazy(() => import('./pages/admin/AdminLoginPage'));
 
 // Admin Sidebar Items
 const sidebarItems = [
@@ -70,6 +73,11 @@ const AdminLoading = () => (
 // Standalone Admin Sidebar
 const AdminSidebarStandalone: React.FC<{collapsed: boolean, onToggle: () => void}> = ({ collapsed, onToggle }) => {
     const location = useLocation();
+    const { adminLogout, adminUser } = useAdminAuth();
+    
+    const handleLogout = () => {
+        adminLogout();
+    };
     
     return (
         <aside className="admin-sidebar" style={{
@@ -160,6 +168,48 @@ const AdminSidebarStandalone: React.FC<{collapsed: boolean, onToggle: () => void
                     })}
                 </ul>
             </nav>
+            
+            {/* Admin User Info - Moved to bottom */}
+            {!collapsed && adminUser && (
+                <div style={{ 
+                    padding: '16px', 
+                    width: '100%', 
+                    boxSizing: 'border-box',
+                    borderTop: '1px solid var(--admin-border-primary)',
+                    marginTop: 'auto'
+                }}>
+                    <div style={{
+                        fontSize: '14px',
+                        color: 'var(--admin-text-secondary)',
+                        marginBottom: '8px'
+                    }}>
+                        Welcome back,
+                    </div>
+                    <div style={{
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        color: 'var(--admin-sidebar-text)',
+                        marginBottom: '8px'
+                    }}>
+                        {adminUser.name}
+                    </div>
+                    <button
+                        onClick={handleLogout}
+                        style={{
+                            background: 'transparent',
+                            border: '1px solid var(--admin-border)',
+                            color: 'var(--admin-text-secondary)',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        Logout
+                    </button>
+                </div>
+            )}
         </aside>
     );
 };
@@ -177,6 +227,23 @@ const AdminApp: React.FC = () => {
 
 const AdminAppContent: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
+    const location = useLocation();
+    
+    // Don't show sidebar on login page
+    const isLoginPage = location.pathname === '/admin/login';
+    
+    if (isLoginPage) {
+        return (
+            <div style={{ minHeight: '100vh' }}>
+                <Suspense fallback={<AdminLoading />}>
+                    <Routes>
+                        <Route path="/login" element={<AdminLoginPage />} />
+                        <Route path="*" element={<Navigate to="/admin/login" replace />} />
+                    </Routes>
+                </Suspense>
+            </div>
+        );
+    }
     
     return (
         <div className="admin-container" style={{ 
@@ -195,10 +262,28 @@ const AdminAppContent: React.FC = () => {
             }}>
                 <Suspense fallback={<AdminLoading />}>
                     <Routes>
-                        <Route path="/dashboard" element={<AdminDashboardPage />} />
-                        <Route path="/users" element={<UsersPage />} />
-                        <Route path="/bookings" element={<BookingsPage />} />
-                        <Route path="/settings" element={<SettingsPage />} />
+                        {/* Protected admin routes */}
+                        <Route path="/dashboard" element={
+                            <AdminProtectedRoute>
+                                <AdminDashboardPage />
+                            </AdminProtectedRoute>
+                        } />
+                        <Route path="/users" element={
+                            <AdminProtectedRoute>
+                                <UsersPage />
+                            </AdminProtectedRoute>
+                        } />
+                        <Route path="/bookings" element={
+                            <AdminProtectedRoute>
+                                <BookingsPage />
+                            </AdminProtectedRoute>
+                        } />
+                        <Route path="/settings" element={
+                            <AdminProtectedRoute>
+                                <SettingsPage />
+                            </AdminProtectedRoute>
+                        } />
+                        
                         {/* Redirect admin root to dashboard */}
                         <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
                         {/* 404 for admin routes */}

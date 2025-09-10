@@ -6,20 +6,23 @@ import HomePage from '@/pages/HomePage.tsx';
 import Navbar from '@/components/NavBar.tsx';
 import BackToTop from '@/components/BackToTop.tsx';
 import AdminApp from './AdminApp.tsx';
+import AdminAuthProvider from '@/contexts/AdminAuthContext.tsx';
 
 
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                {/* Admin routes - sử dụng AdminApp độc lập */}
-                <Route path='/admin/*' element={<AdminApp />} />
-                
-                {/* Client routes */}
-                <Route path='/*' element={<ClientApp />} />
-            </Routes>
-        </BrowserRouter>
+        <AdminAuthProvider>
+            <BrowserRouter>
+                <Routes>
+                    {/* Admin routes - sử dụng AdminApp độc lập */}
+                    <Route path='/admin/*' element={<AdminApp />} />
+                    
+                    {/* Client routes */}
+                    <Route path='/*' element={<ClientApp />} />
+                </Routes>
+            </BrowserRouter>
+        </AdminAuthProvider>
     );
 }
 
