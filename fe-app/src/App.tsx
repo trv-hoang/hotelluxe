@@ -1,12 +1,13 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import LoginPage from './pages/LoginPage.tsx';
 import RegisterPage from './pages/RegisterPage.tsx';
-import ProfilePage from './pages/ProfilePage.tsx';
+// import ProfilePage from './pages/ProfilePage.tsx';
 import HomePage from '@/pages/HomePage.tsx';
 import Navbar from '@/components/NavBar.tsx';
 import BackToTop from '@/components/BackToTop.tsx';
 import AdminApp from './AdminApp.tsx';
 import AdminAuthProvider from '@/contexts/AdminAuthContext.tsx';
+import ProfileUserPage from '@/pages/ProfileUserPage.tsx';
 
 
 
@@ -34,12 +35,12 @@ function ClientApp() {
     return (
         <div className='min-h-screen mx-auto'>
             {!hideNavbar && <Navbar />}
-            <main className='py-12'>
+            <main className='py-0'>
                 <Routes>
                     <Route path='/' element={<HomePage />} />
                     <Route path='/login' element={<LoginPage />} />
                     <Route path='/register' element={<RegisterPage />} />
-                    <Route path='/profile' element={<ProfilePage />} />
+                    <Route path='/profile' element={<ProfileUserPage />} />
                 </Routes>
             </main>
             <BackToTop />

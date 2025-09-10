@@ -7,8 +7,10 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Link } from 'react-router-dom';
 import { LogOut, Settings, User } from 'lucide-react';
 import userImg from '@/assets/user2.avif';
+
 export default function UserSetting() {
     return (
         <DropdownMenu>
@@ -25,8 +27,10 @@ export default function UserSetting() {
             <DropdownMenuContent className='mt-1'>
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                    <User className='h-4 w-4' /> Profile
+                <DropdownMenuItem asChild>
+                    <Link to='/profile' className='flex items-center gap-2'>
+                        <User className='h-4 w-4' /> Profile
+                    </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                     <Settings className='h-4 w-4' /> Settings

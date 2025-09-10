@@ -15,7 +15,7 @@ import UserSetting from '@/components/UserSetting';
 const authUser = true;
 const Navbar = () => {
     return (
-        <div className='w-full flex items-center justify-between border-b border-gray-300 py-2 px-10'>
+        <div className='w-full flex items-center justify-between border-b border-gray-300 py-2 px-10 fixed top-0 z-50 bg-white/80 backdrop-blur-md'>
             {/* left */}
             <Link to='/' className='flex items-center'>
                 <img

@@ -13,10 +13,19 @@ export interface PropertyType {
 }
 
 export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: "admin" | "staff" | "customer";
+    id: number;
+    name: string;
+    email: string;
+    role: 'admin' | 'user';
+    profilePic?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    // add
+    nickname?: string;
+    dob?: string; // yyyy-mm-dd
+    phone?: string;
+    gender?: string;
+    address?: string;
 }
 
 export interface Hotel {
