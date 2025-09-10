@@ -6,8 +6,8 @@ export interface ClearDataButtonProps {
 
 const ClearDataButton = ({ onClick }: ClearDataButtonProps) => {
     return (
-        <button
-            type='button'
+        <div
+            role='button'
             onClick={(e) => {
                 e.stopPropagation();
                 onClick(e);
@@ -16,7 +16,7 @@ const ClearDataButton = ({ onClick }: ClearDataButtonProps) => {
             aria-label='Clear input'
         >
             <X className='w-4 h-4' />
-        </button>
+        </div>
     );
 };
 
