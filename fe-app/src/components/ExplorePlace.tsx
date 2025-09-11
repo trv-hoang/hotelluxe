@@ -46,11 +46,13 @@ export function ExplorePlace() {
                             className='md:basis-1/2 lg:basis-1/3 xl:basis-1/5'
                         >
                             <Card className='overflow-hidden rounded-2xl shadow-sm'>
-                                <img
-                                    src={place.thumbnail}
-                                    alt={place.name}
-                                    className='h-56 w-full object-cover transition-transform duration-300 hover:scale-105'
-                                />
+                                <div className='overflow-hidden rounded-2xl'>
+                                    <img
+                                        src={place.thumbnail}
+                                        alt={place.name}
+                                        className='h-56 w-full object-cover transition-transform duration-300 hover:scale-105 '
+                                    />
+                                </div>
                                 <CardContent className='p-3'>
                                     <h3 className='text-base font-semibold'>
                                         {place.name}
