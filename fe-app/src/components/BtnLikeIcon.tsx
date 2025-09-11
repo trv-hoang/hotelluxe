@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart } from 'lucide-react'; // 👈 Import icon Heart
+import { Heart } from 'lucide-react';
 
 export interface BtnLikeIconProps {
     className?: string;
@@ -24,9 +24,9 @@ function BtnLikeIcon({
             onClick={() => setLikedState(!likedState)}
         >
             <Heart
-                className='h-5 w-5'
-                fill={likedState ? 'red' : 'none'}
-                color={likedState ? 'red' : 'currentColor'}
+                className={`h-5 w-5 ${
+                    likedState ? 'text-red-500 fill-red-500' : 'text-current'
+                }`}
                 strokeWidth={1.5}
             />
         </div>
