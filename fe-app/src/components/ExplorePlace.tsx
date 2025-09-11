@@ -6,7 +6,7 @@ import {
     CarouselNext,
     CarouselPrevious,
 } from '@/components/ui/carousel';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
 
 // Import ảnh local
 import halongbay from '@/assets/travels/halongbay.jpeg';
@@ -36,8 +36,11 @@ const places = [
 
 export function ExplorePlace() {
     return (
-        <div className='relative w-full max-w-7xl mx-auto'>
-            <h2 className='mb-6 text-2xl font-bold'>Khám phá địa điểm</h2>
+        <div className='relative w-full px-14 mx-auto'>
+            <div className='flex items-center space-x-3 mb-8'>
+                <h2 className='text-3xl font-semibold'>Khám phá địa điểm</h2>
+                <TrendingUp className='inline-block text-red-500 h-8 w-8' />
+            </div>
             <Carousel opts={{ align: 'start' }}>
                 <CarouselContent>
                     {places.map((place) => (
