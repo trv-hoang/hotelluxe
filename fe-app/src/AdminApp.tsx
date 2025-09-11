@@ -14,6 +14,8 @@ const UsersPage = React.lazy(() => import('./pages/admin/UsersPage'));
 const BookingsPage = React.lazy(() => import('./pages/admin/BookingsPage'));
 const SettingsPage = React.lazy(() => import('./pages/admin/SettingsPage'));
 const AdminLoginPage = React.lazy(() => import('./pages/admin/AdminLoginPage'));
+const AdminForgotPasswordPage = React.lazy(() => import('./pages/admin/AdminForgotPasswordPage'));
+const AdminResetPasswordPage = React.lazy(() => import('./pages/admin/AdminResetPasswordPage'));
 
 // Admin Sidebar Items
 const sidebarItems = [
@@ -229,15 +231,17 @@ const AdminAppContent: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
     
-    // Don't show sidebar on login page
-    const isLoginPage = location.pathname === '/admin/login';
+    // Don't show sidebar on auth pages
+    const isAuthPage = ['/admin/login', '/admin/forgot-password', '/admin/reset-password'].includes(location.pathname);
     
-    if (isLoginPage) {
+    if (isAuthPage) {
         return (
             <div style={{ minHeight: '100vh' }}>
                 <Suspense fallback={<AdminLoading />}>
                     <Routes>
                         <Route path="/login" element={<AdminLoginPage />} />
+                        <Route path="/forgot-password" element={<AdminForgotPasswordPage />} />
+                        <Route path="/reset-password" element={<AdminResetPasswordPage />} />
                         <Route path="*" element={<Navigate to="/admin/login" replace />} />
                     </Routes>
                 </Suspense>

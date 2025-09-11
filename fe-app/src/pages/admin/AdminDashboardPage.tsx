@@ -137,7 +137,7 @@ const AdminDashboardPage: React.FC = () => {
                         onMouseEnter={e => e.currentTarget.style.background = '#059669'}
                         onMouseLeave={e => e.currentTarget.style.background = '#10b981'}
                     >
-                        ✅ Run System Check
+                        Run System Check
                     </button>
                     
                     <button
@@ -159,7 +159,7 @@ const AdminDashboardPage: React.FC = () => {
                         onMouseEnter={e => e.currentTarget.style.background = '#d97706'}
                         onMouseLeave={e => e.currentTarget.style.background = '#f59e0b'}
                     >
-                        💾 Backup Database
+                        Backup Database
                     </button>
                     
                     <button
@@ -181,7 +181,7 @@ const AdminDashboardPage: React.FC = () => {
                         onMouseEnter={e => e.currentTarget.style.background = '#dc2626'}
                         onMouseLeave={e => e.currentTarget.style.background = '#ef4444'}
                     >
-                        ❌ Test Error Alert
+                        Test Error Alert
                     </button>
                 </div>
             </div>
