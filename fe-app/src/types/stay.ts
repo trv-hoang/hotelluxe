@@ -24,10 +24,12 @@ export type TwMainColor =
 
 export interface StayCategory {
     id: string | number;
-    name: string; // Loại "Hotel", "Resort", "Villa", "Homestay"
-    href: string; // Link đến trang category
-    color?: TwMainColor; // Màu để hiển thị (badge/label)
-    icon?: string; // Optional: icon
+    name: string;
+    href: string;
+    color?: TwMainColor;
+    icon?: string;
+    count?: number;
+    thumbnail?: string;
 }
 export interface StayDataType {
     id: string | number;
@@ -41,7 +43,6 @@ export interface StayDataType {
     price: string; // Giá
     address: string; // Địa chỉ
     category: StayCategory; //  Loại (Hotel/Resort/Villa/Homestay)
-
     reviewStart: number; // Điểm trung bình (ví dụ: 4.5)
     reviewCount: number; // Số review
     commentCount: number; // Số comment
