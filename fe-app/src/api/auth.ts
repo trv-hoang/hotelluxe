@@ -50,3 +50,7 @@ export const register = async (
 export const logout = () => api.post("/logout");
 
 export const getUser = () => api.get("/user");
+// add
+export const forgotPassword = (email: string) => {
+    return api.post('/auth/forgot-password', { email });
+};

@@ -19,6 +19,13 @@ export default function RegisterPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Check password match trước khi gọi API
+        if (form.password !== form.password_confirmation) {
+            alert('Mật khẩu nhập lại không khớp');
+            return;
+        }
+
         try {
             const res = await register(
                 form.name,
@@ -26,36 +33,42 @@ export default function RegisterPage() {
                 form.password,
                 form.password_confirmation,
             );
+
             localStorage.setItem('token', res.token);
             navigate('/profile');
         } catch (err: unknown) {
-            let errorMessage = 'Register failed';
-            
+            let errorMessage = 'Đăng ký thất bại';
+
             if (err && typeof err === 'object' && 'response' in err) {
-                const apiError = err as { response?: { data?: { message?: string } } };
-                errorMessage = apiError.response?.data?.message || 'Register failed';
+                const apiError = err as {
+                    response?: { data?: { message?: string } };
+                };
+                errorMessage = apiError.response?.data?.message || errorMessage;
             } else if (err instanceof Error) {
                 errorMessage = err.message;
             }
-            
+
             alert(errorMessage);
         }
     };
 
     return (
-        <div className='min-h-[80vh] flex items-center justify-center px-6'>
+        <div className='min-h-screen flex items-center justify-center px-6 relative'>
+            <div className='absolute top-0 left-0 w-72 h-72 bg-gradient-to-r from-green-400 to-blue-500 rounded-full blur-3xl opacity-30' />
+            <div className='absolute bottom-0 right-0 w-72 h-72 bg-gradient-to-tr from-pink-400 to-purple-500 rounded-full blur-3xl opacity-30' />
+            {/* <div className='absolute top-1/2 left-1/2 w-80 h-80 bg-gradient-to-br from-green-400 to-red-200 rounded-full blur-3xl opacity-20 -translate-x-1/2 -translate-y-1/2' /> */}
             <div className='w-full max-w-sm p-6 border rounded-lg shadow-lg bg-white'>
-                <h1 className='text-2xl font-bold mb-6'>Create your Account</h1>
+                <h1 className='text-2xl font-bold mb-6 text-center'>
+                    Tạo tài khoản
+                </h1>
 
-                <form
-                    onSubmit={handleSubmit}
-                    className='w-full max-w-sm space-y-4'
-                >
+                <form onSubmit={handleSubmit} className='space-y-4'>
                     <Input
                         name='name'
-                        placeholder='Full Name'
+                        placeholder='Họ và tên'
                         value={form.name}
                         onChange={handleChange}
+                        required
                     />
                     <Input
                         name='email'
@@ -63,33 +76,39 @@ export default function RegisterPage() {
                         type='email'
                         value={form.email}
                         onChange={handleChange}
+                        required
                     />
                     <Input
                         name='password'
-                        placeholder='Password'
+                        placeholder='Mật khẩu'
                         type='password'
                         value={form.password}
                         onChange={handleChange}
+                        required
                     />
                     <Input
                         name='password_confirmation'
-                        placeholder='Confirm Password'
+                        placeholder='Xác nhận mật khẩu'
                         type='password'
                         value={form.password_confirmation}
                         onChange={handleChange}
+                        required
                     />
 
                     <Button
                         type='submit'
                         className='w-full bg-green-700 text-white'
                     >
-                        Sign up
+                        Đăng ký
                     </Button>
 
                     <p className='text-sm text-center'>
-                        Already have an account?{' '}
-                        <Link to='/login' className='text-green-600'>
-                            Sign in
+                        Đã có tài khoản?{' '}
+                        <Link
+                            to='/login'
+                            className='text-green-600 underline underline-offset-4'
+                        >
+                            Đăng nhập
                         </Link>
                     </p>
                 </form>
