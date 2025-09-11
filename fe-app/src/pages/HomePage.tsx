@@ -1,5 +1,6 @@
 import bg from '@/assets/bg.jpg';
 import { ExplorePlace } from '@/components/ExplorePlace';
+import StayListing from '@/components/StayListings';
 import StaySearchForm from '@/components/StaySearchForm';
 
 export default function HomePage() {
@@ -43,6 +44,9 @@ export default function HomePage() {
             </div>
             <div className='mx-auto mb-24 flex w-full flex-col items-center px-4 sm:px-8'>
                 <ExplorePlace />
+            </div>
+            <div className='mx-auto'>
+                <StayListing />
             </div>
         </>
     );
