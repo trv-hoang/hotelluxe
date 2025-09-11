@@ -51,7 +51,7 @@
         "maxGuests": 10,
         "bedrooms": 6,
         "bathrooms": 7,
-        "saleOff": "-10% hôm nay",
+        "saleOff": "-15% hôm nay",
         "isAds": null,
         "map": { "lat": 12.218923, "lng": 109.211472 }
     },
@@ -303,7 +303,7 @@
         "maxGuests": 6,
         "bedrooms": 4,
         "bathrooms": 3,
-        "saleOff": "-10% tuần này",
+        "saleOff": "-12% tuần này",
         "isAds": null,
         "map": { "lat": 8.6957, "lng": 106.608 }
     },
@@ -359,7 +359,7 @@
         "maxGuests": 6,
         "bedrooms": 4,
         "bathrooms": 3,
-        "saleOff": "-10% cuối tuần",
+        "saleOff": "-18% cuối tuần",
         "isAds": null,
         "map": { "lat": 15.8794, "lng": 108.335 }
     },
@@ -555,7 +555,7 @@
         "maxGuests": 6,
         "bedrooms": 4,
         "bathrooms": 3,
-        "saleOff": "-10% hôm nay",
+        "saleOff": "-8% hôm nay",
         "isAds": null,
         "map": { "lat": 16.054, "lng": 108.202 }
     },
@@ -639,7 +639,7 @@
         "maxGuests": 6,
         "bedrooms": 4,
         "bathrooms": 3,
-        "saleOff": "-10% cuối tuần",
+        "saleOff": "-18% cuối tuần",
         "isAds": null,
         "map": { "lat": 21.025, "lng": 105.855 }
     },
