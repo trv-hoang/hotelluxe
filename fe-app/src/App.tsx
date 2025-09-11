@@ -8,8 +8,8 @@ import BackToTop from '@/components/BackToTop.tsx';
 import AdminApp from './AdminApp.tsx';
 import AdminAuthProvider from '@/contexts/AdminAuthContext.tsx';
 import ProfileUserPage from '@/pages/ProfileUserPage.tsx';
-
-
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage.tsx';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
     return (
@@ -18,7 +18,7 @@ function App() {
                 <Routes>
                     {/* Admin routes - sử dụng AdminApp độc lập */}
                     <Route path='/admin/*' element={<AdminApp />} />
-                    
+
                     {/* Client routes */}
                     <Route path='/*' element={<ClientApp />} />
                 </Routes>
@@ -41,9 +41,14 @@ function ClientApp() {
                     <Route path='/login' element={<LoginPage />} />
                     <Route path='/register' element={<RegisterPage />} />
                     <Route path='/profile' element={<ProfileUserPage />} />
+                    <Route
+                        path='/forgot-password'
+                        element={<ForgotPasswordPage />}
+                    />
                 </Routes>
             </main>
             <BackToTop />
+            <Toaster position='top-center' />
         </div>
     );
 }
