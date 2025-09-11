@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import AdminInput from '@/components/admin/AdminInput';
 import AdminButton from '@/components/admin/AdminButton';
@@ -7,11 +7,20 @@ import '../../styles/_admin_theme.css';
 
 const AdminLoginPage: React.FC = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { adminLogin, isLoading } = useAdminAuth();
     
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+
+    useEffect(() => {
+        const message = searchParams.get('message');
+        if (message === 'password-reset-success') {
+            setSuccessMessage('Password has been reset successfully! You can now login with your new password.');
+        }
+    }, [searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -65,6 +74,24 @@ const AdminLoginPage: React.FC = () => {
                     </p>
                 </div>
 
+                {successMessage && (
+                    <div style={{
+                        marginBottom: '1rem',
+                        padding: '12px',
+                        backgroundColor: '#f0fdf4',
+                        border: '1px solid #bbf7d0',
+                        borderRadius: '6px',
+                        color: '#15803d',
+                        fontSize: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                    }}>
+                        <span>✅</span>
+                        {successMessage}
+                    </div>
+                )}
+
                 {error && (
                     <div style={{
                         marginBottom: '1rem',
@@ -113,6 +140,20 @@ const AdminLoginPage: React.FC = () => {
                         {isLoading ? 'Signing in...' : 'Sign In'}
                     </AdminButton>
                 </form>
+
+                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                    <Link 
+                        to="/admin/forgot-password" 
+                        style={{
+                            color: 'var(--admin-sidebar-active)',
+                            textDecoration: 'none',
+                            fontSize: '14px',
+                            fontWeight: '500'
+                        }}
+                    >
+                        Forgot your password?
+                    </Link>
+                </div>
 
                 <div style={{
                     marginTop: '1.5rem',

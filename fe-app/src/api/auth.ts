@@ -54,3 +54,16 @@ export const getUser = () => api.get("/user");
 export const forgotPassword = (email: string) => {
     return api.post('/auth/forgot-password', { email });
 };
+
+// Admin password reset
+export const adminForgotPassword = (email: string) => {
+    return api.post('/admin/forgot-password', { email });
+};
+
+export const adminResetPassword = (token: string, password: string, passwordConfirmation: string) => {
+    return api.post('/admin/reset-password', { 
+        token, 
+        password, 
+        password_confirmation: passwordConfirmation 
+    });
+};
