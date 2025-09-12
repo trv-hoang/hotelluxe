@@ -45,7 +45,7 @@ export default function HomePage() {
             <div className='mx-auto mb-24 flex w-full flex-col items-center px-4 sm:px-8'>
                 <ExplorePlace />
             </div>
-            <div className='mx-auto mb-24 flex w-full flex-col items-center px-4 sm:px-8'>
+            <div className=' mb-24 flex w-full flex-col items-center px-4 sm:px-8'>
                 <StayListing />
             </div>
         </>

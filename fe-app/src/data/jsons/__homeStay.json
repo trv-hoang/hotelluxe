@@ -4,7 +4,7 @@
         "authorId": 10,
         "date": "May 20, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 17,
+        "listingCategoryId": 1,
         "title": "Khách sạn Rex Sài Gòn",
         "featuredImage": "https://images.pexels.com/photos/5191371/pexels-photo-5191371.jpeg",
         "galleryImgs": [
@@ -32,7 +32,7 @@
         "authorId": 1,
         "date": "May 20, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 9,
+        "listingCategoryId": 2,
         "title": "Vinpearl Resort Nha Trang",
         "featuredImage": "https://images.pexels.com/photos/5191371/pexels-photo-5191371.jpeg",
         "galleryImgs": [
@@ -60,7 +60,7 @@
         "authorId": 6,
         "date": "May 20, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 11,
+        "listingCategoryId": 1,
         "title": "InterContinental Đà Nẵng Sun Peninsula",
         "featuredImage": "https://images.pexels.com/photos/5191371/pexels-photo-5191371.jpeg",
         "galleryImgs": [
@@ -88,7 +88,7 @@
         "authorId": 2,
         "date": "May 20, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 12,
+        "listingCategoryId": 2,
         "title": "FLC Luxury Resort Sầm Sơn",
         "featuredImage": "https://images.pexels.com/photos/5191371/pexels-photo-5191371.jpeg",
         "galleryImgs": [
@@ -116,7 +116,7 @@
         "authorId": 3,
         "date": "May 20, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 13,
+        "listingCategoryId": 3,
         "title": "Ana Mandara Villas Đà Lạt",
         "featuredImage": "https://images.pexels.com/photos/5191371/pexels-photo-5191371.jpeg",
         "galleryImgs": [
@@ -144,7 +144,7 @@
         "authorId": 4,
         "date": "May 20, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 14,
+        "listingCategoryId": 4,
         "title": "Fusion Resort Phú Quốc",
         "featuredImage": "https://images.pexels.com/photos/5191371/pexels-photo-5191371.jpeg",
         "galleryImgs": [
@@ -172,7 +172,7 @@
         "authorId": 5,
         "date": "May 20, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 15,
+        "listingCategoryId": 1,
         "title": "Azerai La Residence Huế",
         "featuredImage": "https://images.pexels.com/photos/5191371/pexels-photo-5191371.jpeg",
         "galleryImgs": [
@@ -200,7 +200,7 @@
         "authorId": 7,
         "date": "May 20, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 16,
+        "listingCategoryId": 1,
         "title": "Flamingo Đại Lải Resort",
         "featuredImage": "https://images.pexels.com/photos/5191371/pexels-photo-5191371.jpeg",
         "galleryImgs": [
@@ -228,7 +228,7 @@
         "authorId": 8,
         "date": "May 20, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 18,
+        "listingCategoryId": 4,
         "title": "Mường Thanh Luxury Quảng Ninh",
         "featuredImage": "https://images.pexels.com/photos/5191371/pexels-photo-5191371.jpeg",
         "galleryImgs": [
@@ -256,7 +256,7 @@
         "authorId": 9,
         "date": "May 20, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 19,
+        "listingCategoryId": 3,
         "title": "Khách sạn Silk Path Hà Nội",
         "featuredImage": "https://images.pexels.com/photos/5191371/pexels-photo-5191371.jpeg",
         "galleryImgs": [
@@ -284,7 +284,7 @@
         "authorId": 11,
         "date": "May 21, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 20,
+        "listingCategoryId": 4,
         "title": "Six Senses Côn Đảo",
         "featuredImage": "https://images.pexels.com/photos/842711/pexels-photo-842711.jpeg",
         "galleryImgs": [
@@ -312,7 +312,7 @@
         "authorId": 12,
         "date": "May 21, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 21,
+        "listingCategoryId": 2,
         "title": "Hotel de la Coupole MGallery Sa Pa",
         "featuredImage": "https://images.pexels.com/photos/2613273/pexels-photo-2613273.jpeg",
         "galleryImgs": [
@@ -340,7 +340,7 @@
         "authorId": 13,
         "date": "May 21, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 22,
+        "listingCategoryId": 2,
         "title": "Victoria Hội An Beach Resort",
         "featuredImage": "https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg",
         "galleryImgs": [
@@ -368,7 +368,7 @@
         "authorId": 14,
         "date": "May 21, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 23,
+        "listingCategoryId": 3,
         "title": "Novotel Phu Quoc Resort",
         "featuredImage": "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg",
         "galleryImgs": [
@@ -396,7 +396,7 @@
         "authorId": 15,
         "date": "May 21, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 24,
+        "listingCategoryId": 4,
         "title": "Alma Resort Cam Ranh",
         "featuredImage": "https://images.pexels.com/photos/271619/pexels-photo-271619.jpeg",
         "galleryImgs": [
@@ -424,7 +424,7 @@
         "authorId": 16,
         "date": "May 21, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 25,
+        "listingCategoryId": 2,
         "title": "Premier Village Danang Resort",
         "featuredImage": "https://images.pexels.com/photos/753626/pexels-photo-753626.jpeg",
         "galleryImgs": [
@@ -452,7 +452,7 @@
         "authorId": 17,
         "date": "May 21, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 26,
+        "listingCategoryId": 1,
         "title": "Vinpearl Luxury Landmark 81",
         "featuredImage": "https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg",
         "galleryImgs": [
@@ -480,7 +480,7 @@
         "authorId": 18,
         "date": "May 21, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 27,
+        "listingCategoryId": 2,
         "title": "Melia Vinpearl Hue",
         "featuredImage": "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg",
         "galleryImgs": [
@@ -508,7 +508,7 @@
         "authorId": 19,
         "date": "May 21, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 28,
+        "listingCategoryId": 2,
         "title": "Sheraton Nha Trang Hotel",
         "featuredImage": "https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg",
         "galleryImgs": [
@@ -536,7 +536,7 @@
         "authorId": 20,
         "date": "May 21, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 29,
+        "listingCategoryId": 2,
         "title": "Grand Mercure Danang",
         "featuredImage": "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg",
         "galleryImgs": [
@@ -564,7 +564,7 @@
         "authorId": 21,
         "date": "May 22, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 30,
+        "listingCategoryId": 3,
         "title": "JW Marriott Phu Quoc Emerald Bay",
         "featuredImage": "https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg",
         "galleryImgs": [
@@ -592,7 +592,7 @@
         "authorId": 22,
         "date": "May 22, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 31,
+        "listingCategoryId": 3,
         "title": "Amanoi Resort Ninh Thuận",
         "featuredImage": "https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg",
         "galleryImgs": [
@@ -620,7 +620,7 @@
         "authorId": 23,
         "date": "May 22, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 32,
+        "listingCategoryId": 2,
         "title": "Sofitel Legend Metropole Hà Nội",
         "featuredImage": "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg",
         "galleryImgs": [
@@ -648,7 +648,7 @@
         "authorId": 24,
         "date": "May 22, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 33,
+        "listingCategoryId": 3,
         "title": "Anantara Mui Ne Resort",
         "featuredImage": "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg",
         "galleryImgs": [
@@ -676,7 +676,7 @@
         "authorId": 25,
         "date": "May 22, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 34,
+        "listingCategoryId": 4,
         "title": "Zannier Hotels Bãi San Hô",
         "featuredImage": "https://images.pexels.com/photos/753626/pexels-photo-753626.jpeg",
         "galleryImgs": [
@@ -704,7 +704,7 @@
         "authorId": 26,
         "date": "May 22, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 35,
+        "listingCategoryId": 3,
         "title": "InterContinental Hanoi Landmark72",
         "featuredImage": "https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg",
         "galleryImgs": [
@@ -732,7 +732,7 @@
         "authorId": 27,
         "date": "May 22, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 36,
+        "listingCategoryId": 3,
         "title": "Four Seasons Resort The Nam Hai",
         "featuredImage": "https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg",
         "galleryImgs": [
@@ -760,7 +760,7 @@
         "authorId": 28,
         "date": "May 22, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 37,
+        "listingCategoryId": 3,
         "title": "Mia Resort Nha Trang",
         "featuredImage": "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg",
         "galleryImgs": [
@@ -788,7 +788,7 @@
         "authorId": 29,
         "date": "May 22, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 38,
+        "listingCategoryId": 3,
         "title": "Pullman Vung Tau",
         "featuredImage": "https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg",
         "galleryImgs": [
@@ -816,7 +816,7 @@
         "authorId": 30,
         "date": "May 22, 2021",
         "href": "/listing-stay-detail",
-        "listingCategoryId": 39,
+        "listingCategoryId": 3,
         "title": "Lotte Hotel Hanoi",
         "featuredImage": "https://images.pexels.com/photos/753626/pexels-photo-753626.jpeg",
         "galleryImgs": [
