@@ -13,6 +13,7 @@ import { Toaster } from 'react-hot-toast';
 import StayPage from '@/pages/StayPage.tsx';
 import Footer from '@/components/Footer.tsx';
 import ScrollToTop from '@/hooks/ScrollToTop.ts';
+import StayDetailPage from '@/pages/StayDetail.tsx';
 
 function App() {
     return (
@@ -50,6 +51,10 @@ function ClientApp() {
                         element={<ForgotPasswordPage />}
                     />
                     <Route path='/stay' element={<StayPage />} />
+                    <Route
+                        path='/stay-detail/:id'
+                        element={<StayDetailPage />}
+                    />
                 </Routes>
             </main>
             <footer className='mx-auto sx:px-0 p-4 sm:max-x-xl md:max-w-7xl lg:max-w-7xl xl:min-w-[1480px]'>

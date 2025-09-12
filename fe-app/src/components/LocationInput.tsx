@@ -109,7 +109,7 @@ const LocationInput = ({
                 >
                     <div
                         className={`flex z-10 flex-1 relative [ nc-hero-field-padding ] flex-shrink-0 items-center space-x-3 cursor-pointer focus:outline-none text-left ${
-                            isOpen ? 'nc-hero-field-focused' : ''
+                            isOpen ? 'cus-hero-field-focused' : ''
                         }`}
                     >
                         <div className='text-neutral-300 dark:text-neutral-400 ml-3'>

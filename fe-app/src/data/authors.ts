@@ -1,4 +1,4 @@
-import __authors from './jsons/__users.json';
+import __authors from './jsons/__authors.json';
 import avatar1 from '@/assets/avatars/image-1.jpg';
 import avatar2 from '@/assets/avatars/image-2.jpg';
 import avatar3 from '@/assets/avatars/image-3.jpg';

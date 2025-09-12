@@ -11,7 +11,9 @@
         "count": 40,
         "href": "/tac-gia",
         "desc": "Nguyễn Minh là một nhà báo kỳ cựu với hơn 10 năm đưa tin tại các tòa soạn lớn ở Việt Nam.",
-        "jobName": "Nhà báo"
+        "jobName": "Nhà báo",
+        "address": "Hà Nội, Việt Nam",
+        "createdAt": "2024-05-20"
     },
     {
         "id": 2,
@@ -24,7 +26,9 @@
         "count": 113,
         "href": "/tac-gia",
         "desc": "Trần Lan hiện là biên tập viên tại một nhà xuất bản lớn, chuyên phụ trách mảng văn học trẻ.",
-        "jobName": "Biên tập viên"
+        "jobName": "Biên tập viên",
+        "address": "TP. Hồ Chí Minh, Việt Nam",
+        "createdAt": "2024-08-12"
     },
     {
         "id": 3,
@@ -37,7 +41,9 @@
         "count": 43,
         "href": "/tac-gia",
         "desc": "Phạm Hoàng là blogger công nghệ, thường xuyên chia sẻ kinh nghiệm và xu hướng IT tại Việt Nam.",
-        "jobName": "Blogger"
+        "jobName": "Blogger công nghệ",
+        "address": "Đà Nẵng, Việt Nam",
+        "createdAt": "2020-11-02"
     },
     {
         "id": 4,
@@ -50,7 +56,9 @@
         "count": 36,
         "href": "/tac-gia",
         "desc": "Đỗ Mai là phóng viên truyền hình, chuyên đưa tin về đời sống xã hội và văn hóa Việt Nam.",
-        "jobName": "Phóng viên"
+        "jobName": "Phóng viên truyền hình",
+        "address": "Hải Phòng, Việt Nam",
+        "createdAt": "2022-01-17"
     },
     {
         "id": 5,
@@ -63,7 +71,9 @@
         "count": 38,
         "href": "/tac-gia",
         "desc": "Lê Tuấn là kỹ sư phần mềm, tham gia nhiều dự án phát triển ứng dụng tại Việt Nam.",
-        "jobName": "Kỹ sư phần mềm"
+        "jobName": "Kỹ sư phần mềm",
+        "address": "Cần Thơ, Việt Nam",
+        "createdAt": "2024-09-05"
     },
     {
         "id": 6,
@@ -75,8 +85,10 @@
         "avatar": "https://uifaces.co/our-content/donated/bUkmHPKs.jpg",
         "count": 31,
         "href": "/tac-gia",
-        "desc": "Võ Hương là tác giả của nhiều cuốn sách thiếu nhi nổi tiếng tại Việt Nam.",
-        "jobName": "Tác giả"
+        "desc": "Võ Hương là chuyên viên ngân hàng, có nhiều năm kinh nghiệm trong lĩnh vực tài chính tại Việt Nam.",
+        "jobName": "Nhân viên ngân hàng",
+        "address": "Huế, Việt Nam",
+        "createdAt": "2019-07-23"
     },
     {
         "id": 7,
@@ -89,7 +101,9 @@
         "count": 102,
         "href": "/tac-gia",
         "desc": "Đinh Quang là nhà nghiên cứu xã hội học, chuyên phân tích các vấn đề đô thị và dân số.",
-        "jobName": "Nhà nghiên cứu"
+        "jobName": "Nhà nghiên cứu xã hội học",
+        "address": "Nam Định, Việt Nam",
+        "createdAt": "2020-03-14"
     },
     {
         "id": 8,
@@ -102,7 +116,9 @@
         "count": 35,
         "href": "/tac-gia",
         "desc": "Hoàng Thảo là blogger du lịch, chia sẻ những trải nghiệm vi vu khắp Việt Nam.",
-        "jobName": "Blogger du lịch"
+        "jobName": "Blogger du lịch",
+        "address": "Nha Trang, Việt Nam",
+        "createdAt": "2024-12-29"
     },
     {
         "id": 9,
@@ -114,8 +130,10 @@
         "avatar": "https://uifaces.co/our-content/donated/DUhuoeI8.jpg",
         "count": 21,
         "href": "/tac-gia",
-        "desc": "Phan Hải là phóng viên thể thao, thường xuyên tác nghiệp tại các giải bóng đá Việt Nam.",
-        "jobName": "Phóng viên thể thao"
+        "desc": "Phan Hải là giảng viên đại học, chuyên ngành marketing tại một trường lớn ở Việt Nam.",
+        "jobName": "Giảng viên đại học",
+        "address": "Quảng Ninh, Việt Nam",
+        "createdAt": "2022-06-18"
     },
     {
         "id": 10,
@@ -128,6 +146,8 @@
         "count": 111,
         "href": "/tac-gia",
         "desc": "Bùi Linh là biên tập viên mảng văn hóa, phụ trách nhiều chuyên mục báo chí uy tín.",
-        "jobName": "Biên tập viên"
+        "jobName": "Biên tập viên văn hóa",
+        "address": "TP. Hồ Chí Minh, Việt Nam",
+        "createdAt": "2020-04-09"
     }
 ]

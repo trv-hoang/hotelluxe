@@ -7,7 +7,7 @@ const Footer = () => {
             <div className='flex flex-col items-center md:items-start text-white gap-4'>
                 <Link to='/' className='flex items-center mb-4'>
                     <img
-                        src='src/assets/logo.png'
+                        src='/src/assets/logo.png'
                         alt='logo'
                         className='w-8 h-8 md:w-10 md:h-10 bg-white rounded-xl object-cover'
                     />
