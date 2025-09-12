@@ -25,7 +25,7 @@ export default function StayListing() {
                     <h2 className='text-3xl font-semibold'>Nổi bật </h2>
                     <Flame className='inline-block text-red-500 h-8 w-8' />
                 </div>
-                <Link to='/hotels'>
+                <Link to='/stay'>
                     <Button variant={'link'} className=''>
                         Xem tất cả
                     </Button>
