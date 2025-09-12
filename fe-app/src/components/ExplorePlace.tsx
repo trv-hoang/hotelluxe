@@ -19,6 +19,8 @@ import ninhbinh from '@/assets/travels/ninhbinh.jpeg';
 import muine from '@/assets/travels/muine.jpeg';
 import vungtau from '@/assets/travels/vungtau.jpeg';
 import dalat from '@/assets/travels/dalat.jpeg';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 // Mock 10 địa điểm VN
 const places = [
@@ -37,9 +39,18 @@ const places = [
 export function ExplorePlace() {
     return (
         <div className='relative w-full px-14 mx-auto'>
-            <div className='flex items-center space-x-3 mb-8'>
-                <h2 className='text-3xl font-semibold'>Khám phá địa điểm</h2>
-                <TrendingUp className='inline-block text-red-500 h-8 w-8' />
+            <div className='flex items-center justify-between'>
+                <div className='flex items-center space-x-3 mb-8'>
+                    <h2 className='text-3xl font-semibold'>
+                        Khám phá địa điểm
+                    </h2>
+                    <TrendingUp className='inline-block text-red-500 h-8 w-8' />
+                </div>
+                <Link to='/stay'>
+                    <Button variant={'link'} className=''>
+                        Xem tất cả
+                    </Button>
+                </Link>
             </div>
             <Carousel opts={{ align: 'start' }}>
                 <CarouselContent>
