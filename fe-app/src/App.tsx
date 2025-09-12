@@ -11,11 +11,14 @@ import ProfileUserPage from '@/pages/ProfileUserPage.tsx';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage.tsx';
 import { Toaster } from 'react-hot-toast';
 import StayPage from '@/pages/StayPage.tsx';
+import Footer from '@/components/Footer.tsx';
+import ScrollToTop from '@/hooks/ScrollToTop.ts';
 
 function App() {
     return (
         <AdminAuthProvider>
             <BrowserRouter>
+                <ScrollToTop />
                 <Routes>
                     {/* Admin routes - sử dụng AdminApp độc lập */}
                     <Route path='/admin/*' element={<AdminApp />} />
@@ -49,6 +52,9 @@ function ClientApp() {
                     <Route path='/stay' element={<StayPage />} />
                 </Routes>
             </main>
+            <footer className='mx-auto sx:px-0 p-4 sm:max-x-xl md:max-w-7xl lg:max-w-7xl xl:min-w-[1480px]'>
+                <Footer />
+            </footer>
             <BackToTop />
             <Toaster position='top-center' />
         </div>

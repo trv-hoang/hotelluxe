@@ -72,7 +72,7 @@ export function ExplorePlace() {
                                         {place.name}
                                     </h3>
                                     <p className='text-sm text-muted-foreground'>
-                                        {place.count.toLocaleString()} phòng
+                                        {place.count.toLocaleString()}+ phòng
                                     </p>
                                 </CardContent>
                             </Card>
