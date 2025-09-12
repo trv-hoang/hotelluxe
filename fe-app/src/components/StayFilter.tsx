@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
+// src/components/StayFilter.tsx
+import React, { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import {
@@ -23,16 +24,18 @@ interface Props {
     onFilter?: (data: StayDataType[]) => void;
 }
 
-const parsePrice = (priceStr: string) => Number(priceStr.replace(/[^\d]/g, ''));
+const parsePrice = (priceStr: string): number => {
+    return Number(priceStr.replace(/[^\d]/g, '')) || 0;
+};
 
 const parseSaleOff = (saleOff?: string | null): number => {
     if (!saleOff) return 0;
-    const match = saleOff.match(/-?(\d+)%/);
-    return match ? Number(match[1]) : 0;
+    const match = saleOff.match(/(\d+)%/);
+    return match ? parseInt(match[1], 10) : 0;
 };
 
 export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
-    // lấy max giá từ data
+    // ✅ Tính maxPrice duy nhất 1 lần khi data vào
     const maxPrice = useMemo(
         () => Math.max(...data.map((stay) => parsePrice(stay.price))),
         [data],
@@ -45,79 +48,103 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
     ]);
     const [searchTerm, setSearchTerm] = useState('');
     const [bedrooms, setBedrooms] = useState<string | null>(null);
-
-    // Sort state
     const [sortBy, setSortBy] = useState<
         'saleOff' | 'viewCount' | 'reviewCount' | null
     >(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-    // debounce search
-    const handleSearch = useMemo(
-        () => debounce((val: string) => setSearchTerm(val), 300),
-        [],
-    );
+    // Debounce tìm kiếm
+    const debouncedSearch = useMemo(() => debounce(setSearchTerm, 300), []);
 
-    useEffect(() => {
+    React.useEffect(() => {
         return () => {
-            handleSearch.cancel();
+            debouncedSearch.cancel();
         };
-    }, [handleSearch]);
+    }, [debouncedSearch]);
 
-    // Filter logic
+    // 🔒 Filter: chỉ phụ thuộc vào data + các state filter
     const filteredData = useMemo(() => {
         return data.filter((stay) => {
             const price = parsePrice(stay.price);
-
-            const matchCategory = category
+            const matchesCategory = category
                 ? stay.category?.id.toString() === category
                 : true;
-
-            const matchPrice = price >= priceRange[0] && price <= priceRange[1];
-
-            const matchSearch = stay.title
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase());
-
-            const matchBedrooms = bedrooms
-                ? stay.bedrooms?.toString() === bedrooms
+            const matchesPrice =
+                price >= priceRange[0] && price <= priceRange[1];
+            const matchesSearch = searchTerm
+                ? stay.title.toLowerCase().includes(searchTerm.toLowerCase())
                 : true;
 
-            return matchCategory && matchPrice && matchSearch && matchBedrooms;
+            let matchesBedrooms = true;
+            if (bedrooms) {
+                const bedCount = stay.bedrooms ?? 0;
+                matchesBedrooms =
+                    bedrooms === '4+'
+                        ? bedCount >= 4
+                        : bedCount === parseInt(bedrooms);
+            }
+
+            return (
+                matchesCategory &&
+                matchesPrice &&
+                matchesSearch &&
+                matchesBedrooms
+            );
         });
     }, [data, category, priceRange, searchTerm, bedrooms]);
 
-    // Sort logic
+    // 🔒 Sort: tạo mảng mới, nhưng đảm bảo không thay đổi reference nếu không cần
     const sortedData = useMemo(() => {
-        const sorted = [...filteredData];
+        const list = [...filteredData];
 
         if (sortBy === 'saleOff') {
-            sorted.sort((a, b) => {
-                const sa = parseSaleOff(a.saleOff);
-                const sb = parseSaleOff(b.saleOff);
-                return sortOrder === 'asc' ? sa - sb : sb - sa;
+            list.sort((a, b) => {
+                const aOff = parseSaleOff(a.saleOff);
+                const bOff = parseSaleOff(b.saleOff);
+                return sortOrder === 'asc' ? aOff - bOff : bOff - aOff;
             });
         } else if (sortBy === 'viewCount') {
-            sorted.sort((a, b) =>
+            list.sort((a, b) =>
                 sortOrder === 'asc'
                     ? a.viewCount - b.viewCount
                     : b.viewCount - a.viewCount,
             );
         } else if (sortBy === 'reviewCount') {
-            sorted.sort((a, b) =>
+            list.sort((a, b) =>
                 sortOrder === 'asc'
                     ? a.reviewCount - b.reviewCount
                     : b.reviewCount - a.reviewCount,
             );
         }
-        return sorted;
+
+        return list;
     }, [filteredData, sortBy, sortOrder]);
 
-    useEffect(() => {
-        onFilter?.(sortedData);
-    }, [sortedData, onFilter]);
+    // 🚫 KHÔNG DÙNG useEffect nữa → tránh loop
+    // Thay vào đó: GỌI onFilter TRỰC TIẾP trong các hàm xử lý
+    // Nhưng nếu vẫn dùng, hãy đảm bảo nó chỉ chạy khi thực sự cần
 
-    // Reset filters
+    // ✅ Gọi onFilter trực tiếp từ các handler (không qua useEffect)
+    // Nhưng ở đây ta vẫn cần thông báo mỗi khi sortedData thay đổi → dùng layout effect hoặc callback
+
+    // 🔁 Fix loop: Dùng useRef để lưu giá trị trước, tránh gọi onFilter nếu dữ liệu không đổi
+    const prevSortedDataRef = React.useRef<string | null>(null);
+
+    const getIdentityKey = (data: StayDataType[]) => {
+        return data.map((d) => d.id).join(',');
+    };
+
+    const identityKey = getIdentityKey(sortedData);
+
+    React.useLayoutEffect(() => {
+        const prevKey = prevSortedDataRef.current;
+        if (prevKey !== identityKey) {
+            prevSortedDataRef.current = identityKey;
+            onFilter?.(sortedData);
+        }
+    }, [sortedData, identityKey, onFilter]);
+
+    // Reset bộ lọc
     const handleReset = () => {
         setCategory(null);
         setPriceRange([0, maxPrice]);
@@ -125,13 +152,13 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
         setBedrooms(null);
         setSortBy(null);
         setSortOrder('desc');
-        onFilter?.(data);
+        debouncedSearch.cancel();
+        onFilter?.(data); // trả về data gốc
     };
 
-    // Sort buttons
     const handleSort = (field: 'saleOff' | 'viewCount' | 'reviewCount') => {
         if (sortBy === field) {
-            setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+            setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
         } else {
             setSortBy(field);
             setSortOrder('desc');
@@ -154,7 +181,6 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                     Bộ lọc khách sạn ({sortedData.length})
                 </h2>
 
-                {/* Popover filter */}
                 <Popover>
                     <PopoverTrigger asChild>
                         <Button
@@ -167,29 +193,10 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className='w-96 space-y-4'>
-                        {/* Price range */}
-                        {/* <div>
-                            <p className='mb-2 text-sm font-medium'>
-                                Khoảng giá:{' '}
-                                <span className='font-semibold'>
-                                    {priceRange[0].toLocaleString()}đ -{' '}
-                                    {priceRange[1].toLocaleString()}đ
-                                </span>
-                            </p>
-                            <Slider
-                                min={0}
-                                max={maxPrice}
-                                step={500000}
-                                value={priceRange}
-                                onValueChange={(val) =>
-                                    setPriceRange(val as [number, number])
-                                }
-                            />
-                        </div> */}
-                        {/* Price range */}
+                        {/* Khoảng giá */}
                         <div>
                             <p className='mb-2 text-sm font-medium'>
-                                Khoảng giá (VND):{' '}
+                                Khoảng giá (VND):
                             </p>
                             <Slider
                                 min={0}
@@ -201,61 +208,52 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                                 }
                             />
                             <div className='flex items-center justify-between mt-3'>
-                                {/* Min price input */}
-                                <div className='flex items-center gap-1'>
-                                    <div className='flex flex-col items-start gap-1'>
-                                        <span className='text-sm text-gray-600'>
-                                            Thấp nhất:
-                                        </span>
-                                        <Input
-                                            type='number'
-                                            className='w-40'
-                                            step={500000}
-                                            value={priceRange[0]}
-                                            onChange={(e) => {
-                                                const newMin =
-                                                    Number(e.target.value) || 0;
-                                                setPriceRange([
-                                                    newMin,
-                                                    priceRange[1],
-                                                ]);
-                                            }}
-                                        />
-                                    </div>
+                                <div className='flex flex-col items-start gap-1'>
+                                    <span className='text-sm text-gray-600'>
+                                        Thấp nhất:
+                                    </span>
+                                    <Input
+                                        type='number'
+                                        className='w-40'
+                                        step={500000}
+                                        value={priceRange[0]}
+                                        onChange={(e) => {
+                                            const val = Math.max(
+                                                0,
+                                                Number(e.target.value) || 0,
+                                            );
+                                            setPriceRange([val, priceRange[1]]);
+                                        }}
+                                    />
                                 </div>
-
-                                {/* Max price input */}
-                                <div className='flex items-center gap-1'>
-                                    <div className='flex flex-col items-start gap-1'>
-                                        <span className='text-sm text-gray-600'>
-                                            Cao nhất:
-                                        </span>
-                                        <Input
-                                            type='number'
-                                            className='w-40'
-                                            step={500000}
-                                            value={priceRange[1]}
-                                            onChange={(e) => {
-                                                const newMax =
-                                                    Number(e.target.value) ||
-                                                    maxPrice;
-                                                setPriceRange([
-                                                    priceRange[0],
-                                                    newMax,
-                                                ]);
-                                            }}
-                                        />
-                                    </div>
+                                <div className='flex flex-col items-start gap-1'>
+                                    <span className='text-sm text-gray-600'>
+                                        Cao nhất:
+                                    </span>
+                                    <Input
+                                        type='number'
+                                        className='w-40'
+                                        step={500000}
+                                        value={priceRange[1]}
+                                        onChange={(e) => {
+                                            const val = Math.min(
+                                                maxPrice,
+                                                Number(e.target.value) ||
+                                                    maxPrice,
+                                            );
+                                            setPriceRange([priceRange[0], val]);
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Category */}
+                        {/* Loại hình */}
                         <Select
-                            onValueChange={(val) => setCategory(val)}
+                            onValueChange={setCategory}
                             value={category ?? ''}
                         >
-                            <SelectTrigger className='w-full'>
+                            <SelectTrigger>
                                 <SelectValue placeholder='Chọn loại khách sạn' />
                             </SelectTrigger>
                             <SelectContent>
@@ -266,12 +264,12 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                             </SelectContent>
                         </Select>
 
-                        {/* Bedrooms */}
+                        {/* Phòng ngủ */}
                         <Select
-                            onValueChange={(val) => setBedrooms(val)}
+                            onValueChange={setBedrooms}
                             value={bedrooms ?? ''}
                         >
-                            <SelectTrigger className='w-full'>
+                            <SelectTrigger>
                                 <SelectValue placeholder='Số phòng ngủ' />
                             </SelectTrigger>
                             <SelectContent>
@@ -282,10 +280,10 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                             </SelectContent>
                         </Select>
 
-                        {/* Search */}
+                        {/* Tìm kiếm */}
                         <Input
                             placeholder='Tìm kiếm khách sạn...'
-                            onChange={(e) => handleSearch(e.target.value)}
+                            onChange={(e) => debouncedSearch(e.target.value)}
                         />
 
                         <Button
@@ -301,7 +299,7 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                 </Popover>
             </div>
 
-            {/* Sort buttons */}
+            {/* Nút sắp xếp */}
             <div className='flex items-center gap-3'>
                 <Button
                     variant={sortBy === 'saleOff' ? 'default' : 'outline'}
@@ -309,28 +307,23 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                     onClick={() => handleSort('saleOff')}
                     className='flex items-center gap-1'
                 >
-                    Giảm giá
-                    {renderSortIcon('saleOff')}
+                    Giảm giá {renderSortIcon('saleOff')}
                 </Button>
-
                 <Button
                     variant={sortBy === 'viewCount' ? 'default' : 'outline'}
                     size='sm'
                     onClick={() => handleSort('viewCount')}
                     className='flex items-center gap-1'
                 >
-                    Lượt xem
-                    {renderSortIcon('viewCount')}
+                    Lượt xem {renderSortIcon('viewCount')}
                 </Button>
-
                 <Button
                     variant={sortBy === 'reviewCount' ? 'default' : 'outline'}
                     size='sm'
                     onClick={() => handleSort('reviewCount')}
                     className='flex items-center gap-1'
                 >
-                    Đánh giá
-                    {renderSortIcon('reviewCount')}
+                    Đánh giá {renderSortIcon('reviewCount')}
                 </Button>
             </div>
         </div>

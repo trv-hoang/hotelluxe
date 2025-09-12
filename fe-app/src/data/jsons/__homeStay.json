@@ -24,7 +24,7 @@
         "bedrooms": 10,
         "bathrooms": 3,
         "saleOff": "-10% hôm nay",
-        "isAds": null,
+        "isAds": true,
         "map": { "lat": 10.776889, "lng": 106.700806 }
     },
     {
@@ -808,7 +808,7 @@
         "bedrooms": 4,
         "bathrooms": 3,
         "saleOff": "-10% hôm nay",
-        "isAds": null,
+        "isAds": true,
         "map": { "lat": 10.346, "lng": 107.082 }
     },
     {
