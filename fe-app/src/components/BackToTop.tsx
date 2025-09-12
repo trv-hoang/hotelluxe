@@ -7,7 +7,7 @@ export default function BackToTop() {
     // Theo dõi scroll
     useEffect(() => {
         const toggleVisibility = () => {
-            if (window.scrollY > 200) {
+            if (window.scrollY > 100) {
                 setIsVisible(true);
             } else {
                 setIsVisible(false);
@@ -31,7 +31,7 @@ export default function BackToTop() {
             {isVisible && (
                 <button
                     onClick={scrollToTop}
-                    className='fixed bottom-6 right-6 p-3 rounded-full bg-gray-800 text-white shadow-lg hover:bg-gray-700 transition-all'
+                    className='fixed bottom-6 right-6 p-3 rounded-full bg-gray-600 text-white shadow-lg hover:bg-gray-700 transition-all'
                 >
                     <ArrowUp className='w-5 h-5' />
                 </button>
