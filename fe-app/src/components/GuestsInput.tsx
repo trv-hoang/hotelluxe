@@ -22,7 +22,7 @@ const GuestsInput = ({
     fieldClassName = '[ nc-hero-field-padding ]',
     className = '[ nc-flex-1 ]',
     buttonSubmitHref = '/listing-stay-map',
-    hasButtonSubmit = true,
+    hasButtonSubmit = false,
 }: GuestsInputProps) => {
     const [guestAdultsInputValue, setGuestAdultsInputValue] = useState(2);
     const [guestChildrenInputValue, setGuestChildrenInputValue] = useState(1);
@@ -57,15 +57,15 @@ const GuestsInput = ({
             <PopoverTrigger asChild>
                 <div className={`flex relative ${className}`}>
                     <div
-                        className={`flex-1 z-10 flex items-center focus:outline-none ${
-                            isOpen ? 'nc-hero-field-focused' : ''
+                        className={`flex-1 z-10 flex items-center focus:outline-none -ml-3 ${
+                            isOpen ? 'cus-hero-field-focused' : ''
                         }`}
                     >
                         <button
                             type='button'
                             className={`relative z-10 flex-1 flex text-left items-center ${fieldClassName} space-x-3 focus:outline-none w-full`}
                         >
-                            <div className='text-neutral-300 dark:text-neutral-400 ml-3'>
+                            <div className='text-neutral-300 dark:text-neutral-400 '>
                                 <UserPlus className='w-5 h-5 lg:w-7 lg:h-7' />
                             </div>
                             <div className='flex-grow'>

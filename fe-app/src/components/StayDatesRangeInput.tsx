@@ -58,10 +58,10 @@ export default function StayDatesRangeInput({
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger
                 className={cn(
-                    'flex-1 z-10 flex relative items-center space-x-3 focus:outline-none',
+                    'flex-1 z-10 flex relative items-center space-x-4 focus:outline-none',
                     fieldClassName,
                     className,
-                    open && 'nc-hero-field-focused', // chỉ add class khi mở
+                    open && 'cus-hero-field-focused', // chỉ add class khi mở
                 )}
             >
                 {renderInput()}

@@ -11,7 +11,7 @@ const DEMO_STAY_LISTINGS = __stayListing.map((post, index): StayDataType => {
 
     return {
         ...post,
-        id: `stayListing_${index}_`,
+        id: post.id,
         saleOff: !index ? '-20% today' : post.saleOff,
         isAds: !index ? true : post.isAds,
         author:

@@ -45,6 +45,7 @@ function StayCard({
                 galleryImgs={galleryImgs}
                 href={href}
                 galleryClass={size === 'default' ? undefined : ''}
+                id={id}
             />
             <BtnLikeIcon
                 isLiked={like}
@@ -130,7 +131,7 @@ function StayCard({
             data-nc-id='StayCard'
         >
             {renderSliderGallery()}
-            <Link to={href}>{renderContent()}</Link>
+            <Link to={`/stay-detail/${id}`}>{renderContent()}</Link>
         </div>
     );
 }
