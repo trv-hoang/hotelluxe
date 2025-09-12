@@ -221,7 +221,7 @@ const mockBookings: BookingEnhanced[] = [
     }
 ];
 
-const BookingsPage: React.FC = () => {
+const BookingPage: React.FC = () => {
     const [bookings, setBookings] = useState<BookingEnhanced[]>([]);
     const [filteredBookings, setFilteredBookings] = useState<BookingEnhanced[]>([]);
     const [loading, setLoading] = useState(false);
@@ -232,15 +232,15 @@ const BookingsPage: React.FC = () => {
     const [showDetails, setShowDetails] = useState(false);
     const { addNotification } = useNotifications();
 
-    // Load bookings data - optimized for faster loading
+    // Load bookings data
     useEffect(() => {
         setLoading(true);
-        // Reduced delay for better UX
+        // TODO: Replace with real API call
         setTimeout(() => {
             setBookings(mockBookings);
             setFilteredBookings(mockBookings);
             setLoading(false);
-        }, 300); // Reduced from 1000 to 300ms
+        }, 1000);
     }, []);
 
     // Filter bookings based on search and filters
@@ -273,8 +273,8 @@ const BookingsPage: React.FC = () => {
 
     const handleStatusChange = async (bookingId: number, newStatus: BookingStatus) => {
         try {
-            // Reduced delay for better UX
-            await new Promise(resolve => setTimeout(resolve, 200));
+            // TODO: Replace with real API call
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             setBookings(prevBookings =>
                 prevBookings.map(booking =>
@@ -300,8 +300,8 @@ const BookingsPage: React.FC = () => {
 
     const handlePaymentStatusChange = async (bookingId: number, newPaymentStatus: 'paid' | 'pending' | 'refunded') => {
         try {
-            // Reduced delay for better UX
-            await new Promise(resolve => setTimeout(resolve, 200));
+            // TODO: Replace with real API call
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             setBookings(prevBookings =>
                 prevBookings.map(booking =>
@@ -856,4 +856,4 @@ const BookingsPage: React.FC = () => {
     );
 };
 
-export default BookingsPage;
+export default BookingPage;

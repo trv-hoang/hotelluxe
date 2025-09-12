@@ -12,6 +12,8 @@ import './styles/_admin_theme.css';
 const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminDashboardPage'));
 const UsersPage = React.lazy(() => import('./pages/admin/UsersPage'));
 const BookingsPage = React.lazy(() => import('./pages/admin/BookingsPage'));
+const RoomsPage = React.lazy(() => import('./pages/admin/RoomsPage'));
+const HotelPage = React.lazy(() => import('./pages/admin/HotelPage'));
 const SettingsPage = React.lazy(() => import('./pages/admin/SettingsPage'));
 const AdminLoginPage = React.lazy(() => import('./pages/admin/AdminLoginPage'));
 const AdminForgotPasswordPage = React.lazy(() => import('./pages/admin/AdminForgotPasswordPage'));
@@ -22,6 +24,8 @@ const sidebarItems = [
     { name: 'Dashboard', link: '/admin/dashboard' },
     { name: 'Users', link: '/admin/users' },
     { name: 'Bookings', link: '/admin/bookings' },
+    { name: 'Rooms', link: '/admin/rooms' },
+    { name: 'Hotel', link: '/admin/hotel' },
     { name: 'Settings', link: '/admin/settings' },
 ];
 
@@ -280,6 +284,16 @@ const AdminAppContent: React.FC = () => {
                         <Route path="/bookings" element={
                             <AdminProtectedRoute>
                                 <BookingsPage />
+                            </AdminProtectedRoute>
+                        } />
+                        <Route path="/rooms" element={
+                            <AdminProtectedRoute>
+                                <RoomsPage />
+                            </AdminProtectedRoute>
+                        } />
+                        <Route path="/hotel" element={
+                            <AdminProtectedRoute>
+                                <HotelPage />
                             </AdminProtectedRoute>
                         } />
                         <Route path="/settings" element={
