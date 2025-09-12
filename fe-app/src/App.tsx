@@ -10,6 +10,7 @@ import AdminAuthProvider from '@/contexts/AdminAuthContext.tsx';
 import ProfileUserPage from '@/pages/ProfileUserPage.tsx';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage.tsx';
 import { Toaster } from 'react-hot-toast';
+import StayPage from '@/pages/StayPage.tsx';
 
 function App() {
     return (
@@ -45,6 +46,7 @@ function ClientApp() {
                         path='/forgot-password'
                         element={<ForgotPasswordPage />}
                     />
+                    <Route path='/stay' element={<StayPage />} />
                 </Routes>
             </main>
             <BackToTop />
