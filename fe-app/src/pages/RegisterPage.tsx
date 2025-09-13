@@ -3,6 +3,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { register } from '@/api/auth';
+import { GoogleIcon } from '@/components/icons/GoogleIcon';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
+} from '@/components/ui/card';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
@@ -20,7 +28,6 @@ export default function RegisterPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Check password match trước khi gọi API
         if (form.password !== form.password_confirmation) {
             alert('Mật khẩu nhập lại không khớp');
             return;
@@ -33,12 +40,10 @@ export default function RegisterPage() {
                 form.password,
                 form.password_confirmation,
             );
-
             localStorage.setItem('token', res.token);
             navigate('/profile');
         } catch (err: unknown) {
             let errorMessage = 'Đăng ký thất bại';
-
             if (err && typeof err === 'object' && 'response' in err) {
                 const apiError = err as {
                     response?: { data?: { message?: string } };
@@ -47,72 +52,91 @@ export default function RegisterPage() {
             } else if (err instanceof Error) {
                 errorMessage = err.message;
             }
-
             alert(errorMessage);
         }
     };
 
     return (
         <div className='min-h-screen flex items-center justify-center px-6 relative'>
-            <div className='absolute top-0 left-0 w-72 h-72 bg-gradient-to-r from-green-400 to-blue-500 rounded-full blur-3xl opacity-30' />
-            <div className='absolute bottom-0 right-0 w-72 h-72 bg-gradient-to-tr from-pink-400 to-purple-500 rounded-full blur-3xl opacity-30' />
-            {/* <div className='absolute top-1/2 left-1/2 w-80 h-80 bg-gradient-to-br from-green-400 to-red-200 rounded-full blur-3xl opacity-20 -translate-x-1/2 -translate-y-1/2' /> */}
-            <div className='w-full max-w-sm p-6 border rounded-lg shadow-lg bg-white'>
-                <h1 className='text-2xl font-bold mb-6 text-center'>
-                    Tạo tài khoản
-                </h1>
+            <div className='absolute top-0 left-36 w-72 h-72 bg-gradient-to-r from-green-400 to-blue-500 rounded-full blur-3xl opacity-30' />
+            <div className='absolute bottom-0 right-40 w-72 h-72 bg-gradient-to-tr from-pink-400 to-purple-500 rounded-full blur-3xl opacity-30' />
 
-                <form onSubmit={handleSubmit} className='space-y-4'>
-                    <Input
-                        name='name'
-                        placeholder='Họ và tên'
-                        value={form.name}
-                        onChange={handleChange}
-                        required
-                    />
-                    <Input
-                        name='email'
-                        placeholder='Email'
-                        type='email'
-                        value={form.email}
-                        onChange={handleChange}
-                        required
-                    />
-                    <Input
-                        name='password'
-                        placeholder='Mật khẩu'
-                        type='password'
-                        value={form.password}
-                        onChange={handleChange}
-                        required
-                    />
-                    <Input
-                        name='password_confirmation'
-                        placeholder='Xác nhận mật khẩu'
-                        type='password'
-                        value={form.password_confirmation}
-                        onChange={handleChange}
-                        required
-                    />
+            <Card className='w-full max-w-sm p-6'>
+                <CardHeader className='text-center'>
+                    <CardTitle className='text-xl'>Tạo tài khoản</CardTitle>
+                    <CardDescription>Tạo bằng tài khoản Google</CardDescription>
+                </CardHeader>
 
-                    <Button
-                        type='submit'
-                        className='w-full bg-green-700 text-white'
-                    >
-                        Đăng ký
-                    </Button>
+                <CardContent>
+                    {/* Social Register */}
+                    <div className='flex flex-col gap-4 mb-6'>
+                        <Button variant='outline' className='w-full'>
+                            <GoogleIcon className='w-5 h-5 mr-2' />
+                            Google
+                        </Button>
+                    </div>
 
-                    <p className='text-sm text-center'>
-                        Đã có tài khoản?{' '}
-                        <Link
-                            to='/login'
-                            className='text-green-600 underline underline-offset-4'
+                    {/* Divider */}
+                    <div className='relative text-center text-sm my-6'>
+                        <span className='bg-white px-2 relative z-10'>
+                            Hoặc đăng ký mới
+                        </span>
+                        <div className='absolute inset-0 top-1/2 border-t border-gray-300' />
+                    </div>
+
+                    {/* Register Form */}
+                    <form onSubmit={handleSubmit} className='grid gap-4'>
+                        <Input
+                            name='name'
+                            placeholder='Họ và tên'
+                            value={form.name}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Input
+                            name='email'
+                            placeholder='Email'
+                            type='email'
+                            value={form.email}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Input
+                            name='password'
+                            placeholder='Mật khẩu'
+                            type='password'
+                            value={form.password}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Input
+                            name='password_confirmation'
+                            placeholder='Xác nhận mật khẩu'
+                            type='password'
+                            value={form.password_confirmation}
+                            onChange={handleChange}
+                            required
+                        />
+
+                        <Button
+                            type='submit'
+                            className='w-full bg-green-700 text-white'
                         >
-                            Đăng nhập
-                        </Link>
-                    </p>
-                </form>
-            </div>
+                            Đăng ký
+                        </Button>
+
+                        <p className='text-sm text-center'>
+                            Đã có tài khoản?{' '}
+                            <Link
+                                to='/login'
+                                className='text-green-600 underline underline-offset-4'
+                            >
+                                Đăng nhập
+                            </Link>
+                        </p>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     );
 }

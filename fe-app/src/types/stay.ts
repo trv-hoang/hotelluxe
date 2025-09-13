@@ -39,6 +39,7 @@ export interface StayDataType {
     title: string; // Tên khách sạn/villa...
     featuredImage: string; // Ảnh chính
     galleryImgs: string[]; // Album ảnh
+    description: string; // Mô tả
 
     price: string; // Giá
     address: string; // Địa chỉ
