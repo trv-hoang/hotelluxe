@@ -215,7 +215,7 @@ input[type='time']::-webkit-calendar-picker-indicator {
 }
 
 /* ------------------------------------ */
-.nc-PropertyCardH .nc-BtnLikeIcon--liked {
+.nc-PropertyCardH .cus-BtnLikeIcon--liked {
     @apply text-red-500 dark:text-red-500;
 }
 
