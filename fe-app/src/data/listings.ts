@@ -19,6 +19,7 @@ const DEMO_STAY_LISTINGS = __stayListing.map((post, index): StayDataType => {
             DEMO_AUTHORS[0],
         category,
         href: post.href,
+        description: post.description || 'Chưa có mô tả',
     };
 });
 export { DEMO_STAY_LISTINGS };
