@@ -1,21 +1,60 @@
 // Dữ liệu signup
-export interface SignupPayload {
-    name: string;
-    email: string;
-    password: string;
+// export interface SignupPayload {
+//     name: string;
+//     email: string;
+//     password: string;
+// }
+
+// // Dữ liệu login
+// export interface LoginPayload {
+//     email: string;
+//     password: string;
+// }
+
+// // Dữ liệu update profile
+// export interface UpdateProfilePayload {
+//     name?: string;
+//     email?: string;
+//     password?: string;
+//     profilePic?: string;
+//     // tuỳ theo API của bạn
+// }
+
+// Kiểu dữ liệu User mới
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string; // chỉ để mockup
+  role: "admin" | "user";
+  profilePic?: string;
+  nickname?: string;
+  dob?: string;
+  phone?: string;
+  gender?: string;
+  address?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// Dữ liệu login
+// Payloads
 export interface LoginPayload {
-    email: string;
-    password: string;
+  email: string;
+  password: string;
 }
 
-// Dữ liệu update profile
+export interface SignupPayload {
+  name: string;
+  email: string;
+  password: string;
+}
+
 export interface UpdateProfilePayload {
-    name?: string;
-    email?: string;
-    password?: string;
-    profilePic?: string;
-    // tuỳ theo API của bạn
+  name?: string;
+  nickname?: string;
+  dob?: string;
+  phone?: string;
+  address?: string;
+  gender?: string;
+  profilePic?: string;
 }

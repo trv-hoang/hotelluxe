@@ -10,10 +10,11 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import UserSetting from '@/components/UserSetting';
+import { useAuthStore } from '@/store/useAuthStore';
 
 // TEMP
-const authUser = true;
 const Navbar = () => {
+    const { authUser } = useAuthStore();
     return (
         <div className='w-full flex items-center justify-between border-b border-gray-300 py-2 px-10 fixed top-0 z-50 bg-white/80 backdrop-blur-md'>
             {/* left */}

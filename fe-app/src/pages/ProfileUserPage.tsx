@@ -36,26 +36,17 @@ const ProfileUserPage = () => {
     const [open, setOpen] = useState(false);
     const [profile, setProfile] = useState<IUser | null>(null);
 
-    // mock user tạm
-    const mockUser: IUser = {
-        id: 1,
-        name: 'Kha Don',
-        nickname: 'Kha',
-        dob: '01/01/2025',
-        email: 'khadon@gmail.com',
-        phone: '0123456789',
-        gender: 'nam',
-        address: 'HCM',
-        role: 'user',
-    };
-
+    // Đồng bộ authUser vào state local
     useEffect(() => {
-        setProfile(mockUser);
-    }, []);
+        if (authUser) {
+            setProfile(authUser);
+        }
+    }, [authUser]);
 
-    const fullName = profile?.name || 'KhaDon';
-    const email = profile?.email || 'khadon@gmail.com';
+    const fullName = profile?.name || '';
+    const email = profile?.email || '';
 
+    // Upload avatar
     const handleImageUpload = async (
         e: React.ChangeEvent<HTMLInputElement>,
     ) => {
@@ -66,20 +57,23 @@ const ProfileUserPage = () => {
         reader.onload = async () => {
             const base64Image = reader.result as string;
             setSelectedImg(base64Image);
-            await updateProfile({ profilePic: base64Image });
+            if (profile) {
+                await updateProfile({ ...profile, profilePic: base64Image });
+            }
         };
     };
 
+    // Handle thay đổi input
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!profile) return;
         setProfile({ ...profile, [e.target.name]: e.target.value });
     };
 
+    // Submit update
     const handleSubmit = async () => {
         if (!profile) return;
-        console.log('Updated profile:', profile);
+        await updateProfile(profile);
         setOpen(false);
-        alert('Profile updated (mock)');
     };
 
     return (
@@ -260,24 +254,6 @@ const ProfileUserPage = () => {
                                 alt='Profile'
                                 className='w-32 h-32 rounded-full object-cover border-4 border-white shadow-md'
                             />
-                            {/* <label
-                                htmlFor='avatar-upload-main'
-                                className={`absolute bottom-2 right-2 flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white cursor-pointer transition hover:scale-105 ${
-                                    isUpdatingProfile
-                                        ? 'animate-pulse pointer-events-none'
-                                        : ''
-                                }`}
-                            >
-                                <Camera className='w-4 h-4' />
-                                <input
-                                    type='file'
-                                    id='avatar-upload-main'
-                                    className='hidden'
-                                    accept='image/*'
-                                    onChange={handleImageUpload}
-                                    disabled={isUpdatingProfile}
-                                />
-                            </label> */}
                         </div>
                         <p className='text-sm text-gray-500'>
                             {isUpdatingProfile
@@ -329,7 +305,6 @@ const ProfileUserPage = () => {
                                 </span>
                                 <div className='p-3 rounded-lg text-lg text-white bg-gray-800'>
                                     <span className='ml-2'>
-                                        {' '}
                                         {item.value || '—'}
                                     </span>
                                 </div>

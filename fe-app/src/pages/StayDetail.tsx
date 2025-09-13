@@ -42,6 +42,7 @@ import { useBookingStore } from '@/store/useBookingStore';
 import { calculatorPrice } from '@/utils/calculatorPrice';
 import { getRandomDescription } from '@/data/stayDes';
 
+
 const StayDetailPage = () => {
     const { id } = useParams();
     const [isOpenModalAmenities, setIsOpenModalAmenities] = useState(false);
@@ -58,7 +59,6 @@ const StayDetailPage = () => {
         checkOutTime?: string;
         cancellationPolicy?: string;
         specialNotes?: string[];
-        description?: string;
         amenities?: string;
     };
 
@@ -455,7 +455,7 @@ const StayDetailPage = () => {
 
                 <Separator className='my-6' />
                 <Button variant='outline' asChild>
-                    <Link to='/author'>Xem hồ sơ chủ nhà</Link>
+                    <Link to='#'>Xem hồ sơ chủ nhà</Link>
                 </Button>
             </div>
         );
@@ -492,7 +492,7 @@ const StayDetailPage = () => {
 
                     <div className='pt-8'>
                         <Button variant='outline' asChild>
-                            <Link to='/reviews'>Xem thêm đánh giá</Link>
+                            <Link to='#'>Xem thêm đánh giá</Link>
                         </Button>
                     </div>
                 </div>

@@ -1,105 +1,117 @@
 import { create } from 'zustand';
-import { axiosInstance } from '../lib/axios';
+import { persist } from 'zustand/middleware';
 import toast from 'react-hot-toast';
-import type { User } from '@/types/type';
+import users from '@/data/jsons/__users.json';
+import avatarImg from '@/assets/avatar.png';
 import type {
+    User,
     LoginPayload,
     SignupPayload,
     UpdateProfilePayload,
 } from '@/types/profile';
 
-// Định nghĩa kiểu dữ liệu User (tùy theo backend của bạn trả về gì)
-
-// Định nghĩa type cho Zustand store
 interface AuthState {
     authUser: User | null;
-    isCheckingAuth: boolean;
     isLoggingIn: boolean;
     isSigningUp: boolean;
     isUpdatingProfile: boolean;
 
-    checkAuth: () => Promise<void>;
-    setAuthUser: (user: User | null) => void;
-    signup: (data: SignupPayload) => Promise<void>;
     login: (data: LoginPayload) => Promise<void>;
-    logout: () => Promise<void>;
+    logout: () => void;
+    signup: (data: SignupPayload) => Promise<void>;
     updateProfile: (data: UpdateProfilePayload) => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-    authUser: null,
-    isCheckingAuth: true,
-    isLoggingIn: false,
-    isSigningUp: false,
-    isUpdatingProfile: false,
+export const useAuthStore = create<AuthState>()(
+    persist(
+        (set, get) => ({
+            authUser: null,
+            isLoggingIn: false,
+            isSigningUp: false,
+            isUpdatingProfile: false,
 
-    checkAuth: async () => {
-        try {
-            const res = await axiosInstance.get<User>('/auth/check-auth');
-            set({ authUser: res.data });
-        } catch (error) {
-            console.log('Error in checkAuth', error);
-            set({ authUser: null, isCheckingAuth: false });
-        } finally {
-            set({ isCheckingAuth: false });
-        }
-    },
+            login: async ({ email, password }) => {
+                set({ isLoggingIn: true });
+                try {
+                    const user = users.find(
+                        (u) => u.email === email && u.password === password,
+                    );
+                    if (!user) throw new Error('Sai email hoặc mật khẩu');
 
-    setAuthUser: (user) => set({ authUser: user, isCheckingAuth: false }),
+                    set({
+                        authUser: {
+                            ...user,
+                            role: user.role as 'admin' | 'user', // ép kiểu cho đúng type
+                        },
+                    });
 
-    signup: async (data) => {
-        set({ isSigningUp: true });
-        try {
-            const res = await axiosInstance.post<User>('/auth/signup', data);
-            set({ authUser: res.data });
-            toast.success('Account created successfully');
-        } catch (error) {
-            console.log('Error in signup', error);
-            toast.error('Signup failed');
-        } finally {
-            set({ isSigningUp: false });
-        }
-    },
+                    toast.success('Đăng nhập thành công');
+                } catch (error) {
+                    toast.error('Sai email hoặc mật khẩu');
+                    console.error('Login error:', error);
+                } finally {
+                    set({ isLoggingIn: false });
+                }
+            },
 
-    login: async (data) => {
-        set({ isLoggingIn: true });
-        try {
-            const res = await axiosInstance.post<User>('/auth/login', data);
-            set({ authUser: res.data });
-            toast.success('Login successful');
-        } catch (error) {
-            toast.error('Invalid email or password');
-            console.log('Error in login', error);
-        } finally {
-            set({ isLoggingIn: false });
-        }
-    },
+            logout: () => {
+                set({ authUser: null });
+                toast.success('Đã đăng xuất');
+                window.location.href = '/login';
+            },
 
-    logout: async () => {
-        try {
-            await axiosInstance.post('/auth/logout');
-            set({ authUser: null });
-            toast.success('Logout successful');
-        } catch (error) {
-            console.log('Error in logout', error);
-            toast.error('Logout failed');
-        }
-    },
+            signup: async (data) => {
+                set({ isSigningUp: true });
+                try {
+                    const exists = users.find((u) => u.email === data.email);
+                    if (exists) throw new Error('Email đã tồn tại');
 
-    updateProfile: async (data) => {
-        set({ isUpdatingProfile: true });
-        try {
-            const res = await axiosInstance.put<User>(
-                '/auth/update-profile',
-                data,
-            );
-            set({ authUser: res.data });
-            toast.success('Profile updated successfully');
-        } catch (error) {
-            console.log('Error in update profile:', error);
-            toast.error('Failed to update profile');
-        } finally {
-            set({ isUpdatingProfile: false });
-        }
-    },
-}));
+                    const newUser: User = {
+                        id: users.length + 1,
+                        name: data.name,
+                        email: data.email,
+                        password: data.password,
+                        role: 'user',
+                        profilePic: avatarImg || 'Avatar',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                    };
+
+                    // mock: không thật sự ghi file, chỉ set vào state
+                    set({ authUser: newUser });
+                    toast.success('Tạo tài khoản thành công');
+                } catch (error) {
+                    toast.error('Đăng ký thất bại');
+                    console.error('Signup error:', error);
+                } finally {
+                    set({ isSigningUp: false });
+                }
+            },
+
+            updateProfile: async (data) => {
+                set({ isUpdatingProfile: true });
+                try {
+                    const current = get().authUser;
+                    if (!current) throw new Error('Chưa đăng nhập');
+
+                    const updated: User = {
+                        ...current,
+                        ...data,
+                        updatedAt: new Date().toISOString(),
+                    };
+
+                    set({ authUser: updated });
+                    toast.success('Cập nhật hồ sơ thành công');
+                } catch (error) {
+                    toast.error('Không thể cập nhật hồ sơ');
+                    console.error('Update profile error:', error);
+                } finally {
+                    set({ isUpdatingProfile: false });
+                }
+            },
+        }),
+        {
+            name: 'luxe-auth-storage', // key lưu trong localStorage
+        },
+    ),
+);
