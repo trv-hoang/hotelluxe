@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AvatarFallback, AvatarImage, Avatar } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -42,6 +42,7 @@ import { useBookingStore } from '@/store/useBookingStore';
 import { calculatorPrice } from '@/utils/calculatorPrice';
 import { getRandomDescription } from '@/data/stayDes';
 import ModalDetail from '@/components/ModelDetail';
+import CategoryBadge from '@/shared/CategoryBadge';
 
 const StayDetailPage = () => {
     const { id } = useParams();
@@ -193,9 +194,7 @@ const StayDetailPage = () => {
             <div className='listingSection__wrap !space-y-6'>
                 {/* 1. Danh mục */}
                 <div className='flex justify-between items-center'>
-                    <Badge variant='outline'>
-                        {category?.name || 'Chưa xác định'}
-                    </Badge>
+                    <CategoryBadge category={category} />
                     <LikeSaveBtns />
                 </div>
 
