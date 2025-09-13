@@ -1,225 +1,70 @@
 import React, { useState, useEffect } from 'react';
-import type { BookingEnhanced, BookingStatus } from '@/types/hotel';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminButton from '@/components/admin/AdminButton';
 import AdminInput from '@/components/admin/AdminInput';
 import AdminCard from '@/components/admin/AdminCard';
 import { useNotifications } from '@/hooks/useNotifications';
 
-// Mock booking data - replace with real API calls
-const mockBookings: BookingEnhanced[] = [
-    {
-        id: 1,
-        bookingNumber: 'BK-2024-001',
-        userId: 1,
-        roomId: 101,
-        room: {
-            id: 101,
-            number: '101',
-            floor: 1,
-            roomType: {
-                id: 1,
-                name: 'Deluxe Suite',
-                description: 'Luxury suite with ocean view',
-                basePrice: 250,
-                maxGuests: 4,
-                bedConfiguration: [{ type: 'king', quantity: 1 }],
-                size: 45,
-                amenities: [],
-                images: [],
-                isActive: true
-            },
-            status: 'occupied',
-            isActive: true,
-            createdAt: new Date('2023-01-01'),
-            updatedAt: new Date()
+import usersData from '../../data/jsons/__users.json';
+import homeStayData from '../../data/jsons/__homeStay.json';
+import type { BookingEnhanced, BookingStatus, RoomStatus, PaymentStatus, BookingSource } from '../../types/hotel';
+
+// Tạo mockBookings từ dữ liệu usersData và homeStayData
+const mockBookings = usersData.slice(0, 4).map((user, idx) => ({
+    id: idx + 1,
+    bookingNumber: `BK-2025-00${idx + 1}`,
+    userId: user.id,
+    roomId: homeStayData[idx]?.id || 1,
+    room: {
+        id: (homeStayData[idx] as { id?: number }).id ?? 1,
+        number: String((homeStayData[idx] as { id?: number }).id ?? 1),
+        floor: 1,
+        roomType: {
+            id: (homeStayData[idx] as { id?: number }).id ?? 1,
+            name: (homeStayData[idx] as { title?: string }).title ?? '',
+            description: (homeStayData[idx] as { description?: string }).description ?? '',
+            basePrice: Number((homeStayData[idx] as { price?: string }).price?.replace(/[^\d]/g, '')) || 0,
+            maxGuests: (homeStayData[idx] as { maxGuests?: number }).maxGuests ?? 2,
+            bedConfiguration: [{ type: 'king' as const, quantity: (homeStayData[idx] as { bedrooms?: number }).bedrooms ?? 1 }],
+            size: 25,
+            amenities: [],
+            images: (() => {
+                const galleryImgs = (homeStayData[idx] as { galleryImgs?: string[] }).galleryImgs;
+                return Array.isArray(galleryImgs) && galleryImgs.length > 0 ? galleryImgs : ['/src/assets/logo.png'];
+            })(),
+            isActive: true
         },
-        checkInDate: new Date('2024-02-15'),
-        checkOutDate: new Date('2024-02-18'),
-        nights: 3,
-        guests: {
-            primary: {
-                firstName: 'John',
-                lastName: 'Doe',
-                email: 'john.doe@email.com',
-                phone: '+1-555-0123'
-            },
-            additional: [],
-            totalAdults: 2,
-            totalChildren: 0
-        },
-        totalAmount: 750.00,
-        baseAmount: 750.00,
-        taxes: 0,
-        fees: 0,
-        discounts: 0,
-        paymentStatus: 'paid',
-        status: 'confirmed',
-        source: 'direct',
-        specialRequests: 'Late check-in, ocean view preferred',
-        createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-20')
+        status: idx % 3 === 0 ? 'available' as RoomStatus : (idx % 3 === 1 ? 'occupied' as RoomStatus : 'maintenance' as RoomStatus),
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
     },
-    {
-        id: 2,
-        bookingNumber: 'BK-2024-002',
-        userId: 2,
-        roomId: 205,
-        room: {
-            id: 205,
-            number: '205',
-            floor: 2,
-            roomType: {
-                id: 2,
-                name: 'Standard Room',
-                description: 'Comfortable standard accommodation',
-                basePrice: 160,
-                maxGuests: 2,
-                bedConfiguration: [{ type: 'double', quantity: 1 }],
-                size: 25,
-                amenities: [],
-                images: [],
-                isActive: true
-            },
-            status: 'available',
-            isActive: true,
-            createdAt: new Date('2023-01-01'),
-            updatedAt: new Date()
+    checkInDate: new Date('2025-09-13'),
+    checkOutDate: new Date('2025-09-15'),
+    nights: 2,
+    guests: {
+        primary: {
+            firstName: user.name.split(' ')[0],
+            lastName: user.name.split(' ').slice(1).join(' '),
+            email: user.email,
+            phone: user.phone || ''
         },
-        checkInDate: new Date('2024-02-10'),
-        checkOutDate: new Date('2024-02-12'),
-        nights: 2,
-        guests: {
-            primary: {
-                firstName: 'Jane',
-                lastName: 'Smith',
-                email: 'jane.smith@email.com',
-                phone: '+1-555-0456'
-            },
-            additional: [],
-            totalAdults: 1,
-            totalChildren: 0
-        },
-        totalAmount: 320.00,
-        baseAmount: 320.00,
-        taxes: 0,
-        fees: 0,
-        discounts: 0,
-        paymentStatus: 'pending',
-        status: 'pending',
-        source: 'booking_com',
-        createdAt: new Date('2024-01-10'),
-        updatedAt: new Date('2024-01-10')
+        additional: [],
+        totalAdults: 2,
+        totalChildren: 0
     },
-    {
-        id: 3,
-        bookingNumber: 'BK-2024-003',
-        userId: 3,
-        roomId: 301,
-        room: {
-            id: 301,
-            number: '301',
-            floor: 3,
-            roomType: {
-                id: 3,
-                name: 'Presidential Suite',
-                description: 'Ultimate luxury presidential suite',
-                basePrice: 400,
-                maxGuests: 6,
-                bedConfiguration: [{ type: 'king', quantity: 1 }, { type: 'sofa_bed', quantity: 1 }],
-                size: 80,
-                amenities: [],
-                images: [],
-                isActive: true
-            },
-            status: 'occupied',
-            isActive: true,
-            createdAt: new Date('2023-01-01'),
-            updatedAt: new Date()
-        },
-        checkInDate: new Date('2024-02-08'),
-        checkOutDate: new Date('2024-02-11'),
-        nights: 3,
-        guests: {
-            primary: {
-                firstName: 'Michael',
-                lastName: 'Johnson',
-                email: 'michael.j@email.com',
-                phone: '+1-555-0789'
-            },
-            additional: [
-                {
-                    firstName: 'Sarah',
-                    lastName: 'Johnson'
-                }
-            ],
-            totalAdults: 2,
-            totalChildren: 2
-        },
-        totalAmount: 1200.00,
-        baseAmount: 1200.00,
-        taxes: 0,
-        fees: 0,
-        discounts: 0,
-        paymentStatus: 'paid',
-        status: 'checked_in',
-        source: 'direct',
-        specialRequests: 'Champagne on arrival, extra towels',
-        createdAt: new Date('2024-01-08'),
-        updatedAt: new Date('2024-02-08')
-    },
-    {
-        id: 4,
-        bookingNumber: 'BK-2024-004',
-        userId: 4,
-        roomId: 150,
-        room: {
-            id: 150,
-            number: '150',
-            floor: 1,
-            roomType: {
-                id: 2,
-                name: 'Standard Room',
-                description: 'Comfortable standard accommodation',
-                basePrice: 160,
-                maxGuests: 2,
-                bedConfiguration: [{ type: 'double', quantity: 1 }],
-                size: 25,
-                amenities: [],
-                images: [],
-                isActive: true
-            },
-            status: 'available',
-            isActive: true,
-            createdAt: new Date('2023-01-01'),
-            updatedAt: new Date()
-        },
-        checkInDate: new Date('2024-02-05'),
-        checkOutDate: new Date('2024-02-07'),
-        nights: 2,
-        guests: {
-            primary: {
-                firstName: 'Sarah',
-                lastName: 'Williams',
-                email: 'sarah.w@email.com',
-                phone: '+1-555-0321'
-            },
-            additional: [],
-            totalAdults: 2,
-            totalChildren: 0
-        },
-        totalAmount: 400.00,
-        baseAmount: 400.00,
-        taxes: 0,
-        fees: 0,
-        discounts: 0,
-        paymentStatus: 'paid',
-        status: 'checked_out',
-        source: 'phone',
-        createdAt: new Date('2024-01-05'),
-        updatedAt: new Date('2024-02-07')
-    }
-];
+    totalAmount: 1000000,
+    baseAmount: 1000000,
+    taxes: 0,
+    fees: 0,
+    discounts: 0,
+    paymentStatus: idx % 2 === 0 ? 'paid' as PaymentStatus : 'pending' as PaymentStatus,
+    status: idx % 2 === 0 ? 'confirmed' as BookingStatus : 'pending' as BookingStatus,
+    source: 'website' as BookingSource,
+    specialRequests: '',
+    createdAt: new Date('2025-09-13'),
+    updatedAt: new Date('2025-09-13')
+}));
 
 const BookingsPage: React.FC = () => {
     const [bookings, setBookings] = useState<BookingEnhanced[]>([]);

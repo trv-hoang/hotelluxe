@@ -3,6 +3,8 @@ import AdminCard from '../../components/admin/AdminCard';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
 import { AdminBarChart, AdminLineChart } from '../../components/admin/AdminChart';
 import { useNotifications } from '../../hooks/useNotifications';
+import usersData from '../../data/jsons/__users.json';
+import homeStayData from '../../data/jsons/__homeStay.json';
 
 const AdminDashboardPage: React.FC = () => {
     const { addNotification } = useNotifications();
@@ -30,6 +32,9 @@ const AdminDashboardPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Empty dependency array to ensure it only runs once
 
+    const totalUsers = usersData.length;
+    const totalHotels = homeStayData.length;
+    const totalBookings = homeStayData.length;
     const revenueData = [
         { label: 'Jan', value: 125000, color: '#3b82f6' },
         { label: 'Feb', value: 140000, color: '#3b82f6' },
@@ -38,7 +43,6 @@ const AdminDashboardPage: React.FC = () => {
         { label: 'May', value: 185000, color: '#3b82f6' },
         { label: 'Jun', value: 220000, color: '#3b82f6' },
     ];
-
     const bookingsData = [
         { label: 'Mon', value: 12, color: '#10b981' },
         { label: 'Tue', value: 19, color: '#10b981' },
@@ -61,28 +65,25 @@ const AdminDashboardPage: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
                 <AdminCard
                     title="Total Users"
-                    value="1,234"
+                    value={totalUsers.toString()}
                     description="Active registered users"
                     color="#4caf50"
                     icon="👥"
                 />
-                
                 <AdminCard
-                    title="Total Bookings"
-                    value="567"
-                    description="Completed bookings"
+                    title="Total Hotels"
+                    value={totalHotels.toString()}
+                    description="Hotels/Homestays"
                     color="#2196f3"
                     icon="🏨"
                 />
-                
                 <AdminCard
-                    title="Revenue"
-                    value="1,220,345 VND"
-                    description="This month's revenue"
+                    title="Total Bookings"
+                    value={totalBookings.toString()}
+                    description="Completed bookings"
                     color="#ff9800"
-                    icon="💰"
+                    icon="💳"
                 />
-                
                 <AdminCard
                     title="Active Sessions"
                     value="42"
@@ -173,8 +174,6 @@ const AdminDashboardPage: React.FC = () => {
                             borderRadius: '6px',
                             border: 'none',
                             background: '#ef4444',
-                            color: '#ffffff',
-                            fontWeight: '500',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease'
                         }}

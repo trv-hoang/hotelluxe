@@ -5,20 +5,20 @@ import AdminInput from '../../components/admin/AdminInput';
 import AdminSelect from '../../components/admin/AdminSelect';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
 import '../../styles/_custom_checkbox.css';
-import avatar from '@/assets/user.jpg';
+import usersData from '../../data/jsons/__users.json';
 
 interface User {
     id: number;
     name: string;
     email: string;
     role: string;
+    profilePic: string;
+    address?: string;
+    phone?: string;
+    gender?: string;
 }
 
-const initialUsers: User[] = [
-    { id: 1, name: 'Hoang', email: '24210127@ms.uit.edu.vn', role: 'Admin' },
-    { id: 2, name: 'Johnson Baby', email: 'bob@example.com', role: 'User' },
-    { id: 3, name: 'John Wick', email: 'charlie@example.com', role: 'User' },
-];
+const initialUsers: User[] = usersData;
 
 const pageSize = 5;
 const roleOptions = [
@@ -132,14 +132,19 @@ const UsersPage: React.FC = () => {
         setLoading(true);
         setTimeout(() => {
             if (formType === 'add') {
-                const newUser = {
+                const newUser: User = {
                     id: users.length ? Math.max(...users.map(u => u.id)) + 1 : 1,
                     ...formData,
+                    profilePic: '/src/assets/user.jpg',
                 };
                 setUsers([...users, newUser]);
                 setNotification('User added successfully');
             } else if (formType === 'edit' && selectedUser) {
-                setUsers(users.map(u => (u.id === selectedUser.id ? { ...selectedUser, ...formData } : u)));
+                setUsers(users.map(u => (
+                    u.id === selectedUser.id
+                        ? { ...selectedUser, ...formData, profilePic: selectedUser.profilePic }
+                        : u
+                )));
                 setNotification('User updated successfully');
             }
             setShowForm(false);
@@ -208,7 +213,7 @@ const UsersPage: React.FC = () => {
                         ) : paginatedUsers.map(user => (
                             <tr key={user.id}>
                                 <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>
-                                    <img src={avatar} alt='avatar' style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                                    <img src={user.profilePic || '/src/assets/user.jpg'} alt='avatar' style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                                 </td>
                                 <td style={{ borderBottom: '1px solid #eee', padding: '8px', cursor: 'pointer', color: '#2563eb', textDecoration: 'underline' }} onClick={() => handleShowDetails(user)}>{user.name}</td>
                                 <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{user.email}</td>
@@ -282,7 +287,7 @@ const UsersPage: React.FC = () => {
             >
                 {selectedUser && (
                     <div style={{ textAlign: 'center' }}>
-                        <img src={avatar} alt='avatar' style={{ width: '64px', height: '64px', borderRadius: '50%', marginBottom: '1rem' }} />
+                        <img src={selectedUser.profilePic || '/src/assets/user.jpg'} alt='avatar' style={{ width: '64px', height: '64px', borderRadius: '50%', marginBottom: '1rem' }} />
                         <h2 style={{ margin: '0 0 1rem 0' }}>{selectedUser.name}</h2>
                         <p style={{ margin: '0.5rem 0' }}><b>Email:</b> {selectedUser.email}</p>
                         <p style={{ margin: '0.5rem 0' }}><b>Role:</b> {selectedUser.role}</p>
