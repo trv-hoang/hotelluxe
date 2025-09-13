@@ -41,7 +41,7 @@ import LocationMap from '@/components/LocationMap';
 import { useBookingStore } from '@/store/useBookingStore';
 import { calculatorPrice } from '@/utils/calculatorPrice';
 import { getRandomDescription } from '@/data/stayDes';
-
+import ModalDetail from '@/components/ModelDetail';
 
 const StayDetailPage = () => {
     const { id } = useParams();
@@ -49,6 +49,9 @@ const StayDetailPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { date, guests } = useBookingStore();
+
+    const query = new URLSearchParams(location.search); // 👈 chuyển vào trong component
+    const modal = query.get('modal');
 
     type ExtendedStayDataType = StayDataType & {
         displayName?: string;
@@ -103,7 +106,7 @@ const StayDetailPage = () => {
     // function closeModalAmenities() {
     //     setIsOpenModalAmenities(false);
     // }
-    console.log(author);
+    // console.log(author);
 
     // price
     const pricePerNight = parseFloat(price.replace(/[^0-9.-]+/g, '')) || 0;
@@ -113,16 +116,17 @@ const StayDetailPage = () => {
         setIsOpenModalAmenities(true);
     }
 
-    const handleOpenModalImageGallery = () => {
-        navigate(`${location.pathname}?modal=PHOTO_TOUR_SCROLLABLE`, {
+    const handleOpenModalImageGallery = (startIndex: number) => {
+        navigate(`${location.pathname}?modal=open`, {
             state: {
-                featuredImage,
-                galleryImgs,
+                images: [featuredImage, ...(galleryImgs || [])],
+                startIndex, //  truyền index ảnh được click
             },
         });
     };
+
     const { displayName, avatar } = author;
-    // ✅ RENDER HEADER IMAGE LAYOUT MỚI
+    //  RENDER HEADER IMAGE LAYOUT MỚI
     const renderHeaderImages = () => {
         const mainImage = featuredImage || '/src/assets/travels/dalat.jpg';
         const thumbs = galleryImgs?.slice(0, 4) || [];
@@ -135,7 +139,7 @@ const StayDetailPage = () => {
                     {/* Left big image (fills full height) */}
                     <div
                         className='relative rounded-md overflow-hidden cursor-pointer h-full'
-                        onClick={handleOpenModalImageGallery}
+                        onClick={() => handleOpenModalImageGallery(0)}
                     >
                         <img
                             src={mainImage}
@@ -154,7 +158,9 @@ const StayDetailPage = () => {
                                 className={`relative rounded-md overflow-hidden ${
                                     !img ? 'bg-neutral-100' : ''
                                 }`}
-                                onClick={handleOpenModalImageGallery}
+                                onClick={() =>
+                                    handleOpenModalImageGallery(index + 1)
+                                }
                             >
                                 <img
                                     src={img || '/placeholder-image.jpg'}
@@ -170,7 +176,7 @@ const StayDetailPage = () => {
                     {/* Show all photos button - đặt ở trên left image (absolute) */}
                     <button
                         className='absolute left-3 bottom-3 z-10 hidden md:flex items-center px-4 py-2 rounded-xl bg-neutral-100 text-neutral-500 hover:bg-neutral-200'
-                        onClick={handleOpenModalImageGallery}
+                        onClick={() => handleOpenModalImageGallery(0)}
                     >
                         <GalleryVerticalEnd className='w-5 h-5' />
                         <span className='ml-2 text-neutral-800 text-sm font-medium'>
@@ -642,6 +648,20 @@ const StayDetailPage = () => {
         <div className='container py-11 lg:py-16 px-8'>
             {/* HEADER IMAGES */}
             {renderHeaderImages()}
+
+            {/* modal */}
+            {modal === 'open' && (
+                <ModalDetail
+                    images={
+                        (location.state as { images: string[] })?.images || []
+                    }
+                    startIndex={
+                        (location.state as { startIndex?: number })
+                            ?.startIndex || 0
+                    }
+                    onClose={() => navigate(location.pathname)} // đóng modal
+                />
+            )}
 
             {/* MAIN CONTENT */}
             <main className='relative z-10 mt-11 flex flex-col lg:flex-row'>
