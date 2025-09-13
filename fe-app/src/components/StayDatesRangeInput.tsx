@@ -6,9 +6,10 @@ import {
     PopoverContent,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import type { DateRange } from 'react-day-picker';
+// import type { DateRange } from "react-day-picker";
 import ClearDataButton from './ClearDataButton';
 import { cn } from '@/lib/utils';
+import { useBookingStore } from '@/store/useBookingStore';
 
 export interface StayDatesRangeInputProps {
     className?: string;
@@ -19,10 +20,9 @@ export default function StayDatesRangeInput({
     className = 'lg:flex-[2]',
     fieldClassName = 'px-4 py-2',
 }: StayDatesRangeInputProps) {
-    const [date, setDate] = React.useState<DateRange | undefined>({
-        from: new Date('2023-02-06'),
-        to: new Date('2023-02-23'),
-    });
+    // ✅ Lấy date và setDate từ Zustand
+    const date = useBookingStore((s) => s.date);
+    const setDate = useBookingStore((s) => s.setDate);
 
     const [open, setOpen] = React.useState(false); // track trạng thái mở Popover
 
@@ -61,7 +61,7 @@ export default function StayDatesRangeInput({
                     'flex-1 z-10 flex relative items-center space-x-4 focus:outline-none',
                     fieldClassName,
                     className,
-                    open && 'cus-hero-field-focused', // chỉ add class khi mở
+                    open && 'cus-hero-field-focused',
                 )}
             >
                 {renderInput()}
@@ -78,6 +78,7 @@ export default function StayDatesRangeInput({
                     numberOfMonths={2}
                 />
             </PopoverContent>
+
             {open && (
                 <div className='h-8 absolute self-center top-1/2 -translate-y-1/2 z-0 -left-0.5 right-0.5 bg-white dark:bg-neutral-800 rounded-full'></div>
             )}

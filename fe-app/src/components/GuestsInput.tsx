@@ -6,10 +6,10 @@ import {
 } from '@/components/ui/popover';
 import ClearDataButton from './ClearDataButton';
 import { UserPlus } from 'lucide-react';
-import type { GuestsObject } from '@/types/type';
 import ButtonSubmit from '@/components/ButtonSubmit';
 import type { PathName } from '@/types/routers';
 import NcInputNumber from '@/components/NcInputNumber';
+import { useBookingStore } from '@/store/useBookingStore';
 
 export interface GuestsInputProps {
     fieldClassName?: string;
@@ -24,33 +24,17 @@ const GuestsInput = ({
     buttonSubmitHref = '/listing-stay-map',
     hasButtonSubmit = false,
 }: GuestsInputProps) => {
-    const [guestAdultsInputValue, setGuestAdultsInputValue] = useState(2);
-    const [guestChildrenInputValue, setGuestChildrenInputValue] = useState(1);
-    const [guestInfantsInputValue, setGuestInfantsInputValue] = useState(1);
+    const { guests, setGuests, clearGuests } = useBookingStore();
     const [isOpen, setIsOpen] = useState(false);
 
-    const handleChangeData = (value: number, type: keyof GuestsObject) => {
-        if (type === 'guestAdults') {
-            setGuestAdultsInputValue(value);
-        }
-        if (type === 'guestChildren') {
-            setGuestChildrenInputValue(value);
-        }
-        if (type === 'guestInfants') {
-            setGuestInfantsInputValue(value);
-        }
+    const handleChangeData = (value: number, type: keyof typeof guests) => {
+        setGuests({
+            ...guests,
+            [type]: value,
+        });
     };
 
-    const totalGuests =
-        guestChildrenInputValue +
-        guestAdultsInputValue +
-        guestInfantsInputValue;
-
-    const handleClear = () => {
-        setGuestAdultsInputValue(0);
-        setGuestChildrenInputValue(0);
-        setGuestInfantsInputValue(0);
-    };
+    const totalGuests = guests.adults + guests.children + guests.infants;
 
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -65,7 +49,7 @@ const GuestsInput = ({
                             type='button'
                             className={`relative z-10 flex-1 flex text-left items-center ${fieldClassName} space-x-3 focus:outline-none w-full`}
                         >
-                            <div className='text-neutral-300 dark:text-neutral-400 '>
+                            <div className='text-neutral-300 dark:text-neutral-400'>
                                 <UserPlus className='w-5 h-5 lg:w-7 lg:h-7' />
                             </div>
                             <div className='flex-grow'>
@@ -78,7 +62,7 @@ const GuestsInput = ({
                             </div>
 
                             {totalGuests > 0 && isOpen && (
-                                <ClearDataButton onClick={handleClear} />
+                                <ClearDataButton onClick={clearGuests} />
                             )}
                         </button>
 
@@ -98,8 +82,8 @@ const GuestsInput = ({
             >
                 <NcInputNumber
                     className='w-full'
-                    defaultValue={guestAdultsInputValue}
-                    onChange={(value) => handleChangeData(value, 'guestAdults')}
+                    defaultValue={guests.adults}
+                    onChange={(value) => handleChangeData(value, 'adults')}
                     max={10}
                     min={1}
                     label='Người lớn'
@@ -107,20 +91,16 @@ const GuestsInput = ({
                 />
                 <NcInputNumber
                     className='w-full mt-6'
-                    defaultValue={guestChildrenInputValue}
-                    onChange={(value) =>
-                        handleChangeData(value, 'guestChildren')
-                    }
+                    defaultValue={guests.children}
+                    onChange={(value) => handleChangeData(value, 'children')}
                     max={4}
                     label='Trẻ em'
                     desc='Từ 2 đến 12 tuổi'
                 />
                 <NcInputNumber
                     className='w-full mt-6'
-                    defaultValue={guestInfantsInputValue}
-                    onChange={(value) =>
-                        handleChangeData(value, 'guestInfants')
-                    }
+                    defaultValue={guests.infants}
+                    onChange={(value) => handleChangeData(value, 'infants')}
                     max={4}
                     label='Em bé'
                     desc='Dưới 2 tuổi'

@@ -37,12 +37,17 @@ import SectionDateRange from '@/components/SectionDaterange';
 import { DEMO_STAY_LISTINGS } from '@/data/listings';
 import GuestsInput from '@/components/GuestsInput';
 import type { StayDataType } from '@/types/stay';
+import LocationMap from '@/components/LocationMap';
+import { useBookingStore } from '@/store/useBookingStore';
+import { calculatorPrice } from '@/utils/calculatorPrice';
+import { getRandomDescription } from '@/data/stayDes';
 
 const StayDetailPage = () => {
     const { id } = useParams();
     const [isOpenModalAmenities, setIsOpenModalAmenities] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+    const { date, guests } = useBookingStore();
 
     type ExtendedStayDataType = StayDataType & {
         displayName?: string;
@@ -83,6 +88,7 @@ const StayDetailPage = () => {
         price,
         saleOff,
         author,
+        map,
 
         // displayName = 'Chủ nhà',
         // avatar = '/host-avatar.jpg',
@@ -92,12 +98,17 @@ const StayDetailPage = () => {
         checkOutTime = '08:00 - 12:00',
         cancellationPolicy = 'Bạn có thể hủy miễn phí trong vòng 48 giờ sau khi đặt phòng. Nếu hủy trước 14 ngày so với ngày nhận phòng, bạn sẽ được hoàn lại 50% tổng số tiền. Sau thời hạn này, không được hoàn tiền.',
         specialNotes = ['Vui lòng giữ yên tĩnh sau 23h'],
-        description = 'Chưa có mô tả về nơi lưu trú.',
+        description = getRandomDescription(),
     } = stayData;
     // function closeModalAmenities() {
     //     setIsOpenModalAmenities(false);
     // }
     console.log(author);
+
+    // price
+    const pricePerNight = parseFloat(price.replace(/[^0-9.-]+/g, '')) || 0;
+    const { nights, total } = calculatorPrice({ pricePerNight, date });
+    const totalGuests = guests.adults + guests.children + guests.infants;
     function openModalAmenities() {
         setIsOpenModalAmenities(true);
     }
@@ -477,10 +488,8 @@ const StayDetailPage = () => {
                 </div>
 
                 <div className='divide-y divide-neutral-200 dark:divide-neutral-800 mt-6'>
-                    <CommentListing className='py-8' />
-                    <CommentListing className='py-8' />
-                    <CommentListing className='py-8' />
-                    <CommentListing className='py-8' />
+                    <CommentListing />
+
                     <div className='pt-8'>
                         <Button variant='outline' asChild>
                             <Link to='/reviews'>Xem thêm đánh giá</Link>
@@ -493,7 +502,7 @@ const StayDetailPage = () => {
 
     const renderSection7 = () => {
         return (
-            <div className='listingSection__wrap'>
+            <div className='listingSection__wrap h-'>
                 <div>
                     <h2 className='text-2xl font-semibold'>Vị trí</h2>
                     <p className='mt-2 text-neutral-500 dark:text-neutral-400'>
@@ -501,8 +510,8 @@ const StayDetailPage = () => {
                     </p>
                 </div>
                 <Separator className='my-4' />
-
-                <div className='aspect-w-5 aspect-h-5 sm:aspect-h-3 rounded-xl overflow-hidden shadow'>
+                <LocationMap address={address} lat={map?.lat} lng={map?.lng} />
+                {/* <div className='aspect-w-5 aspect-h-5 sm:aspect-h-3 rounded-xl overflow-hidden shadow'>
                     <iframe
                         width='100%'
                         height='100%'
@@ -513,7 +522,7 @@ const StayDetailPage = () => {
                         )}`}
                         className='rounded-xl'
                     ></iframe>
-                </div>
+                </div> */}
             </div>
         );
     };
@@ -593,7 +602,7 @@ const StayDetailPage = () => {
                 </CardHeader>
 
                 <CardContent className='space-y-4'>
-                    <form className='flex flex-col border border-neutral-200 dark:border-neutral-700 rounded-3xl '>
+                    <form className='flex flex-col border border-neutral-200 dark:border-neutral-700 rounded-3xl'>
                         <StayDatesRangeInput className='flex-1 z-[11]' />
                         <div className='w-full border-b border-neutral-200 dark:border-neutral-700'></div>
                         <GuestsInput className='flex-1' />
@@ -602,16 +611,10 @@ const StayDetailPage = () => {
                     <div className='space-y-3'>
                         <div className='flex justify-between text-neutral-600 dark:text-neutral-300'>
                             <span>
-                                {price.replace(/[^0-9.-]+/g, '')} x 3 đêm
+                                {pricePerNight.toLocaleString('vi-VN')}đ x{' '}
+                                {nights} đêm
                             </span>
-                            <span>
-                                {(
-                                    parseFloat(
-                                        price.replace(/[^0-9.-]+/g, ''),
-                                    ) * 3
-                                ).toLocaleString('vi-VN')}
-                                đ
-                            </span>
+                            <span>{total.toLocaleString('vi-VN')}đ</span>
                         </div>
                         <div className='flex justify-between text-neutral-600 dark:text-neutral-300'>
                             <span>Phí dịch vụ</span>
@@ -620,14 +623,10 @@ const StayDetailPage = () => {
                         <Separator />
                         <div className='flex justify-between font-semibold'>
                             <span>Tổng cộng</span>
-                            <span>
-                                {(
-                                    parseFloat(
-                                        price.replace(/[^0-9.-]+/g, ''),
-                                    ) * 3
-                                ).toLocaleString('vi-VN')}
-                                đ
-                            </span>
+                            <span>{total.toLocaleString('vi-VN')}đ</span>
+                        </div>
+                        <div className='text-sm text-neutral-500'>
+                            Tổng khách: <b>{totalGuests}</b>
                         </div>
                     </div>
 

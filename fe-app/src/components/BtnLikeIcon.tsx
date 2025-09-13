@@ -16,8 +16,8 @@ function BtnLikeIcon({
 
     return (
         <div
-            className={`nc-BtnLikeIcon w-8 h-8 flex items-center justify-center rounded-full cursor-pointer ${
-                likedState ? 'nc-BtnLikeIcon--liked' : ''
+            className={`cus-BtnLikeIcon w-8 h-8 flex items-center justify-center rounded-full cursor-pointer ${
+                likedState ? 'cus-BtnLikeIcon--liked' : ''
             } ${colorClass} ${className}`}
             data-nc-id='BtnLikeIcon'
             title='Save'
