@@ -7,73 +7,32 @@ import RoomCard from '@/components/admin/RoomCard';
 import RoomTable from '@/components/admin/RoomTable';
 import { useNotifications } from '@/hooks/useNotifications';
 
-// Mock data - replace with real API calls
-const mockRooms: Room[] = [
-    {
-        id: 1,
-        number: '101',
-        floor: 1,
-        roomType: {
-            id: 1,
-            name: 'Deluxe Room',
-            description: 'Comfortable room with city view',
-            basePrice: 150,
-            maxGuests: 2,
-            bedConfiguration: [{ type: 'queen', quantity: 1 }],
-            size: 25,
-            amenities: [],
-            images: [],
-            isActive: true
-        },
-        status: 'available',
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
+import homeStayData from '../../data/jsons/__homeStay.json';
+
+const mockRooms = homeStayData.map((hotel, idx) => ({
+    id: (hotel as { id: number }).id,
+    number: String((hotel as { id: number }).id),
+    floor: 1,
+    roomType: {
+        id: (hotel as { id: number }).id,
+        name: (hotel as { title?: string }).title || '',
+        description: (hotel as { description?: string }).description || '',
+        basePrice: Number((hotel as { price?: string }).price?.replace(/[^\d]/g, '')),
+        maxGuests: (hotel as { maxGuests?: number }).maxGuests ?? 2,
+        bedConfiguration: [{ type: 'king' as const, quantity: (hotel as { bedrooms?: number }).bedrooms ?? 1 }],
+        size: 25,
+        amenities: [],
+                images: (() => {
+                    const galleryImgs = (hotel as { galleryImgs?: string[] }).galleryImgs;
+                    return Array.isArray(galleryImgs) && galleryImgs.length > 0 ? galleryImgs : ['/src/assets/logo.png'];
+                })(),
+        isActive: true
     },
-    {
-        id: 2,
-        number: '102',
-        floor: 1,
-        roomType: {
-            id: 2,
-            name: 'Suite',
-            description: 'Luxury suite with ocean view',
-            basePrice: 300,
-            maxGuests: 4,
-            bedConfiguration: [{ type: 'king', quantity: 1 }, { type: 'sofa_bed', quantity: 1 }],
-            size: 50,
-            amenities: [],
-            images: [],
-            isActive: true
-        },
-        status: 'occupied',
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-    },
-    {
-        id: 3,
-        number: '201',
-        floor: 2,
-        roomType: {
-            id: 1,
-            name: 'Deluxe Room',
-            description: 'Comfortable room with city view',
-            basePrice: 150,
-            maxGuests: 2,
-            bedConfiguration: [{ type: 'queen', quantity: 1 }],
-            size: 25,
-            amenities: [],
-            images: [],
-            isActive: true
-        },
-        status: 'maintenance',
-        notes: 'AC repair scheduled',
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-    }
-];
+    status: idx % 3 === 0 ? 'available' as RoomStatus : (idx % 3 === 1 ? 'occupied' as RoomStatus : 'maintenance' as RoomStatus),
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+}));
 
 const RoomsPage: React.FC = () => {
     const [rooms, setRooms] = useState<Room[]>(mockRooms);

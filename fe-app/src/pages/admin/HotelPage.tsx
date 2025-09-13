@@ -6,31 +6,68 @@ import AdminCard from '@/components/admin/AdminCard';
 import HotelInfo from '@/components/admin/HotelInfo';
 import { useNotifications } from '@/hooks/useNotifications';
 
-// Mock hotel data - replace with real API calls
-const mockHotel: Hotel = {
-    id: 1,
-    name: 'Luxe Hotel & Resort',
-    description: 'A premium 5-star hotel offering exceptional service and luxury accommodations in the heart of the city.',
-    address: '123 Ocean Drive',
-    city: 'Miami Beach',
-    country: 'United States',
-    phone: '+1 (305) 555-0123',
-    email: 'info@luxehotel.com',
-    website: 'https://www.luxehotel.com',
-    checkInTime: '15:00',
-    checkOutTime: '11:00',
-    starRating: 5,
-    amenities: [],
-    images: [],
-    policies: [],
-    coordinates: {
-        lat: 25.7617,
-        lng: -80.1918
-    },
-    status: 'active',
-    createdAt: new Date('2023-01-01'),
-    updatedAt: new Date()
+import homeStayData from '../../data/jsons/__homeStay.json';
+
+// Chuyển đổi dữ liệu từ homeStayData sang interface Hotel
+import type { Hotel as HotelType } from '@/types/hotel';
+type HomeStayJson = {
+    id?: number;
+    title?: string;
+    description?: string;
+    address?: string;
+    city?: string;
+    country?: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+    checkInTime?: string;
+    checkOutTime?: string;
+    starRating?: number;
+    amenities?: string[];
+    galleryImgs?: string[];
+    policies?: string[];
+    map?: { lat: number; lng: number };
 };
+
+const convertToHotel = (data: HomeStayJson): HotelType => ({
+        id: typeof data.id === 'number' ? data.id : 1,
+        name: typeof data.title === 'string' ? data.title : '',
+        description: typeof data.description === 'string' ? data.description : '',
+        address: typeof data.address === 'string' ? data.address : '',
+        city: typeof data.city === 'string' ? data.city : '',
+        country: typeof data.country === 'string' ? data.country : '',
+        phone: typeof data.phone === 'string' ? data.phone : '',
+        email: typeof data.email === 'string' ? data.email : '',
+        website: typeof data.website === 'string' ? data.website : '',
+        checkInTime: typeof data.checkInTime === 'string' ? data.checkInTime : '',
+        checkOutTime: typeof data.checkOutTime === 'string' ? data.checkOutTime : '',
+        starRating: [1,2,3,4,5].includes(data.starRating ?? 5) ? (data.starRating ?? 5) as 1|2|3|4|5 : 5,
+        amenities: Array.isArray(data.amenities)
+            ? data.amenities.map((a, i) => ({
+                id: i + 1,
+                name: a,
+                category: 'general',
+                icon: '',
+                isActive: true
+            }))
+            : [],
+        images: Array.isArray(data.galleryImgs) && data.galleryImgs.length > 0 ? data.galleryImgs : ['/src/assets/logo.png'],
+        policies: Array.isArray(data.policies)
+            ? data.policies.map((p, i) => ({
+                id: i + 1,
+                type: 'checkin_checkout',
+                title: p,
+                description: p,
+                isActive: true
+            }))
+            : [],
+        coordinates: typeof data.map === 'object' && data.map !== null ? data.map : { lat: 0, lng: 0 },
+        status: 'active',
+        createdAt: new Date(),
+        updatedAt: new Date()
+});
+
+const mockHotel: Hotel = convertToHotel(homeStayData[0]);
 
 const HotelPage: React.FC = () => {
     const [hotel, setHotel] = useState<Hotel | null>(null);
