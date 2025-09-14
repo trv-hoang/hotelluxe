@@ -1,7 +1,7 @@
 import api from './axios';
 import hotelData from '../data/jsons/__homeStay.json';
 import userData from '../data/jsons/__users.json';
-import { calculateRoomPrice, generateBookingNumber, generateRoomNumber, calculateNights } from '../utils/calculatorPrice';
+import { calculateRoomPrice, generateBookingNumber, calculateNights } from '../utils/calculatorPrice';
 
 //=================================================
 // Types
@@ -108,7 +108,7 @@ const generateMockBookings = (): Booking[] => {
             roomId: hotelData_local.id,
             room: {
                 id: hotelData_local.id,
-                number: generateRoomNumber(hotelData_local.id, idx),
+                number: `R${hotelData_local.id}-${idx + 1}`,
                 floor: Math.floor(hotelData_local.id / 100) + 1,
                 roomType: {
                     id: hotelData_local.id,

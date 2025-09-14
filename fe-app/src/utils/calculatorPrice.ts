@@ -49,8 +49,9 @@ export const formatCurrency = (amount: number): string => {
     }).format(amount);
 };
 
-export const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('vi-VN', {
+export const formatDate = (date: Date | string): string => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('vi-VN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
@@ -61,10 +62,10 @@ export const generateBookingNumber = (index: number): string => {
     return `BK-2025-${String(index + 1).padStart(4, '0')}`;
 };
 
-export const generateRoomNumber = (hotelId: number, roomIndex: number): string => {
-    return `${hotelId}${String(roomIndex + 101).slice(-2)}`;
-};
 
-export const calculateNights = (checkIn: Date, checkOut: Date): number => {
-    return Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+
+export const calculateNights = (checkIn: Date | string, checkOut: Date | string): number => {
+    const checkInDate = typeof checkIn === 'string' ? new Date(checkIn) : checkIn;
+    const checkOutDate = typeof checkOut === 'string' ? new Date(checkOut) : checkOut;
+    return Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
 };
