@@ -6,6 +6,7 @@ import AdminModal from '../../components/admin/AdminModal';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
 import AdminStatCard from '../../components/admin/AdminStatCard';
 import AdminDataTable from '../../components/admin/AdminDataTable';
+import AdminImageDisplay from '../../components/admin/AdminImageDisplay';
 import { useNotifications } from '../../hooks/useNotifications';
 import homeStayData from '../../data/jsons/__homeStay.json';
 
@@ -262,20 +263,19 @@ const HotelPage: React.FC = () => {
                             title: 'Khách sạn',
                             render: (_, hotel: HotelData) => (
                                 <div className="flex items-center">
-                                    <img
-                                        className="h-12 w-16 rounded-lg object-cover"
+                                    <AdminImageDisplay
                                         src={hotel.featuredImage}
                                         alt={hotel.title}
-                                        onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            target.src = '/src/assets/travels/default.jpg';
-                                        }}
+                                        size="medium"
+                                        aspectRatio="4/3"
                                     />
-                                    <div className="ml-4">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {hotel.title}
+                                    <div className="ml-4 flex-1 min-w-0">
+                                        <div className="text-sm font-medium" style={{ color: 'var(--admin-text-primary)' }}>
+                                            <span className="truncate block" title={hotel.title}>
+                                                {hotel.title}
+                                            </span>
                                         </div>
-                                        <div className="text-sm text-gray-500">
+                                        <div className="text-xs" style={{ color: 'var(--admin-text-secondary)' }}>
                                             ID: {hotel.id}
                                         </div>
                                     </div>

@@ -2,10 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { Edit, Trash2, Eye, Plus, Users, UserCheck, UserX, Crown } from 'lucide-react';
 import AdminButton from '../../components/admin/AdminButton';
 import AdminModal from '../../components/admin/AdminModal';
-
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
 import AdminStatCard from '../../components/admin/AdminStatCard';
 import AdminDataTable from '../../components/admin/AdminDataTable';
+import AdminAvatarDisplay from '../../components/admin/AdminAvatarDisplay';
 import { useNotifications } from '../../hooks/useNotifications';
 import usersData from '../../data/jsons/__users.json';
 
@@ -240,21 +240,20 @@ const UsersPage: React.FC = () => {
                             title: 'Người dùng',
                             render: (_, user: UserData) => (
                                 <div className="flex items-center">
-                                    <img
-                                        className="h-10 w-10 rounded-full object-cover"
+                                    <AdminAvatarDisplay
                                         src={user.profilePic}
                                         alt={user.name}
-                                        onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            target.src = '/avatar.png';
-                                        }}
+                                        size="medium"
+                                        shape="circle"
                                     />
-                                    <div className="ml-4">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {user.name}
+                                    <div className="ml-4 flex-1 min-w-0">
+                                        <div className="text-sm font-medium" style={{ color: 'var(--admin-text-primary)' }}>
+                                            <span className="truncate block" title={user.name}>
+                                                {user.name}
+                                            </span>
                                         </div>
                                         {user.nickname && (
-                                            <div className="text-sm text-gray-500">
+                                            <div className="text-xs truncate" style={{ color: 'var(--admin-text-secondary)' }}>
                                                 @{user.nickname}
                                             </div>
                                         )}

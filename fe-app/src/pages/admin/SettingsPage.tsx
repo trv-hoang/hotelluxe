@@ -10,10 +10,14 @@ import {
     Save,
     RefreshCw,
     Trash2,
-    AlertTriangle,
-    Check
+    AlertTriangle
 } from 'lucide-react';
 import AdminButton from '../../components/admin/AdminButton';
+import AdminToggle from '../../components/admin/AdminToggle';
+import AdminStatCard from '../../components/admin/AdminStatCard';
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
+import AdminTabs from '../../components/admin/AdminTabs';
+import AdminConfirmDialog from '../../components/admin/AdminConfirmDialog';
 import { useNotifications } from '../../hooks/useNotifications';
 
 interface SettingsData {
@@ -58,6 +62,7 @@ interface SettingsData {
 const SettingsPage: React.FC = () => {
     const { addNotification } = useNotifications();
     const [activeTab, setActiveTab] = useState('general');
+    const [showResetDialog, setShowResetDialog] = useState(false);
     
     const [settings, setSettings] = useState<SettingsData>({
         general: {
@@ -107,14 +112,17 @@ const SettingsPage: React.FC = () => {
     };
 
     const handleReset = () => {
-        if (window.confirm('Bạn có chắc chắn muốn khôi phục về cài đặt mặc định?')) {
-            // Reset logic here
-            addNotification({
-                type: 'info',
-                title: 'Khôi phục',
-                message: 'Đã khôi phục về cài đặt mặc định!'
-            });
-        }
+        setShowResetDialog(true);
+    };
+
+    const confirmReset = () => {
+        // Reset logic here
+        addNotification({
+            type: 'info',
+            title: 'Khôi phục',
+            message: 'Đã khôi phục về cài đặt mặc định!'
+        });
+        setShowResetDialog(false);
     };
 
     const handleClearCache = () => {
@@ -168,16 +176,10 @@ const SettingsPage: React.FC = () => {
         <div className="min-h-screen" style={{ backgroundColor: 'var(--admin-bg-secondary)' }}>
             <div className="p-6 space-y-6">
                 {/* Header */}
-                <div className="admin-card p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <h1 className="text-2xl font-bold" style={{ color: 'var(--admin-text-primary)' }}>
-                                Cài đặt hệ thống
-                            </h1>
-                            <p className="mt-1" style={{ color: 'var(--admin-text-secondary)' }}>
-                                Cấu hình và tùy chỉnh hệ thống theo nhu cầu của bạn
-                            </p>
-                        </div>
+                <AdminPageHeader
+                    title="Cài đặt hệ thống"
+                    description="Cấu hình và tùy chỉnh hệ thống theo nhu cầu của bạn"
+                    extraContent={
                         <div className="flex space-x-3">
                             <AdminButton
                                 onClick={handleSave}
@@ -204,86 +206,46 @@ const SettingsPage: React.FC = () => {
                                 Xóa cache
                             </AdminButton>
                         </div>
-                    </div>
+                    }
+                />
 
-                    {/* System Status Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div className="admin-card p-4" style={{ 
-                            backgroundColor: 'var(--admin-success-light)', 
-                            borderColor: 'var(--admin-success)' 
-                        }}>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium" style={{ color: 'var(--admin-success)' }}>
-                                        Trạng thái hệ thống
-                                    </p>
-                                    <p className="text-lg font-bold flex items-center" style={{ color: 'var(--admin-success)' }}>
-                                        <Check className="w-4 h-4 mr-2" />
-                                        Hoạt động
-                                    </p>
-                                </div>
-                                <Server className="w-8 h-8" style={{ color: 'var(--admin-success)' }} />
-                            </div>
-                        </div>
+                {/* System Status Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <AdminStatCard
+                        title="Trạng thái hệ thống"
+                        value="Hoạt động"
+                        icon={Server}
+                        iconColor="text-green-600"
+                        iconBgColor="bg-green-100"
+                        changeType="increase"
+                    />
+                    <AdminStatCard
+                        title="Dung lượng DB"
+                        value="2.4 GB"
+                        icon={Database}
+                        iconColor="text-blue-600"
+                        iconBgColor="bg-blue-100"
+                        changeType="neutral"
+                    />
+                    <AdminStatCard
+                        title="Phiên hoạt động"
+                        value={42}
+                        icon={User}
+                        iconColor="text-yellow-600"
+                        iconBgColor="bg-yellow-100"
+                        changeType="increase"
+                    />
+                </div>
 
-                        <div className="admin-card p-4" style={{ 
-                            backgroundColor: 'var(--admin-info-light)', 
-                            borderColor: 'var(--admin-info)' 
-                        }}>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium" style={{ color: 'var(--admin-info)' }}>
-                                        Dung lượng DB
-                                    </p>
-                                    <p className="text-lg font-bold" style={{ color: 'var(--admin-info)' }}>2.4 GB</p>
-                                </div>
-                                <Database className="w-8 h-8" style={{ color: 'var(--admin-info)' }} />
-                            </div>
-                        </div>
-
-                        <div className="admin-card p-4" style={{ 
-                            backgroundColor: 'var(--admin-warning-light)', 
-                            borderColor: 'var(--admin-warning)' 
-                        }}>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium" style={{ color: 'var(--admin-warning)' }}>
-                                        Phiên hoạt động
-                                    </p>
-                                    <p className="text-lg font-bold" style={{ color: 'var(--admin-warning)' }}>42</p>
-                                </div>
-                                <User className="w-8 h-8" style={{ color: 'var(--admin-warning)' }} />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Tabs */}
-                    <div style={{ borderBottom: '1px solid var(--admin-border-primary)' }}>
-                        <nav className="-mb-px flex space-x-8">
-                            {tabs.map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
-                                        activeTab === tab.id
-                                            ? 'border-blue-500'
-                                            : 'border-transparent hover:border-gray-300'
-                                    }`}
-                                    style={{
-                                        color: activeTab === tab.id 
-                                            ? 'var(--admin-text-accent)' 
-                                            : 'var(--admin-text-secondary)',
-                                        borderBottomColor: activeTab === tab.id 
-                                            ? 'var(--admin-text-accent)' 
-                                            : 'transparent'
-                                    }}
-                                >
-                                    <tab.icon className="w-4 h-4 mr-2" />
-                                    {tab.name}
-                                </button>
-                            ))}
-                        </nav>
-                    </div>
+                {/* Tabs */}
+                <div className="admin-card p-6">
+                    <AdminTabs
+                        tabs={tabs}
+                        activeTab={activeTab}
+                        onChange={setActiveTab}
+                        variant="underline"
+                        size="medium"
+                    />
                 </div>
 
                 {/* Tab Content */}
@@ -400,21 +362,12 @@ const SettingsPage: React.FC = () => {
                             </div>
                             
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'var(--admin-bg-secondary)' }}>
-                                    <div>
-                                        <h4 className="font-medium" style={{ color: 'var(--admin-text-primary)' }}>Xác thực 2 yếu tố</h4>
-                                        <p className="text-sm" style={{ color: 'var(--admin-text-secondary)' }}>Bảo vệ tài khoản với lớp bảo mật bổ sung</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={settings.security.twoFactorAuth}
-                                            onChange={(e) => updateSetting('security', 'twoFactorAuth', e.target.checked)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </div>
+                                <AdminToggle
+                                    checked={settings.security.twoFactorAuth}
+                                    onChange={(checked) => updateSetting('security', 'twoFactorAuth', checked)}
+                                    label="Xác thực 2 yếu tố"
+                                    description="Bảo vệ tài khoản với lớp bảo mật bổ sung"
+                                />
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
@@ -454,21 +407,12 @@ const SettingsPage: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                    <div>
-                                        <h4 className="font-medium text-gray-900">Yêu cầu đổi mật khẩu định kỳ</h4>
-                                        <p className="text-sm text-gray-500">Bắt buộc người dùng đổi mật khẩu sau 90 ngày</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={settings.security.requirePasswordChange}
-                                            onChange={(e) => updateSetting('security', 'requirePasswordChange', e.target.checked)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </div>
+                                <AdminToggle
+                                    checked={settings.security.requirePasswordChange}
+                                    onChange={(checked) => updateSetting('security', 'requirePasswordChange', checked)}
+                                    label="Yêu cầu đổi mật khẩu định kỳ"
+                                    description="Bắt buộc người dùng đổi mật khẩu sau 90 ngày"
+                                />
                             </div>
                         </div>
                     )}
@@ -481,30 +425,42 @@ const SettingsPage: React.FC = () => {
                             </div>
                             
                             <div className="space-y-4">
-                                {[
-                                    { key: 'emailNotifications', label: 'Thông báo email', desc: 'Nhận thông báo qua email' },
-                                    { key: 'smsNotifications', label: 'Thông báo SMS', desc: 'Nhận thông báo qua tin nhắn' },
-                                    { key: 'pushNotifications', label: 'Thông báo đẩy', desc: 'Nhận thông báo đẩy trên trình duyệt' },
-                                    { key: 'bookingAlerts', label: 'Cảnh báo đặt phòng', desc: 'Thông báo khi có đặt phòng mới' },
-                                    { key: 'systemAlerts', label: 'Cảnh báo hệ thống', desc: 'Thông báo về tình trạng hệ thống' },
-                                    { key: 'marketingEmails', label: 'Email marketing', desc: 'Nhận email khuyến mãi và tin tức' }
-                                ].map((item) => (
-                                    <div key={item.key} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                        <div>
-                                            <h4 className="font-medium text-gray-900 dark:text-white">{item.label}</h4>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.desc}</p>
-                                        </div>
-                                        <label className="relative inline-flex items-center cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={settings.notifications[item.key as keyof typeof settings.notifications]}
-                                                onChange={(e) => updateSetting('notifications', item.key, e.target.checked)}
-                                                className="sr-only peer"
-                                            />
-                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                ))}
+                                <AdminToggle
+                                    checked={settings.notifications.emailNotifications}
+                                    onChange={(checked) => updateSetting('notifications', 'emailNotifications', checked)}
+                                    label="Thông báo email"
+                                    description="Nhận thông báo qua email"
+                                />
+                                <AdminToggle
+                                    checked={settings.notifications.smsNotifications}
+                                    onChange={(checked) => updateSetting('notifications', 'smsNotifications', checked)}
+                                    label="Thông báo SMS"
+                                    description="Nhận thông báo qua tin nhắn"
+                                />
+                                <AdminToggle
+                                    checked={settings.notifications.pushNotifications}
+                                    onChange={(checked) => updateSetting('notifications', 'pushNotifications', checked)}
+                                    label="Thông báo đẩy"
+                                    description="Nhận thông báo đẩy trên trình duyệt"
+                                />
+                                <AdminToggle
+                                    checked={settings.notifications.bookingAlerts}
+                                    onChange={(checked) => updateSetting('notifications', 'bookingAlerts', checked)}
+                                    label="Cảnh báo đặt phòng"
+                                    description="Thông báo khi có đặt phòng mới"
+                                />
+                                <AdminToggle
+                                    checked={settings.notifications.systemAlerts}
+                                    onChange={(checked) => updateSetting('notifications', 'systemAlerts', checked)}
+                                    label="Cảnh báo hệ thống"
+                                    description="Thông báo về tình trạng hệ thống"
+                                />
+                                <AdminToggle
+                                    checked={settings.notifications.marketingEmails}
+                                    onChange={(checked) => updateSetting('notifications', 'marketingEmails', checked)}
+                                    label="Email marketing"
+                                    description="Nhận email khuyến mãi và tin tức"
+                                />
                             </div>
                         </div>
                     )}
@@ -517,47 +473,35 @@ const SettingsPage: React.FC = () => {
                             </div>
                             
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between p-4 rounded-lg" style={{ 
+                                <div style={{ 
                                     backgroundColor: 'var(--admin-error-light)', 
-                                    border: '1px solid var(--admin-error)' 
+                                    border: '1px solid var(--admin-error)',
+                                    borderRadius: '8px'
                                 }}>
-                                    <div>
-                                        <h4 className="font-medium flex items-center" style={{ color: 'var(--admin-error)' }}>
-                                            <AlertTriangle className="w-4 h-4 mr-2" />
-                                            Chế độ bảo trì
-                                        </h4>
-                                        <p className="text-sm" style={{ color: 'var(--admin-error)' }}>Tạm ngừng truy cập website cho người dùng</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={settings.system.maintenanceMode}
-                                            onChange={(e) => updateSetting('system', 'maintenanceMode', e.target.checked)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                                    </label>
+                                    <AdminToggle
+                                        checked={settings.system.maintenanceMode}
+                                        onChange={(checked) => updateSetting('system', 'maintenanceMode', checked)}
+                                        label={
+                                            <span className="flex items-center" style={{ color: 'var(--admin-error)' }}>
+                                                <AlertTriangle className="w-4 h-4 mr-2" />
+                                                Chế độ bảo trì
+                                            </span>
+                                        }
+                                        description="Tạm ngừng truy cập website cho người dùng"
+                                    />
                                 </div>
 
                                 {[
                                     { key: 'debugMode', label: 'Chế độ debug', desc: 'Hiển thị thông tin debug chi tiết' },
                                     { key: 'cacheEnabled', label: 'Bật cache', desc: 'Sử dụng cache để tăng tốc độ tải trang' }
                                 ].map((item) => (
-                                    <div key={item.key} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                        <div>
-                                            <h4 className="font-medium text-gray-900 dark:text-white">{item.label}</h4>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">{item.desc}</p>
-                                        </div>
-                                        <label className="relative inline-flex items-center cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={settings.system[item.key as keyof typeof settings.system] as boolean}
-                                                onChange={(e) => updateSetting('system', item.key, e.target.checked)}
-                                                className="sr-only peer"
-                                            />
-                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
+                                    <AdminToggle
+                                        key={item.key}
+                                        checked={settings.system[item.key as keyof typeof settings.system] as boolean}
+                                        onChange={(checked) => updateSetting('system', item.key, checked)}
+                                        label={item.label}
+                                        description={item.desc}
+                                    />
                                 ))}
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -650,6 +594,18 @@ const SettingsPage: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* Reset Confirmation Dialog */}
+            <AdminConfirmDialog
+                isOpen={showResetDialog}
+                onClose={() => setShowResetDialog(false)}
+                onConfirm={confirmReset}
+                title="Khôi phục cài đặt mặc định"
+                message="Bạn có chắc chắn muốn khôi phục về cài đặt mặc định? Tất cả các thay đổi hiện tại sẽ bị mất."
+                type="warning"
+                confirmLabel="Khôi phục"
+                cancelLabel="Hủy"
+            />
         </div>
     );
 };
