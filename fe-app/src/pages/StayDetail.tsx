@@ -43,6 +43,7 @@ import { calculatorPrice } from '@/utils/calculatorPrice';
 import { getRandomDescription } from '@/data/stayDes';
 import ModalDetail from '@/components/ModelDetail';
 import CategoryBadge from '@/shared/CategoryBadge';
+import { useCartStore } from '@/store/useCartStore';
 
 const StayDetailPage = () => {
     const { id } = useParams();
@@ -51,8 +52,11 @@ const StayDetailPage = () => {
     const navigate = useNavigate();
     const { date, guests } = useBookingStore();
 
-    const query = new URLSearchParams(location.search); // 👈 chuyển vào trong component
+    const query = new URLSearchParams(location.search);
     const modal = query.get('modal');
+
+    // store
+    const addItem = useCartStore((state) => state.addItem);
 
     type ExtendedStayDataType = StayDataType & {
         displayName?: string;
@@ -110,7 +114,7 @@ const StayDetailPage = () => {
     // console.log(author);
 
     // price
-    const pricePerNight = parseFloat(price.replace(/[^0-9.-]+/g, '')) || 0;
+    const pricePerNight = price || 0;
     const { nights, total } = calculatorPrice({ pricePerNight, date });
     const totalGuests = guests.adults + guests.children + guests.infants;
     function openModalAmenities() {
@@ -585,13 +589,23 @@ const StayDetailPage = () => {
     };
 
     const renderSidebar = () => {
+        const handleAddToCart = () => {
+            if (!stayData) return;
+
+            addItem({
+                ...stayData, // toàn bộ thông tin từ StayDataType
+                nights, // số đêm chọn
+                totalGuests, // tổng khách
+            });
+        };
+
         return (
             <Card className='shadow-xl sticky top-28'>
                 <CardHeader className='pb-4'>
                     <div className='flex justify-between items-start '>
                         <div>
                             <span className='text-3xl font-semibold'>
-                                {price}
+                                {stayData.price}
                             </span>
                             <span className='ml-1 text-base font-normal text-neutral-500 dark:text-neutral-400'>
                                 /đêm
@@ -599,8 +613,8 @@ const StayDetailPage = () => {
                         </div>
                         <div className='mt-2'>
                             <StartRating
-                                point={reviewStart}
-                                reviewCount={reviewCount}
+                                point={stayData.reviewStart}
+                                reviewCount={stayData.reviewCount}
                             />
                         </div>
                     </div>
@@ -635,8 +649,13 @@ const StayDetailPage = () => {
                         </div>
                     </div>
 
-                    <Button className='w-full' asChild>
-                        <Link to='/checkout'>Đặt phòng ngay</Link>
+                    {/* Lưu vào store + chuyển sang trang giỏ hàng */}
+                    <Button
+                        className='w-full'
+                        onClick={handleAddToCart}
+                        asChild
+                    >
+                        <Link to='/cart'>Đặt phòng ngay</Link>
                     </Button>
                 </CardContent>
             </Card>
