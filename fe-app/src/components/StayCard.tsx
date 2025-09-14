@@ -6,6 +6,7 @@ import StartRating from '@/components/StarRating';
 import BtnLikeIcon from '@/components/BtnLikeIcon';
 import SaleOffBadge from '@/components/SaleOffBadge';
 import Badge from '@/components/ui/BadgeCus';
+import { formatPrice } from '@/lib/utils';
 
 export interface StayCardProps {
     className?: string;
@@ -104,7 +105,7 @@ function StayCard({
             <div className='w-14 border-b border-neutral-100 dark:border-neutral-800'></div>
             <div className='flex justify-between items-center'>
                 <span className='text-base font-semibold'>
-                    {price}{' '}
+                    {formatPrice(price)}đ{' '}
                     {size === 'default' && (
                         <span className='text-sm text-neutral-500 dark:text-neutral-400 font-normal'>
                             /đêm

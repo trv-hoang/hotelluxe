@@ -41,7 +41,7 @@ export interface StayDataType {
     galleryImgs: string[]; // Album ảnh
     description: string; // Mô tả
 
-    price: string; // Giá
+    price: number; // Giá
     address: string; // Địa chỉ
     category: StayCategory; //  Loại (Hotel/Resort/Villa/Homestay)
     reviewStart: number; // Điểm trung bình (ví dụ: 4.5)
