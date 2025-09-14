@@ -68,28 +68,24 @@ const AdminDashboardPage: React.FC = () => {
                     value={totalUsers.toString()}
                     description="Active registered users"
                     color="#4caf50"
-                    icon="👥"
                 />
                 <AdminCard
                     title="Total Hotels"
                     value={totalHotels.toString()}
                     description="Hotels/Homestays"
                     color="#2196f3"
-                    icon="🏨"
                 />
                 <AdminCard
                     title="Total Bookings"
                     value={totalBookings.toString()}
                     description="Completed bookings"
                     color="#ff9800"
-                    icon="💳"
                 />
                 <AdminCard
                     title="Active Sessions"
                     value="42"
                     description="Current user sessions"
                     color="#9c27b0"
-                    icon="🔗"
                 />
             </div>
 

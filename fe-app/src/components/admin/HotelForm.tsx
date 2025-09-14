@@ -20,22 +20,24 @@ type Hotel = {
 };
 interface HotelFormProps {
   onCreate: (hotel: Hotel) => void;
+  onUpdate?: (hotel: Hotel) => void;
+  editHotel?: Hotel | null;
 }
 
-const HotelForm: React.FC<HotelFormProps> = ({ onCreate }) => {
-  const [title, setTitle] = useState("");
-  const [address, setAddress] = useState("");
-  const [price, setPrice] = useState("");
-  const [bedrooms, setBedrooms] = useState("");
-  const [maxGuests, setMaxGuests] = useState("");
-  const [featuredImage, setFeaturedImage] = useState("");
-  const [authorId, setAuthorId] = useState(authorsData[0]?.id || 1);
+const HotelForm: React.FC<HotelFormProps> = ({ onCreate, onUpdate, editHotel }) => {
+  const [title, setTitle] = useState(editHotel ? editHotel.title : "");
+  const [address, setAddress] = useState(editHotel ? editHotel.address : "");
+  const [price, setPrice] = useState(editHotel ? String(editHotel.price || '') : "");
+  const [bedrooms, setBedrooms] = useState(editHotel ? String(editHotel.bedrooms) : "");
+  const [maxGuests, setMaxGuests] = useState(editHotel ? String(editHotel.maxGuests) : "");
+  const [featuredImage, setFeaturedImage] = useState(editHotel ? editHotel.featuredImage : "");
+  const [authorId, setAuthorId] = useState(editHotel ? editHotel.authorId : (authorsData[0]?.id || 1));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !address || !price) return;
-    onCreate({
-      id: Date.now(),
+    const hotelObj: Hotel = {
+      id: editHotel ? editHotel.id : Date.now(),
       title,
       address,
       price,
@@ -43,17 +45,22 @@ const HotelForm: React.FC<HotelFormProps> = ({ onCreate }) => {
       maxGuests: Number(maxGuests),
       featuredImage,
       authorId,
-      reviewStart: 0,
-      reviewCount: 0,
-      saleOff: "",
-    });
-    setTitle("");
-    setAddress("");
-    setPrice("");
-    setBedrooms("");
-    setMaxGuests("");
-    setFeaturedImage("");
-    setAuthorId(authorsData[0]?.id || 1);
+      reviewStart: editHotel ? editHotel.reviewStart : 0,
+      reviewCount: editHotel ? editHotel.reviewCount : 0,
+      saleOff: editHotel ? editHotel.saleOff : "",
+    };
+    if (editHotel && onUpdate) {
+      onUpdate(hotelObj);
+    } else {
+      onCreate(hotelObj);
+      setTitle("");
+      setAddress("");
+      setPrice("");
+      setBedrooms("");
+      setMaxGuests("");
+      setFeaturedImage("");
+      setAuthorId(authorsData[0]?.id || 1);
+    }
   };
 
   return (
@@ -112,7 +119,7 @@ const HotelForm: React.FC<HotelFormProps> = ({ onCreate }) => {
           <option key={author.id} value={author.id}>{author.displayName}</option>
         ))}
       </select>
-      <button type="submit" className="bg-green-500 text-white px-4 py-1 rounded mt-2">Tạo mới</button>
+  <button type="submit" className="bg-green-500 text-white px-4 py-1 rounded mt-2">{editHotel ? "Cập nhật" : "Tạo mới"}</button>
     </form>
   );
 };

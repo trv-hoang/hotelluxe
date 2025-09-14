@@ -1,432 +1,213 @@
-import React, { useState, useEffect } from 'react';
-import type { Hotel } from '@/types/hotel';
-import AdminPageHeader from '@/components/admin/AdminPageHeader';
-import AdminButton from '@/components/admin/AdminButton';
-import AdminCard from '@/components/admin/AdminCard';
-import HotelInfo from '@/components/admin/HotelInfo';
-import { useNotifications } from '@/hooks/useNotifications';
 
+import React, { useState, useMemo, useCallback } from 'react';
 import homeStayData from '../../data/jsons/__homeStay.json';
-
-// Chuyển đổi dữ liệu từ homeStayData sang interface Hotel
-import type { Hotel as HotelType } from '@/types/hotel';
-type HomeStayJson = {
-    id?: number;
-    title?: string;
-    description?: string;
-    address?: string;
-    city?: string;
-    country?: string;
-    phone?: string;
-    email?: string;
-    website?: string;
-    checkInTime?: string;
-    checkOutTime?: string;
-    starRating?: number;
-    amenities?: string[];
-    galleryImgs?: string[];
-    policies?: string[];
-    map?: { lat: number; lng: number };
-};
-
-const convertToHotel = (data: HomeStayJson): HotelType => ({
-        id: typeof data.id === 'number' ? data.id : 1,
-        name: typeof data.title === 'string' ? data.title : '',
-        description: typeof data.description === 'string' ? data.description : '',
-        address: typeof data.address === 'string' ? data.address : '',
-        city: typeof data.city === 'string' ? data.city : '',
-        country: typeof data.country === 'string' ? data.country : '',
-        phone: typeof data.phone === 'string' ? data.phone : '',
-        email: typeof data.email === 'string' ? data.email : '',
-        website: typeof data.website === 'string' ? data.website : '',
-        checkInTime: typeof data.checkInTime === 'string' ? data.checkInTime : '',
-        checkOutTime: typeof data.checkOutTime === 'string' ? data.checkOutTime : '',
-        starRating: [1,2,3,4,5].includes(data.starRating ?? 5) ? (data.starRating ?? 5) as 1|2|3|4|5 : 5,
-        amenities: Array.isArray(data.amenities)
-            ? data.amenities.map((a, i) => ({
-                id: i + 1,
-                name: a,
-                category: 'general',
-                icon: '',
-                isActive: true
-            }))
-            : [],
-        images: Array.isArray(data.galleryImgs) && data.galleryImgs.length > 0 ? data.galleryImgs : ['/src/assets/logo.png'],
-        policies: Array.isArray(data.policies)
-            ? data.policies.map((p, i) => ({
-                id: i + 1,
-                type: 'checkin_checkout',
-                title: p,
-                description: p,
-                isActive: true
-            }))
-            : [],
-        coordinates: typeof data.map === 'object' && data.map !== null ? data.map : { lat: 0, lng: 0 },
-        status: 'active',
-        createdAt: new Date(),
-        updatedAt: new Date()
-});
-
-const mockHotel: Hotel = convertToHotel(homeStayData[0]);
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
+import HotelCard from '../../components/admin/HotelCard';
+import { TRAVEL_IMAGES, findHotelByRegion, type Hotel } from '../../constant/travelRegions';
 
 const HotelPage: React.FC = () => {
-    const [hotel, setHotel] = useState<Hotel | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [editMode, setEditMode] = useState(false);
-    const { addNotification } = useNotifications();
-
-    // Load hotel data - optimized for faster loading
-    useEffect(() => {
-        setLoading(true);
-        // TODO: Replace with real API call
-        setTimeout(() => {
-            setHotel(mockHotel);
-            setLoading(false);
-        }, 200); // Reduced from 1000 to 200ms
+    // ✅ Tối ưu việc tìm và mapping hotels với travel images
+    const hotelsMatched = useMemo(() => {
+        const allHotels = homeStayData as unknown as Hotel[];
+        return TRAVEL_IMAGES.map(({ region, img }) => {
+            const found = findHotelByRegion(allHotels, region);
+            return found ? { ...found, featuredImage: img } : null;
+        }).filter(Boolean) as Hotel[];
     }, []);
 
-    const handleSaveHotel = async (updatedData: Partial<Hotel>) => {
-        setSaving(true);
+    // ✅ Memoized image options để tránh re-create
+    const imageOptions = useMemo(() => TRAVEL_IMAGES.map(({ region, img }) => ({
+        value: img,
+        label: region
+    })), []);
+    const [hotels, setHotels] = useState<Hotel[]>(hotelsMatched);
+    const [showForm, setShowForm] = useState(false);
+    const [editHotel, setEditHotel] = useState<Hotel | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // ✅ Memoized handlers với loading và error handling
+    const handleCreateHotel = useCallback(async (hotel: Hotel) => {
+        setLoading(true);
+        setError(null);
         try {
-            // TODO: Replace with real API call
-            await new Promise(resolve => setTimeout(resolve, 300)); // Reduced from 1500 to 300ms
-            
-            if (hotel) {
-                setHotel({ ...hotel, ...updatedData });
-                setEditMode(false);
-                addNotification({
-                    type: 'success',
-                    title: 'Hotel Updated',
-                    message: 'Hotel information has been updated successfully'
-                });
-            }
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            setHotels(prev => [hotel, ...prev]);
+            setShowForm(false);
         } catch {
-            addNotification({
-                type: 'error',
-                title: 'Update Failed',
-                message: 'Failed to update hotel information. Please try again.'
-            });
+            setError('Failed to create hotel');
         } finally {
-            setSaving(false);
+            setLoading(false);
         }
-    };
+    }, []);
 
-    const handleCancelEdit = () => {
-        setEditMode(false);
-    };
+    const handleEditHotel = useCallback((hotel: Hotel) => {
+        setEditHotel(hotel);
+        setShowForm(true);
+    }, []);
 
-    const handleManageAmenities = () => {
-        addNotification({
-            type: 'info',
-            title: 'Manage Amenities',
-            message: 'Amenity management functionality will be implemented'
-        });
-    };
+    const handleUpdateHotel = useCallback(async (updatedHotel: Hotel) => {
+        setLoading(true);
+        setError(null);
+        try {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            setHotels(prev => prev.map(h => h.id === updatedHotel.id ? updatedHotel : h));
+            setEditHotel(null);
+            setShowForm(false);
+        } catch {
+            setError('Failed to update hotel');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-    const handleManagePolicies = () => {
-        addNotification({
-            type: 'info',
-            title: 'Manage Policies',
-            message: 'Policy management functionality will be implemented'
-        });
-    };
-
-    const handleUploadImages = () => {
-        addNotification({
-            type: 'info',
-            title: 'Upload Images',
-            message: 'Image upload functionality will be implemented'
-        });
-    };
-
-    if (loading) {
-        return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '400px',
-                color: 'var(--admin-text-secondary)'
-            }}>
-                Loading hotel information...
-            </div>
-        );
-    }
-
-    if (!hotel) {
-        return (
-            <div style={{
-                textAlign: 'center',
-                padding: '60px 20px',
-                color: 'var(--admin-text-secondary)'
-            }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏨</div>
-                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>No Hotel Information</h3>
-                <p style={{ margin: '0 0 20px 0' }}>Hotel data could not be loaded</p>
-                <AdminButton variant="primary" onClick={() => window.location.reload()}>
-                    Retry
-                </AdminButton>
-            </div>
-        );
-    }
+    const handleDeleteHotel = useCallback((hotelId: number) => {
+        setHotels(prev => prev.filter(h => h.id !== hotelId));
+    }, []);
 
     return (
-        <div>
+        <div className="admin-container">
             <AdminPageHeader
                 title="Hotel Management"
-                description="Manage your hotel information, amenities, and policies"
+                description="Manage hotel list, add, edit, delete hotel information"    
+                breadcrumb="Hotel"
             >
-                {!editMode && (
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        <AdminButton 
-                            variant="secondary" 
-                            onClick={handleUploadImages}
-                        >
-                            Manage Images
-                        </AdminButton>
-                        <AdminButton 
-                            variant="secondary" 
-                            onClick={handleManageAmenities}
-                        >
-                            Manage Amenities
-                        </AdminButton>
-                        <AdminButton 
-                            variant="secondary" 
-                            onClick={handleManagePolicies}
-                        >
-                            Manage Policies
-                        </AdminButton>
-                        <AdminButton 
-                            variant="primary" 
-                            onClick={() => setEditMode(true)}
-                        >
-                            Edit Hotel Info
-                        </AdminButton>
-                    </div>
-                )}
+                <button
+                    className="px-4 py-2 rounded font-bold text-white"
+                    style={{
+                        background: '#22c55e',
+                        boxShadow: '0 2px 8px rgba(34,197,94,0.15)',
+                        transition: 'all 0.2s',
+                    }}
+                    onClick={() => { setShowForm(true); setEditHotel(null); }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#16a34a'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#22c55e'; }}
+                >
+                    Add new hotel
+                </button>
             </AdminPageHeader>
-
-            {/* Hotel Overview Cards */}
-            {!editMode && (
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '20px',
-                    marginBottom: '32px'
-                }}>
-                    <AdminCard
-                        title="Star Rating"
-                        value={'⭐'.repeat(hotel.starRating)}
-                        description={`${hotel.starRating} Star Hotel`}
-                        color="#ffd700"
-                        icon="⭐"
-                    />
-                    <AdminCard
-                        title="Status"
-                        value={hotel.status.charAt(0).toUpperCase() + hotel.status.slice(1)}
-                        description="Hotel operational status"
-                        color={hotel.status === 'active' ? '#4caf50' : '#f44336'}
-                        icon={hotel.status === 'active' ? '✅' : '❌'}
-                    />
-                    <AdminCard
-                        title="Check-in"
-                        value={hotel.checkInTime}
-                        description="Standard check-in time"
-                        color="#2196f3"
-                        icon="🕐"
-                    />
-                    <AdminCard
-                        title="Check-out"
-                        value={hotel.checkOutTime}
-                        description="Standard check-out time"
-                        color="#ff9800"
-                        icon="🕐"
-                    />
+            
+            {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-800 font-medium">{error}</p>
+                    <button 
+                        onClick={() => setError(null)}
+                        className="text-red-600 underline text-sm mt-1"
+                    >
+                        Dismiss
+                    </button>
                 </div>
             )}
-
-            {/* Hotel Information */}
-            {editMode ? (
-                <HotelInfo
-                    hotel={hotel}
-                    onSave={handleSaveHotel}
-                    onCancel={handleCancelEdit}
-                    loading={saving}
-                />
-            ) : (
-                <div style={{
-                    background: 'var(--admin-bg-primary)',
-                    borderRadius: '12px',
-                    border: '1px solid var(--admin-border)',
-                    overflow: 'hidden'
-                }}>
-                    {/* Header */}
-                    <div style={{
-                        padding: '20px',
-                        borderBottom: '1px solid var(--admin-border)',
-                        background: 'var(--admin-bg-secondary)'
-                    }}>
-                        <h2 style={{
-                            margin: 0,
-                            fontSize: '20px',
-                            fontWeight: '600',
-                            color: 'var(--admin-text-primary)'
-                        }}>
-                            {hotel.name}
-                        </h2>
-                        <p style={{
-                            margin: '8px 0 0 0',
-                            fontSize: '14px',
-                            color: 'var(--admin-text-secondary)'
-                        }}>
-                            {hotel.description}
-                        </p>
-                    </div>
-
-                    {/* Hotel Details */}
-                    <div style={{
-                        padding: '24px',
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                        gap: '32px'
-                    }}>
-                        {/* Location */}
-                        <div>
-                            <h3 style={{
-                                fontSize: '16px',
-                                fontWeight: '600',
-                                color: 'var(--admin-text-primary)',
-                                marginBottom: '16px'
-                            }}>
-                                📍 Location
-                            </h3>
-                            <div style={{ fontSize: '14px', color: 'var(--admin-text-secondary)', lineHeight: '1.6' }}>
-                                <div style={{ marginBottom: '8px' }}>
-                                    <strong>Address:</strong> {hotel.address}
-                                </div>
-                                <div style={{ marginBottom: '8px' }}>
-                                    <strong>City:</strong> {hotel.city}
+            
+            {showForm && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg relative">
+                        <button
+                            className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded font-bold shadow hover:bg-red-600 text-lg transition"
+                            onClick={() => { setShowForm(false); setEditHotel(null); }}
+                            aria-label="Đóng"
+                        >
+                            ×
+                        </button>
+                        <form
+                            className="flex flex-col gap-4"
+                            onSubmit={async e => {
+                                e.preventDefault();
+                                const form = e.target as typeof e.target & {
+                                    title: { value: string };
+                                    address: { value: string };
+                                    description: { value: string };
+                                    city: { value: string };
+                                    country: { value: string };
+                                    phone: { value: string };
+                                    email: { value: string };
+                                    featuredImage: { value: string };
+                                };
+                                const newHotel: Hotel = {
+                                    id: editHotel ? editHotel.id : Date.now(),
+                                    title: form.title.value,
+                                    address: form.address.value,
+                                    description: form.description.value,
+                                    city: form.city.value,
+                                    country: form.country.value,
+                                    phone: form.phone.value,
+                                    email: form.email.value,
+                                    featuredImage: form.featuredImage.value,
+                                };
+                                if (editHotel) {
+                                    await handleUpdateHotel(newHotel);
+                                } else {
+                                    await handleCreateHotel(newHotel);
+                                }
+                            }}
+                        >
+                            <div>
+                                <label className="block font-semibold mb-1" htmlFor="title">Hotel name</label>
+                                <input name="title" id="title" type="text" placeholder="Hotel name" className="border rounded px-3 py-2 w-full bg-white text-black placeholder-gray-400" defaultValue={editHotel?.title || ''} required />
+                            </div>
+                            <div>
+                                <label className="block font-semibold mb-1" htmlFor="address">Address</label>
+                                <input name="address" id="address" type="text" placeholder="Address" className="border rounded px-3 py-2 w-full bg-white text-black placeholder-gray-400" defaultValue={editHotel?.address || ''} required />
+                            </div>
+                            <div>
+                                <label className="block font-semibold mb-1" htmlFor="description">Description</label>
+                                <textarea name="description" id="description" placeholder="Detail description" className="border rounded px-3 py-2 w-full min-h-[80px] bg-white text-black placeholder-gray-400" defaultValue={editHotel?.description || ''} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block font-semibold mb-1" htmlFor="city">City</label>
+                                    <input name="city" id="city" type="text" placeholder="City" className="border rounded px-3 py-2 w-full bg-white text-black placeholder-gray-400" defaultValue={editHotel?.city || ''} />
                                 </div>
                                 <div>
-                                    <strong>Country:</strong> {hotel.country}
+                                    <label className="block font-semibold mb-1" htmlFor="country">Country</label>
+                                    <input name="country" id="country" type="text" placeholder="Country" className="border rounded px-3 py-2 w-full bg-white text-black placeholder-gray-400" defaultValue={editHotel?.country || ''} />
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Contact */}
-                        <div>
-                            <h3 style={{
-                                fontSize: '16px',
-                                fontWeight: '600',
-                                color: 'var(--admin-text-primary)',
-                                marginBottom: '16px'
-                            }}>
-                                📞 Contact Information
-                            </h3>
-                            <div style={{ fontSize: '14px', color: 'var(--admin-text-secondary)', lineHeight: '1.6' }}>
-                                <div style={{ marginBottom: '8px' }}>
-                                    <strong>Phone:</strong> {hotel.phone}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block font-semibold mb-1" htmlFor="phone">Phone</label>
+                                    <input name="phone" id="phone" type="text" placeholder="Phone" className="border rounded px-3 py-2 w-full bg-white text-black placeholder-gray-400" defaultValue={editHotel?.phone || ''} />
                                 </div>
-                                <div style={{ marginBottom: '8px' }}>
-                                    <strong>Email:</strong> {hotel.email}
+                                <div>
+                                    <label className="block font-semibold mb-1" htmlFor="email">Email</label>
+                                    <input name="email" id="email" type="email" placeholder="Email" className="border rounded px-3 py-2 w-full bg-white text-black placeholder-gray-400" defaultValue={editHotel?.email || ''} />
                                 </div>
-                                {hotel.website && (
-                                    <div>
-                                        <strong>Website:</strong>{' '}
-                                        <a 
-                                            href={hotel.website} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            style={{ color: 'var(--admin-primary)' }}
-                                        >
-                                            {hotel.website}
-                                        </a>
-                                    </div>
-                                )}
                             </div>
-                        </div>
-
-                        {/* Amenities Preview */}
-                        <div>
-                            <h3 style={{
-                                fontSize: '16px',
-                                fontWeight: '600',
-                                color: 'var(--admin-text-primary)',
-                                marginBottom: '16px'
-                            }}>
-                                🛎️ Amenities
-                            </h3>
-                            <div style={{ fontSize: '14px', color: 'var(--admin-text-secondary)' }}>
-                                {hotel.amenities.length > 0 ? (
-                                    <div>
-                                        {hotel.amenities.slice(0, 5).map(amenity => (
-                                            <div key={amenity.id} style={{ marginBottom: '4px' }}>
-                                                • {amenity.name}
-                                            </div>
-                                        ))}
-                                        {hotel.amenities.length > 5 && (
-                                            <div style={{ fontStyle: 'italic', marginTop: '8px' }}>
-                                                ... and {hotel.amenities.length - 5} more
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div style={{ fontStyle: 'italic' }}>
-                                        No amenities configured yet
-                                    </div>
-                                )}
-                                <AdminButton
-                                    variant="secondary"
-                                    onClick={handleManageAmenities}
-                                    style={{ marginTop: '12px' }}
-                                >
-                                    Manage Amenities
-                                </AdminButton>
+                            <div>
+                                <label className="block font-semibold mb-1" htmlFor="featuredImage">Avatar</label>
+                                <select name="featuredImage" id="featuredImage" className="border rounded px-3 py-2 w-full bg-white text-black placeholder-gray-400" defaultValue={editHotel?.featuredImage || ''} required>
+                                    <option value="">Select Image</option>
+                                    {imageOptions.map(({ value, label }) => (
+                                        <option key={value} value={value}>{label}</option>
+                                    ))}
+                                </select>
                             </div>
-                        </div>
-
-                        {/* Policies Preview */}
-                        <div>
-                            <h3 style={{
-                                fontSize: '16px',
-                                fontWeight: '600',
-                                color: 'var(--admin-text-primary)',
-                                marginBottom: '16px'
-                            }}>
-                                📋 Policies
-                            </h3>
-                            <div style={{ fontSize: '14px', color: 'var(--admin-text-secondary)' }}>
-                                {hotel.policies.length > 0 ? (
-                                    <div>
-                                        {hotel.policies.slice(0, 3).map(policy => (
-                                            <div key={policy.id} style={{ marginBottom: '4px' }}>
-                                                • {policy.title}
-                                            </div>
-                                        ))}
-                                        {hotel.policies.length > 3 && (
-                                            <div style={{ fontStyle: 'italic', marginTop: '8px' }}>
-                                                ... and {hotel.policies.length - 3} more
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div style={{ fontStyle: 'italic' }}>
-                                        No policies configured yet
-                                    </div>
-                                )}
-                                <AdminButton
-                                    variant="secondary"
-                                    onClick={handleManagePolicies}
-                                    style={{ marginTop: '12px' }}
-                                >
-                                    Manage Policies
-                                </AdminButton>
-                            </div>
-                        </div>
+                            <button 
+                                type="submit" 
+                                disabled={loading}
+                                className={`px-6 py-2 rounded-lg font-bold text-lg mt-2 shadow transition ${
+                                    loading 
+                                        ? 'bg-gray-400 cursor-not-allowed' 
+                                        : 'bg-green-600 hover:bg-green-700 text-white'
+                                }`}
+                            >
+                                {loading ? 'Processing...' : (editHotel ? 'Cập nhật' : 'Thêm mới')}
+                            </button>
+                        </form>
                     </div>
                 </div>
             )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {hotels.map(hotel => (
+                    <HotelCard
+                        key={hotel.id}
+                        hotel={hotel}
+                        onEdit={handleEditHotel}
+                        onDelete={handleDeleteHotel}
+                    />
+                ))}
+            </div>
         </div>
     );
 };

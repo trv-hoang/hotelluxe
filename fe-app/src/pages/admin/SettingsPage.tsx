@@ -48,7 +48,6 @@ const SettingsPage: React.FC = () => {
                     value="Online"
                     description="All systems operational"
                     color="#4caf50"
-                    icon="🟢"
                 />
                 
                 <AdminCard
@@ -56,7 +55,6 @@ const SettingsPage: React.FC = () => {
                     value="2.4 GB"
                     description="Total database usage"
                     color="#2196f3"
-                    icon="💾"
                 />
                 
                 <AdminCard
@@ -64,7 +62,6 @@ const SettingsPage: React.FC = () => {
                     value="42"
                     description="Current user sessions"
                     color="#ff9800"
-                    icon="👤"
                 />
             </div>
             

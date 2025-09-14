@@ -24,8 +24,9 @@ interface Props {
     onFilter?: (data: StayDataType[]) => void;
 }
 
-const parsePrice = (priceStr: string): number => {
-    return Number(priceStr.replace(/[^\d]/g, '')) || 0;
+const parsePrice = (price: string | number): number => {
+    if (typeof price === 'number') return price;
+    return Number(price.replace(/[^\d]/g, '')) || 0;
 };
 
 const parseSaleOff = (saleOff?: string | null): number => {
