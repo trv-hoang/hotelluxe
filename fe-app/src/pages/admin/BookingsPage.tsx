@@ -1,1177 +1,781 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import AdminPageHeader from '@/components/admin/AdminPageHeader';
-import AdminButton from '@/components/admin/AdminButton';
-import AdminCard from '@/components/admin/AdminCard';
-import AdminInput from '@/components/admin/AdminInput';
-import { useNotifications } from '@/hooks/useNotifications';
-import { formatCurrency, formatDate, calculateRoomPrice, generateBookingNumber, generateRoomNumber, calculateNights } from '../../utils/calculatorPrice';
-
-import usersData from '../../data/jsons/__users.json';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Edit, Trash2, Eye, Plus, Search, Calendar, DollarSign, Hotel, CheckCircle, Clock, XCircle } from 'lucide-react';
+import AdminButton from '../../components/admin/AdminButton';
+import AdminModal from '../../components/admin/AdminModal';
+import { formatCurrency, formatDate, generateBookingNumber, calculateNights } from '../../utils/calculatorPrice';
 import homeStayData from '../../data/jsons/__homeStay.json';
+import usersData from '../../data/jsons/__users.json';
+import { useNotifications } from '../../hooks/useNotifications';
 
-// Types
-interface Guest {
-    firstName: string;
-    lastName: string;
-    email?: string;
-    phone?: string;
-}
-
-interface Room {
-    id: number;
-    number: string;
-    floor: number;
-    roomType: {
-        id: number;
-        name: string;
-        description: string;
-        basePrice: number;
-        maxGuests: number;
-    };
-}
-
-interface Booking {
+// Booking interface
+interface BookingData {
     id: number;
     bookingNumber: string;
-    userId: number;
-    roomId: number;
-    room: Room;
-    guests: {
-        primary: Guest;
-        additional: Guest[];
-    };
-    checkIn: Date;
-    checkOut: Date;
+    hotelId: number;
+    customerId: number;
+    customerName: string;
+    customerEmail: string;
+    customerPhone: string;
+    checkIn: string;
+    checkOut: string;
     nights: number;
+    paymentStatus: 'paid' | 'pending' | 'failed';
     totalAmount: number;
-    status: 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled';
-    paymentStatus: 'pending' | 'paid' | 'refunded';
-    source: 'website' | 'phone' | 'walk_in';
-    specialRequests?: string;
-    createdAt: Date;
-    updatedAt: Date;
+    pricePerNight: number;
+    createdAt: string;
+    updatedAt: string;
 }
 
 // Generate mock bookings từ JSON data
-const generateMockBookings = (): Booking[] => {
-    const statuses: Booking['status'][] = ['pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled'];
-    const paymentStatuses: Booking['paymentStatus'][] = ['pending', 'paid', 'refunded'];
-    const sources: Booking['source'][] = ['website', 'phone', 'walk_in'];
-
-    return usersData.slice(0, 15).map((user, idx) => {
-        const hotel = homeStayData[idx % homeStayData.length];
+const generateMockBookings = (): BookingData[] => {
+    const paymentStatuses: BookingData['paymentStatus'][] = ['paid', 'pending', 'failed'];
+    
+    return homeStayData.slice(0, 20).map((hotel, idx) => {
+        const customer = usersData[idx % usersData.length];
         const checkInDate = new Date();
-        checkInDate.setDate(checkInDate.getDate() + Math.floor(Math.random() * 30) - 15);
+        checkInDate.setDate(checkInDate.getDate() + Math.floor(Math.random() * 30));
         const checkOutDate = new Date(checkInDate);
-        checkOutDate.setDate(checkOutDate.getDate() + Math.floor(Math.random() * 7) + 1);
-        const nights = calculateNights(checkInDate, checkOutDate);
+        const nights = Math.floor(Math.random() * 7) + 1;
+        checkOutDate.setDate(checkOutDate.getDate() + nights);
         
-        const hotelData = hotel as unknown as { price?: string | number; id: number; title?: string; description?: string; maxGuests?: number };
-        const priceString = typeof hotelData.price === 'string' ? hotelData.price : String(hotelData.price || 1500000);
-        const totalAmount = calculateRoomPrice(priceString, nights);
-
+        const pricePerNight = typeof hotel.price === 'string' 
+            ? parseFloat((hotel.price as string).replace(/[^\d]/g, '')) || 500000
+            : (hotel.price as number) || 500000;
+        
         return {
             id: idx + 1,
             bookingNumber: generateBookingNumber(idx),
-            userId: user.id,
-            roomId: hotelData.id,
-            room: {
-                id: hotelData.id,
-                number: generateRoomNumber(hotelData.id, idx),
-                floor: Math.floor(hotelData.id / 100) + 1,
-                roomType: {
-                    id: hotelData.id,
-                    name: hotelData.title || 'Standard Room',
-                    description: hotelData.description || '',
-                    basePrice: Number(priceString.replace(/[^\d]/g, '')),
-                    maxGuests: hotelData.maxGuests || 2,
-                }
-            },
-            guests: {
-                primary: {
-                    firstName: user.name.split(' ')[0] || 'Guest',
-                    lastName: user.name.split(' ').slice(1).join(' ') || 'User',
-                    email: user.email,
-                    phone: user.phone
-                },
-                additional: []
-            },
-            checkIn: checkInDate,
-            checkOut: checkOutDate,
+            hotelId: hotel.id,
+            customerId: customer.id,
+            customerName: customer.name,
+            customerEmail: customer.email,
+            customerPhone: customer.phone || '0912345678',
+            checkIn: checkInDate.toISOString().split('T')[0],
+            checkOut: checkOutDate.toISOString().split('T')[0],
             nights,
-            totalAmount,
-            status: statuses[idx % statuses.length],
-            paymentStatus: paymentStatuses[idx % paymentStatuses.length],
-            source: sources[idx % sources.length],
-            createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-            updatedAt: new Date()
+            paymentStatus: paymentStatuses[Math.floor(Math.random() * paymentStatuses.length)],
+            totalAmount: pricePerNight * nights,
+            pricePerNight,
+            createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date().toISOString()
         };
     });
 };
 
 const BookingsPage: React.FC = () => {
-    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [bookings, setBookings] = useState<BookingData[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [paymentFilter, setPaymentFilter] = useState<string>('all');
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-    const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
-    const [selectedHotel, setSelectedHotel] = useState<string>('');
-    const [selectedRoom, setSelectedRoom] = useState<string>('');
-    
+    const [paymentFilter, setPaymentFilter] = useState<BookingData['paymentStatus'] | 'all'>('all');
+    const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
+    const [showModal, setShowModal] = useState(false);
+    const [modalType, setModalType] = useState<'view' | 'edit' | 'create' | 'delete'>('view');
+    const [formData, setFormData] = useState<Partial<BookingData>>({});
     const { addNotification } = useNotifications();
 
-    // Load bookings data với cleanup để tránh memory leaks
+    // Load bookings data
     useEffect(() => {
-        let isMounted = true;
-        setLoading(true);
-        
-        const timeoutId = setTimeout(() => {
-            if (isMounted) {
+        const loadData = async () => {
+            try {
+                setLoading(true);
+                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
                 const mockBookings = generateMockBookings();
                 setBookings(mockBookings);
+            } catch (error) {
+                console.error('Error loading bookings:', error);
+                addNotification({
+                    type: 'error',
+                    title: 'Lỗi',
+                    message: 'Failed to load bookings data'
+                });
+            } finally {
                 setLoading(false);
             }
-        }, 300);
-
-        return () => {
-            isMounted = false;
-            clearTimeout(timeoutId);
         };
-    }, []);
 
-    // Optimized filter bookings với useMemo
+        loadData();
+    }, [addNotification]);
+
+    // Statistics calculations
+    const statistics = useMemo(() => {
+        const totalBookings = bookings.length;
+        const totalRevenue = bookings
+            .filter(b => b.paymentStatus === 'paid')
+            .reduce((sum, b) => sum + b.totalAmount, 0);
+        const paidBookings = bookings.filter(b => b.paymentStatus === 'paid').length;
+        const pendingBookings = bookings.filter(b => b.paymentStatus === 'pending').length;
+
+        return {
+            totalBookings,
+            totalRevenue,
+            paidBookings,
+            pendingBookings
+        };
+    }, [bookings]);
+
+    // Filtered bookings
     const filteredBookings = useMemo(() => {
         let filtered = [...bookings];
 
         // Search filter
         if (searchTerm) {
             filtered = filtered.filter(booking =>
-                booking.bookingNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                booking.guests.primary.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                booking.guests.primary.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                booking.guests.primary.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                booking.room.roomType.name.toLowerCase().includes(searchTerm.toLowerCase())
+                booking.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                booking.customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                booking.bookingNumber.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
 
-        // Status filter
-        if (statusFilter !== 'all') {
-            filtered = filtered.filter(booking => booking.status === statusFilter);
-        }
-
-        // Payment filter
+        // Payment status filter
         if (paymentFilter !== 'all') {
             filtered = filtered.filter(booking => booking.paymentStatus === paymentFilter);
         }
 
         return filtered;
-    }, [bookings, searchTerm, statusFilter, paymentFilter]);
+    }, [bookings, searchTerm, paymentFilter]);
 
-    // Handlers
-    const handleAddBooking = () => {
-        // Reset form states
-        setSelectedHotel('');
-        setSelectedRoom('');
-        setShowAddModal(true);
-    };
+    // Get hotel info
+    const getHotelInfo = useCallback((hotelId: number) => {
+        return homeStayData.find(hotel => hotel.id === hotelId);
+    }, []);
 
-    const handleEditBooking = (booking: Booking) => {
+    // Handle create booking
+    const handleCreate = useCallback(() => {
+        setFormData({
+            customerName: '',
+            customerEmail: '',
+            customerPhone: '',
+            checkIn: '',
+            checkOut: '',
+            paymentStatus: 'pending',
+            hotelId: homeStayData[0]?.id || 1
+        });
+        setModalType('create');
+        setShowModal(true);
+    }, []);
+
+    // Handle edit booking
+    const handleEdit = useCallback((booking: BookingData) => {
         setSelectedBooking(booking);
-        setShowEditModal(true);
-    };
+        setFormData(booking);
+        setModalType('edit');
+        setShowModal(true);
+    }, []);
 
-    const handleDeleteBooking = (booking: Booking) => {
+    // Handle view booking
+    const handleView = useCallback((booking: BookingData) => {
         setSelectedBooking(booking);
-        setShowDeleteModal(true);
-    };
+        setModalType('view');
+        setShowModal(true);
+    }, []);
 
-    const confirmDelete = async () => {
-        if (!selectedBooking) return;
-        
+    // Handle delete booking
+    const handleDelete = useCallback((booking: BookingData) => {
+        setSelectedBooking(booking);
+        setModalType('delete');
+        setShowModal(true);
+    }, []);
+
+    // Handle form submit
+    const handleSubmit = useCallback(async () => {
         try {
-            setBookings(prev => prev.filter(b => b.id !== selectedBooking.id));
-            addNotification({
-                type: 'success',
-                title: 'Booking Deleted',
-                message: `Booking ${selectedBooking.bookingNumber} has been deleted successfully`
-            });
-        } catch {
-            addNotification({
-                type: 'error',
-                title: 'Delete Failed',
-                message: 'Failed to delete booking'
-            });
-        } finally {
-            setShowDeleteModal(false);
+            if (modalType === 'create') {
+                const newBooking: BookingData = {
+                    id: Math.max(...bookings.map(b => b.id)) + 1,
+                    bookingNumber: generateBookingNumber(bookings.length),
+                    hotelId: formData.hotelId!,
+                    customerId: 1, // Default customer
+                    customerName: formData.customerName!,
+                    customerEmail: formData.customerEmail!,
+                    customerPhone: formData.customerPhone!,
+                    checkIn: formData.checkIn!,
+                    checkOut: formData.checkOut!,
+                    nights: calculateNights(formData.checkIn!, formData.checkOut!),
+                    paymentStatus: formData.paymentStatus!,
+                    totalAmount: 0, // Will be calculated
+                    pricePerNight: 500000, // Default price
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                // Calculate total amount
+                const hotel = getHotelInfo(newBooking.hotelId);
+                if (hotel) {
+                    const pricePerNight = typeof hotel.price === 'string' 
+                        ? parseFloat((hotel.price as string).replace(/[^\d]/g, '')) || 500000
+                        : (hotel.price as number) || 500000;
+                    newBooking.pricePerNight = pricePerNight;
+                    newBooking.totalAmount = pricePerNight * newBooking.nights;
+                }
+
+                setBookings(prev => [...prev, newBooking]);
+                addNotification({
+                    type: 'success',
+                    title: 'Thành công',
+                    message: `Đặt phòng ${newBooking.bookingNumber} đã được tạo thành công`
+                });
+            } else if (modalType === 'edit' && selectedBooking) {
+                const updatedBooking = {
+                    ...selectedBooking,
+                    ...formData,
+                    nights: calculateNights(formData.checkIn!, formData.checkOut!),
+                    updatedAt: new Date().toISOString()
+                };
+
+                // Recalculate total amount
+                const hotel = getHotelInfo(updatedBooking.hotelId);
+                if (hotel) {
+                    const pricePerNight = typeof hotel.price === 'string' 
+                        ? parseFloat((hotel.price as string).replace(/[^\d]/g, '')) || 500000
+                        : (hotel.price as number) || 500000;
+                    updatedBooking.pricePerNight = pricePerNight;
+                    updatedBooking.totalAmount = pricePerNight * updatedBooking.nights;
+                }
+
+                setBookings(prev => prev.map(b => 
+                    b.id === selectedBooking.id ? updatedBooking : b
+                ));
+                addNotification({
+                    type: 'success',
+                    title: 'Thành công',
+                    message: `Đặt phòng ${selectedBooking.bookingNumber} đã được cập nhật`
+                });
+            } else if (modalType === 'delete' && selectedBooking) {
+                setBookings(prev => prev.filter(b => b.id !== selectedBooking.id));
+                addNotification({
+                    type: 'success',
+                    title: 'Thành công',
+                    message: `Đặt phòng ${selectedBooking.bookingNumber} đã được xóa`
+                });
+            }
+
+            setShowModal(false);
             setSelectedBooking(null);
-        }
-    };
-
-    const updateBookingStatus = async (bookingId: number, newStatus: Booking['status']) => {
-        try {
-            setBookings(prev => prev.map(booking =>
-                booking.id === bookingId
-                    ? { ...booking, status: newStatus, updatedAt: new Date() }
-                    : booking
-            ));
-            
-            addNotification({
-                type: 'success',
-                title: 'Status Updated',
-                message: `Booking status updated to ${newStatus}`
-            });
-        } catch {
+            setFormData({});
+        } catch (error) {
+            console.error('Error handling booking operation:', error);
             addNotification({
                 type: 'error',
-                title: 'Update Failed',
-                message: 'Failed to update booking status'
+                title: 'Lỗi',
+                message: 'Có lỗi xảy ra khi xử lý đặt phòng'
             });
         }
-    };
+    }, [modalType, formData, selectedBooking, bookings, addNotification, getHotelInfo]);
 
-    const getStatusColor = (status: Booking['status']): string => {
-        switch (status) {
-            case 'confirmed': return '#22c55e';
-            case 'pending': return '#f59e0b';
-            case 'checked_in': return '#3b82f6';
-            case 'checked_out': return '#8b5cf6';
-            case 'cancelled': return '#ef4444';
-            default: return '#6b7280';
-        }
-    };
-
-    const getPaymentStatusColor = (status: Booking['paymentStatus']): string => {
-        switch (status) {
-            case 'paid': return '#22c55e';
-            case 'pending': return '#f59e0b';
-            case 'refunded': return '#3b82f6';
-            default: return '#6b7280';
-        }
-    };
-
-    // Statistics
-    const stats = {
-        total: bookings.length,
-        confirmed: bookings.filter(b => b.status === 'confirmed').length,
-        checkedIn: bookings.filter(b => b.status === 'checked_in').length,
-        revenue: bookings
-            .filter(b => b.paymentStatus === 'paid')
-            .reduce((sum, b) => sum + b.totalAmount, 0)
+    // Payment status badge
+    const PaymentStatusBadge = ({ status }: { status: BookingData['paymentStatus'] }) => {
+        const styles = {
+            paid: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle },
+            pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock },
+            failed: { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle }
+        };
+        
+        const style = styles[status];
+        const Icon = style.icon;
+        
+        return (
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}`}>
+                <Icon className="w-3 h-3 mr-1" />
+                {status === 'paid' ? 'Đã thanh toán' : status === 'pending' ? 'Chờ thanh toán' : 'Thất bại'}
+            </span>
+        );
     };
 
     if (loading) {
         return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '400px',
-                color: 'var(--admin-text-secondary)'
-            }}>
-                Loading bookings...
+            <div className="flex items-center justify-center h-96">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
         );
     }
 
     return (
-        <div>
+        <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-start mb-6">
-                <AdminPageHeader
-                    title="Booking Management"
-                    description="Manage hotel bookings, payments, and guest information"
-                    breadcrumb="Dashboard / Bookings"
-                />
-                <div className="flex gap-3">
-                    <AdminButton
-                        onClick={handleAddBooking}
-                        style={{
-                            background: '#22c55e',
-                            boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)',
-                            borderRadius: '8px',
-                            fontWeight: '600',
-                            padding: '10px 20px',
-                            transition: 'all 0.3s ease',
-                        }}
-                        className="hover:bg-green-600 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
-                    >
-                        Add New Booking
-                    </AdminButton>
-                    <AdminButton
-                        style={{
-                            background: '#3b82f6',
-                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-                            borderRadius: '8px',
-                            fontWeight: '600',
-                            padding: '10px 20px',
-                            transition: 'all 0.3s ease',
-                        }}
-                        className="hover:bg-blue-600 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
-                        onClick={() => addNotification({
-                            type: 'info',
-                            title: 'Export Started',
-                            message: 'Booking data export will be available soon'
-                        })}
-                    >
-                        Export Data
-                    </AdminButton>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Quản lý đặt phòng khách sạn
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                        Quản lý tất cả đặt phòng khách sạn
+                    </p>
                 </div>
+                <AdminButton onClick={handleCreate} className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Tạo đặt phòng mới
+                </AdminButton>
             </div>
 
-            {/* Stats Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                <AdminCard
-                    title="Total Bookings"
-                    value={stats.total.toString()}
-                    description="All time bookings"
-                    color="#3b82f6"
-                />
-                <AdminCard
-                    title="Confirmed"
-                    value={stats.confirmed.toString()}
-                    description="Confirmed bookings"
-                    color="#22c55e"
-                />
-                <AdminCard
-                    title="Checked In"
-                    value={stats.checkedIn.toString()}
-                    description="Currently checked in"
-                    color="#8b5cf6"
-                />
-                <AdminCard
-                    title="Total Revenue"
-                    value={formatCurrency(stats.revenue)}
-                    description="From paid bookings"
-                    color="#f59e0b"
-                />
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-white rounded-lg shadow p-6 border">
+                    <div className="flex items-center">
+                        <div className="p-3 rounded-full bg-blue-100">
+                            <Hotel className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">
+                                Tổng đặt phòng
+                            </p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {statistics.totalBookings}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6 border">
+                    <div className="flex items-center">
+                        <div className="p-3 rounded-full bg-green-100">
+                            <DollarSign className="w-6 h-6 text-green-600" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">
+                                Tổng doanh thu
+                            </p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {formatCurrency(statistics.totalRevenue)}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6 border">
+                    <div className="flex items-center">
+                        <div className="p-3 rounded-full bg-green-100">
+                            <CheckCircle className="w-6 h-6 text-green-600" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">
+                                Đã thanh toán
+                            </p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {statistics.paidBookings}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-6 border">
+                    <div className="flex items-center">
+                        <div className="p-3 rounded-full bg-yellow-100">
+                            <Clock className="w-6 h-6 text-yellow-600" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">
+                                Chờ thanh toán
+                            </p>
+                            <p className="text-2xl font-bold text-gray-900">
+                                {statistics.pendingBookings}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Filters */}
-            <div className="mb-6" style={{
-                background: 'var(--admin-bg-secondary)',
-                border: '1px solid var(--admin-border)',
-                borderRadius: '12px',
-                padding: '20px'
-            }}>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <AdminInput
-                        type="text"
-                        placeholder="Search bookings..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ width: '100%' }}
-                    />
-                    
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        style={{
-                            background: 'var(--admin-bg-primary)',
-                            border: '1px solid var(--admin-border)',
-                            borderRadius: '6px',
-                            padding: '8px 12px',
-                            color: 'var(--admin-text-primary)',
-                            fontSize: '14px'
-                        }}
-                    >
-                        <option value="all">All Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="checked_in">Checked In</option>
-                        <option value="checked_out">Checked Out</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-
-                    <select
-                        value={paymentFilter}
-                        onChange={(e) => setPaymentFilter(e.target.value)}
-                        style={{
-                            background: 'var(--admin-bg-primary)',
-                            border: '1px solid var(--admin-border)',
-                            borderRadius: '6px',
-                            padding: '8px 12px',
-                            color: 'var(--admin-text-primary)',
-                            fontSize: '14px'
-                        }}
-                    >
-                        <option value="all">All Payments</option>
-                        <option value="pending">Pending</option>
-                        <option value="paid">Paid</option>
-                        <option value="refunded">Refunded</option>
-                    </select>
-
-                    <div className="flex gap-2">
-                        <AdminButton
-                            onClick={() => setViewMode('table')}
-                            style={{
-                                background: viewMode === 'table' ? '#3b82f6' : 'var(--admin-bg-primary)',
-                                color: viewMode === 'table' ? '#fff' : 'var(--admin-text-primary)',
-                                border: '1px solid var(--admin-border)',
-                                borderRadius: '6px',
-                                padding: '8px 12px',
-                                fontSize: '14px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px'
-                            }}
-                        >
-                            📋 Table
-                        </AdminButton>
-                        <AdminButton
-                            onClick={() => setViewMode('grid')}
-                            style={{
-                                background: viewMode === 'grid' ? '#3b82f6' : 'var(--admin-bg-primary)',
-                                color: viewMode === 'grid' ? '#fff' : 'var(--admin-text-primary)',
-                                border: '1px solid var(--admin-border)',
-                                borderRadius: '6px',
-                                padding: '8px 12px',
-                                fontSize: '14px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px'
-                            }}
-                        >
-                            🔲 Grid
-                        </AdminButton>
+            <div className="bg-white rounded-lg shadow border dark:border-gray-700">
+                <div className="p-6">
+                    <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex-1">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <input
+                                    type="text"
+                                    placeholder="Tìm kiếm theo tên khách hàng, email, mã đặt phòng..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg 
+                                             bg-white text-gray-900 dark:text-white
+                                             focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </div>
+                        </div>
+                        <div className="md:w-48">
+                            <select
+                                value={paymentFilter}
+                                onChange={(e) => setPaymentFilter(e.target.value as BookingData['paymentStatus'] | 'all')}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg 
+                                         bg-white text-gray-900 dark:text-white
+                                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="paid">Đã thanh toán</option>
+                                <option value="pending">Chờ thanh toán</option>
+                                <option value="failed">Thất bại</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Bookings List */}
-            {viewMode === 'table' ? (
-                <div style={{
-                    background: 'var(--admin-bg-secondary)',
-                    border: '1px solid var(--admin-border)',
-                    borderRadius: '12px',
-                    overflow: 'hidden'
-                }}>
-                    <div style={{
-                        overflowX: 'auto'
-                    }}>
-                        <table style={{
-                            width: '100%',
-                            borderCollapse: 'separate',
-                            borderSpacing: '0 8px'
-                        }}>
-                            <thead>
-                                <tr style={{
-                                    background: 'var(--admin-bg-primary)',
-                                    borderBottom: '1px solid var(--admin-border)'
-                                }}>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: 'var(--admin-text-primary)' }}>Booking</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: 'var(--admin-text-primary)' }}>Guest</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: 'var(--admin-text-primary)' }}>Room</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: 'var(--admin-text-primary)' }}>Dates</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: 'var(--admin-text-primary)' }}>Status</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: 'var(--admin-text-primary)' }}>Payment</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: 'var(--admin-text-primary)' }}>Total</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600', color: 'var(--admin-text-primary)' }}>Actions</th>
+            {/* Bookings Table */}
+            <div className="bg-white rounded-lg shadow border dark:border-gray-700">
+                <div className="p-6">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead className="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Khách hàng
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Khách sạn
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Ngày check-in/out
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Số đêm
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Trạng thái thanh toán
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Số tiền
+                                    </th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Thao tác
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {filteredBookings.map((booking) => (
-                                    <tr key={booking.id} style={{
-                                        border: '2px solid var(--admin-border)',
-                                        backgroundColor: 'var(--admin-bg-secondary)',
-                                        borderRadius: '8px',
-                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                    }}>
-                                        <td style={{ padding: '12px' }}>
-                                            <div>
-                                                <div style={{ fontWeight: '600', color: 'var(--admin-text-primary)' }}>
-                                                    {booking.bookingNumber}
+                            <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700">
+                                {filteredBookings.map((booking) => {
+                                    const hotel = getHotelInfo(booking.hotelId);
+                                    return (
+                                        <tr key={booking.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        {booking.customerName}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                        {booking.customerEmail}
+                                                    </div>
                                                 </div>
-                                                <div style={{ fontSize: '12px', color: 'var(--admin-text-secondary)' }}>
-                                                    {formatDate(booking.createdAt)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                    {hotel?.title || 'Unknown Hotel'}
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '12px' }}>
-                                            <div>
-                                                <div style={{ fontWeight: '500', color: 'var(--admin-text-primary)' }}>
-                                                    {booking.guests.primary.firstName} {booking.guests.primary.lastName}
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                    {formatCurrency(booking.pricePerNight)}/đêm
                                                 </div>
-                                                <div style={{ fontSize: '12px', color: 'var(--admin-text-secondary)' }}>
-                                                    {booking.guests.primary.email}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center text-sm text-gray-900 dark:text-white">
+                                                    <Calendar className="w-4 h-4 mr-1" />
+                                                    <div>
+                                                        <div>{formatDate(booking.checkIn)}</div>
+                                                        <div className="text-gray-500 dark:text-gray-400">
+                                                            {formatDate(booking.checkOut)}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '12px' }}>
-                                            <div>
-                                                <div style={{ fontWeight: '500', color: 'var(--admin-text-primary)' }}>
-                                                    Room {booking.room.number}
-                                                </div>
-                                                <div style={{ fontSize: '12px', color: 'var(--admin-text-secondary)' }}>
-                                                    {booking.room.roomType.name}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '12px' }}>
-                                            <div>
-                                                <div style={{ fontSize: '13px', color: 'var(--admin-text-primary)' }}>
-                                                    {formatDate(booking.checkIn)} - {formatDate(booking.checkOut)}
-                                                </div>
-                                                <div style={{ fontSize: '12px', color: 'var(--admin-text-secondary)' }}>
-                                                    {booking.nights} nights
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '12px' }}>
-                                            <select
-                                                value={booking.status}
-                                                onChange={(e) => updateBookingStatus(booking.id, e.target.value as Booking['status'])}
-                                                style={{
-                                                    background: getStatusColor(booking.status),
-                                                    color: '#fff',
-                                                    border: 'none',
-                                                    borderRadius: '4px',
-                                                    padding: '4px 8px',
-                                                    fontSize: '12px',
-                                                    fontWeight: '500'
-                                                }}
-                                            >
-                                                <option value="pending">Pending</option>
-                                                <option value="confirmed">Confirmed</option>
-                                                <option value="checked_in">Checked In</option>
-                                                <option value="checked_out">Checked Out</option>
-                                                <option value="cancelled">Cancelled</option>
-                                            </select>
-                                        </td>
-                                        <td style={{ padding: '12px' }}>
-                                            <span style={{
-                                                background: getPaymentStatusColor(booking.paymentStatus),
-                                                color: '#fff',
-                                                padding: '4px 8px',
-                                                borderRadius: '4px',
-                                                fontSize: '12px',
-                                                fontWeight: '500',
-                                                textTransform: 'capitalize'
-                                            }}>
-                                                {booking.paymentStatus}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '12px' }}>
-                                            <div style={{
-                                                fontWeight: '700',
-                                                color: '#22c55e',
-                                                fontSize: '14px',
-                                                background: 'rgba(34, 197, 94, 0.1)',
-                                                padding: '6px 10px',
-                                                borderRadius: '6px',
-                                                border: '1px solid rgba(34, 197, 94, 0.2)',
-                                                textAlign: 'center',
-                                                minWidth: '120px'
-                                            }}>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                {booking.nights} đêm
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <PaymentStatusBadge status={booking.paymentStatus} />
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                                                 {formatCurrency(booking.totalAmount)}
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '12px' }}>
-                                            <div className="flex gap-2">
-                                                <AdminButton
-                                                    onClick={() => handleEditBooking(booking)}
-                                                    style={{
-                                                        background: '#f59e0b',
-                                                        color: '#fff',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '4px',
-                                                        fontSize: '12px',
-                                                        fontWeight: '500'
-                                                    }}
-                                                    className="hover:bg-yellow-600"
-                                                >
-                                                    Edit
-                                                </AdminButton>
-                                                <AdminButton
-                                                    onClick={() => handleDeleteBooking(booking)}
-                                                    style={{
-                                                        background: '#ef4444',
-                                                        color: '#fff',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '4px',
-                                                        fontSize: '12px',
-                                                        fontWeight: '500'
-                                                    }}
-                                                    className="hover:bg-red-600"
-                                                >
-                                                    Delete
-                                                </AdminButton>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <div className="flex justify-end space-x-2">
+                                                    <button
+                                                        onClick={() => handleView(booking)}
+                                                        className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-300"
+                                                        title="Xem chi tiết"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEdit(booking)}
+                                                        className="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-300"
+                                                        title="Chỉnh sửa"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(booking)}
+                                                        className="text-red-600 hover:text-red-900 dark:hover:text-red-300"
+                                                        title="Xóa"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
+
+                        {filteredBookings.length === 0 && (
+                            <div className="text-center py-12">
+                                <div className="text-gray-500 dark:text-gray-400">
+                                    {searchTerm || paymentFilter !== 'all' 
+                                        ? 'Không tìm thấy đặt phòng nào phù hợp' 
+                                        : 'Chưa có đặt phòng nào'
+                                    }
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-            ) : (
-                <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 380px), 1fr))', 
-                    gap: '1.5rem',
-                    alignItems: 'stretch'
-                }}>
-                    {filteredBookings.map((booking) => (
-                        <div key={booking.id} style={{
-                            background: 'var(--admin-bg-secondary)',
-                            border: '2px solid var(--admin-border)',
-                            borderRadius: '10px',
-                            padding: '16px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            height: '100%'
-                        }}>
-                            {/* Header với Booking Number và Status */}
-                            <div className="flex justify-between items-start mb-3">
-                                <div style={{ flex: 1 }}>
-                                    <h3 style={{ 
-                                        margin: 0, 
-                                        fontSize: '15px', 
-                                        fontWeight: '600', 
-                                        color: 'var(--admin-text-primary)' 
-                                    }}>
-                                        {booking.bookingNumber}
-                                    </h3>
-                                    <p style={{ 
-                                        margin: '2px 0 0 0', 
-                                        fontSize: '11px', 
-                                        color: 'var(--admin-text-secondary)' 
-                                    }}>
-                                        {formatDate(booking.createdAt)}
+            </div>
+
+            {/* Modal */}
+            {showModal && (
+                <AdminModal
+                    isOpen={showModal}
+                    onClose={() => {
+                        setShowModal(false);
+                        setSelectedBooking(null);
+                        setFormData({});
+                    }}
+                    title={
+                        modalType === 'create' ? 'Tạo đặt phòng mới' :
+                        modalType === 'edit' ? 'Chỉnh sửa đặt phòng' :
+                        modalType === 'view' ? 'Chi tiết đặt phòng' :
+                        'Xác nhận xóa'
+                    }
+                >
+                    {modalType === 'delete' ? (
+                        <div className="space-y-4">
+                            <p className="text-gray-600 dark:text-gray-300">
+                                Bạn có chắc chắn muốn xóa đặt phòng này không? Hành động này không thể hoàn tác.
+                            </p>
+                            <div className="flex justify-end space-x-3">
+                                <AdminButton
+                                    variant="secondary"
+                                    onClick={() => setShowModal(false)}
+                                >
+                                    Hủy
+                                </AdminButton>
+                                <AdminButton
+                                    variant="danger"
+                                    onClick={handleSubmit}
+                                >
+                                    Xóa
+                                </AdminButton>
+                            </div>
+                        </div>
+                    ) : modalType === 'view' && selectedBooking ? (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Mã đặt phòng
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {selectedBooking.bookingNumber}
                                     </p>
                                 </div>
-                                <div className="flex gap-1">
-                                    <span style={{
-                                        background: getStatusColor(booking.status),
-                                        color: '#fff',
-                                        padding: '3px 6px',
-                                        borderRadius: '4px',
-                                        fontSize: '10px',
-                                        fontWeight: '500',
-                                        textTransform: 'capitalize'
-                                    }}>
-                                        {booking.status}
-                                    </span>
-                                    <span style={{
-                                        background: getPaymentStatusColor(booking.paymentStatus),
-                                        color: '#fff',
-                                        padding: '3px 6px',
-                                        borderRadius: '4px',
-                                        fontSize: '10px',
-                                        fontWeight: '500',
-                                        textTransform: 'capitalize'
-                                    }}>
-                                        {booking.paymentStatus}
-                                    </span>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Khách hàng
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {selectedBooking.customerName}
+                                    </p>
                                 </div>
-                            </div>
-                            
-                            {/* Guest Info */}
-                            <div className="mb-3" style={{
-                                background: 'var(--admin-bg-primary)',
-                                padding: '8px 10px',
-                                borderRadius: '6px',
-                                border: '1px solid var(--admin-border)'
-                            }}>
-                                <p style={{ 
-                                    margin: '0 0 2px 0', 
-                                    fontSize: '13px', 
-                                    fontWeight: '600', 
-                                    color: 'var(--admin-text-primary)' 
-                                }}>
-                                    {booking.guests.primary.firstName} {booking.guests.primary.lastName}
-                                </p>
-                                <p style={{ 
-                                    margin: 0, 
-                                    fontSize: '11px', 
-                                    color: 'var(--admin-text-secondary)' 
-                                }}>
-                                    {booking.guests.primary.email}
-                                </p>
-                            </div>
-                            
-                            {/* Room Info */}
-                            <div className="mb-3" style={{
-                                background: 'var(--admin-bg-primary)',
-                                padding: '8px 10px',
-                                borderRadius: '6px',
-                                border: '1px solid var(--admin-border)'
-                            }}>
-                                <p style={{ 
-                                    margin: '0 0 2px 0', 
-                                    fontSize: '13px', 
-                                    fontWeight: '600', 
-                                    color: 'var(--admin-text-primary)' 
-                                }}>
-                                    Room {booking.room.number} - {booking.room.roomType.name}
-                                </p>
-                                <p style={{ 
-                                    margin: '0 0 2px 0', 
-                                    fontSize: '11px', 
-                                    color: 'var(--admin-text-secondary)' 
-                                }}>
-                                    {formatDate(booking.checkIn)} - {formatDate(booking.checkOut)}
-                                </p>
-                                <p style={{ 
-                                    margin: 0, 
-                                    fontSize: '11px', 
-                                    color: 'var(--admin-text-secondary)',
-                                    fontWeight: '500'
-                                }}>
-                                    {booking.nights} nights
-                                </p>
-                            </div>
-                            
-                            {/* Spacer để đẩy phần price và actions xuống dưới */}
-                            <div style={{ flex: 1 }}></div>
-                            
-                            {/* Price Section - Fixed position at bottom */}
-                            <div className="mb-3" style={{
-                                borderTop: '1px solid var(--admin-border)',
-                                paddingTop: '12px',
-                                marginTop: 'auto'
-                            }}>
-                                <div style={{ 
-                                    fontSize: '18px', 
-                                    fontWeight: '700', 
-                                    color: '#22c55e',
-                                    textAlign: 'center',
-                                    padding: '10px 12px',
-                                    background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%)',
-                                    borderRadius: '8px',
-                                    border: '2px solid rgba(34, 197, 94, 0.3)',
-                                    boxShadow: '0 2px 8px rgba(34, 197, 94, 0.1)'
-                                }}>
-                                    {formatCurrency(booking.totalAmount)}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Email
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {selectedBooking.customerEmail}
+                                    </p>
                                 </div>
-                            </div>
-                            
-                            {/* Actions Section - Fixed at bottom */}
-                            <div className="flex gap-2 justify-center">
-                                <AdminButton
-                                    onClick={() => handleEditBooking(booking)}
-                                    style={{
-                                        background: '#f59e0b',
-                                        color: '#fff',
-                                        padding: '8px 14px',
-                                        borderRadius: '6px',
-                                        fontSize: '12px',
-                                        fontWeight: '600',
-                                        flex: '1',
-                                        maxWidth: '100px',
-                                        boxShadow: '0 2px 4px rgba(245, 158, 11, 0.3)',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                    className="hover:bg-yellow-600 hover:shadow-lg"
-                                >
-                                    Edit
-                                </AdminButton>
-                                <AdminButton
-                                    onClick={() => handleDeleteBooking(booking)}
-                                    style={{
-                                        background: '#ef4444',
-                                        color: '#fff',
-                                        padding: '8px 14px',
-                                        borderRadius: '6px',
-                                        fontSize: '12px',
-                                        fontWeight: '600',
-                                        flex: '1',
-                                        maxWidth: '100px',
-                                        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                    className="hover:bg-red-600 hover:shadow-lg"
-                                >
-                                    Delete
-                                </AdminButton>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Số điện thoại
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {selectedBooking.customerPhone}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Khách sạn
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {getHotelInfo(selectedBooking.hotelId)?.title || 'Unknown Hotel'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Trạng thái thanh toán
+                                    </label>
+                                    <div className="mt-1">
+                                        <PaymentStatusBadge status={selectedBooking.paymentStatus} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Check-in
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {formatDate(selectedBooking.checkIn)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Check-out
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {formatDate(selectedBooking.checkOut)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Số đêm
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {selectedBooking.nights} đêm
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Tổng tiền
+                                    </label>
+                                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                                        {formatCurrency(selectedBooking.totalAmount)}
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Add Booking Modal */}
-            {showAddModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0, 0, 0, 0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 9999
-                }} onClick={() => {
-                    setShowAddModal(false);
-                    setSelectedHotel('');
-                    setSelectedRoom('');
-                }}>
-                    <div style={{
-                        background: 'var(--admin-bg-primary)',
-                        borderRadius: '12px',
-                        border: '1px solid var(--admin-border)',
-                        width: '90%',
-                        maxWidth: '600px',
-                        maxHeight: '80vh',
-                        overflow: 'auto'
-                    }} onClick={(e) => e.stopPropagation()}>
-                        <div style={{
-                            padding: '20px',
-                            borderBottom: '1px solid var(--admin-border)',
-                            background: 'var(--admin-bg-secondary)'
-                        }}>
-                            <h2 style={{
-                                margin: 0,
-                                fontSize: '20px',
-                                fontWeight: '600',
-                                color: 'var(--admin-text-primary)'
-                            }}>
-                                Add New Booking
-                            </h2>
-                        </div>
-                        
-                        <div style={{ padding: '24px' }}>
-                            <div className="space-y-4">
-                                <AdminInput
-                                    type="text"
-                                    placeholder="Guest First Name"
-                                    style={{ width: '100%' }}
-                                />
-                                <AdminInput
-                                    type="text"
-                                    placeholder="Guest Last Name"
-                                    style={{ width: '100%' }}
-                                />
-                                <AdminInput
-                                    type="email"
-                                    placeholder="Guest Email"
-                                    style={{ width: '100%' }}
-                                />
-                                <AdminInput
-                                    type="text"
-                                    placeholder="Guest Phone"
-                                    style={{ width: '100%' }}
-                                />
-                                <div className="grid grid-cols-2 gap-4">
-                                    <AdminInput
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Tên khách hàng *
+                                    </label>
+                                    <input
                                         type="text"
-                                        placeholder="Check-in Date (YYYY-MM-DD)"
-                                        style={{ width: '100%' }}
-                                    />
-                                    <AdminInput
-                                        type="text"
-                                        placeholder="Check-out Date (YYYY-MM-DD)"
-                                        style={{ width: '100%' }}
+                                        value={formData.customerName || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <select 
-                                        value={selectedHotel}
-                                        onChange={(e) => {
-                                            setSelectedHotel(e.target.value);
-                                            setSelectedRoom(''); // Reset room when hotel changes
-                                        }}
-                                        style={{
-                                            background: 'var(--admin-bg-primary)',
-                                            border: '1px solid var(--admin-border)',
-                                            borderRadius: '6px',
-                                            padding: '10px 12px',
-                                            color: 'var(--admin-text-primary)',
-                                            fontSize: '14px',
-                                            width: '100%'
-                                        }}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Email *
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={formData.customerEmail || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Số điện thoại
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={formData.customerPhone || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Khách sạn *
+                                    </label>
+                                    <select
+                                        value={formData.hotelId || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, hotelId: parseInt(e.target.value) }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
                                     >
-                                        <option value="">Select Hotel</option>
-                                        {bookings.slice(0, 8).map((booking, idx) => (
-                                            <option key={idx} value={booking.room.id}>
-                                                {booking.room.roomType.name}
+                                        <option value="">Chọn khách sạn</option>
+                                        {homeStayData.slice(0, 10).map(hotel => (
+                                            <option key={hotel.id} value={hotel.id}>
+                                                {hotel.title}
                                             </option>
                                         ))}
                                     </select>
-                                    
-                                    <select 
-                                        value={selectedRoom}
-                                        onChange={(e) => setSelectedRoom(e.target.value)}
-                                        disabled={!selectedHotel}
-                                        style={{
-                                            background: selectedHotel ? 'var(--admin-bg-primary)' : '#f5f5f5',
-                                            border: '1px solid var(--admin-border)',
-                                            borderRadius: '6px',
-                                            padding: '10px 12px',
-                                            color: selectedHotel ? 'var(--admin-text-primary)' : '#999',
-                                            fontSize: '14px',
-                                            width: '100%',
-                                            cursor: selectedHotel ? 'pointer' : 'not-allowed'
-                                        }}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Ngày check-in *
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={formData.checkIn || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, checkIn: e.target.value }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Ngày check-out *
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={formData.checkOut || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, checkOut: e.target.value }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Trạng thái thanh toán
+                                    </label>
+                                    <select
+                                        value={formData.paymentStatus || 'pending'}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, paymentStatus: e.target.value as BookingData['paymentStatus'] }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="">Select Room</option>
-                                        {selectedHotel && (
-                                            <>
-                                                <option value="101">Room 101 - Standard</option>
-                                                <option value="102">Room 102 - Deluxe</option>
-                                                <option value="201">Room 201 - Suite</option>
-                                                <option value="202">Room 202 - Premium Suite</option>
-                                                <option value="301">Room 301 - Executive</option>
-                                                <option value="302">Room 302 - Presidential</option>
-                                            </>
-                                        )}
+                                        <option value="pending">Chờ thanh toán</option>
+                                        <option value="paid">Đã thanh toán</option>
+                                        <option value="failed">Thất bại</option>
                                     </select>
                                 </div>
                             </div>
-                            
-                            <div className="flex gap-3 justify-end mt-6">
-                                <AdminButton
-                                    onClick={() => {
-                                        setShowAddModal(false);
-                                        setSelectedHotel('');
-                                        setSelectedRoom('');
-                                    }}
-                                    style={{
-                                        background: '#6b7280',
-                                        color: '#fff',
-                                        padding: '10px 20px',
-                                        borderRadius: '6px',
-                                        fontWeight: '500'
-                                    }}
-                                    className="hover:bg-gray-600"
-                                >
-                                    Cancel
-                                </AdminButton>
-                                <AdminButton
-                                    onClick={() => {
-                                        if (!selectedHotel || !selectedRoom) {
-                                            addNotification({
-                                                type: 'error',
-                                                title: 'Validation Error',
-                                                message: 'Please select both hotel and room'
-                                            });
-                                            return;
-                                        }
-                                        
-                                        addNotification({
-                                            type: 'success',
-                                            title: 'Booking Added',
-                                            message: `New booking created for ${selectedRoom} at selected hotel`
-                                        });
-                                        setShowAddModal(false);
-                                        setSelectedHotel('');
-                                        setSelectedRoom('');
-                                    }}
-                                    style={{
-                                        background: '#22c55e',
-                                        color: '#fff',
-                                        padding: '10px 20px',
-                                        borderRadius: '6px',
-                                        fontWeight: '500'
-                                    }}
-                                    className="hover:bg-green-600"
-                                >
-                                    Add Booking
-                                </AdminButton>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
-            {/* Edit Booking Modal */}
-            {showEditModal && selectedBooking && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0, 0, 0, 0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 9999
-                }} onClick={() => setShowEditModal(false)}>
-                    <div style={{
-                        background: 'var(--admin-bg-primary)',
-                        borderRadius: '12px',
-                        border: '1px solid var(--admin-border)',
-                        width: '90%',
-                        maxWidth: '600px',
-                        maxHeight: '80vh',
-                        overflow: 'auto'
-                    }} onClick={(e) => e.stopPropagation()}>
-                        <div style={{
-                            padding: '20px',
-                            borderBottom: '1px solid var(--admin-border)',
-                            background: 'var(--admin-bg-secondary)'
-                        }}>
-                            <h2 style={{
-                                margin: 0,
-                                fontSize: '20px',
-                                fontWeight: '600',
-                                color: 'var(--admin-text-primary)'
-                            }}>
-                                Edit Booking - {selectedBooking.bookingNumber}
-                            </h2>
-                        </div>
-                        
-                        <div style={{ padding: '24px' }}>
-                            <div className="space-y-4">
-                                <div style={{ marginBottom: '16px' }}>
-                                    <AdminInput
-                                        type="text"
-                                        placeholder="Guest First Name"
-                                        style={{ width: '100%' }}
-                                    />
-                                </div>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <AdminInput
-                                        type="text"
-                                        placeholder="Guest Last Name"
-                                        style={{ width: '100%' }}
-                                    />
-                                </div>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <AdminInput
-                                        type="email"
-                                        placeholder="Guest Email"
-                                        style={{ width: '100%' }}
-                                    />
-                                </div>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <AdminInput
-                                        type="text"
-                                        placeholder="Guest Phone"
-                                        style={{ width: '100%' }}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <AdminInput
-                                        type="text"
-                                        placeholder="Check-in Date (YYYY-MM-DD)"
-                                        style={{ width: '100%' }}
-                                    />
-                                    <AdminInput
-                                        type="text"
-                                        placeholder="Check-out Date (YYYY-MM-DD)"
-                                        style={{ width: '100%' }}
-                                    />
-                                </div>
-                            </div>
-                            
-                            <div className="flex gap-3 justify-end mt-6">
+                            <div className="flex justify-end space-x-3 pt-4">
                                 <AdminButton
-                                    onClick={() => setShowEditModal(false)}
-                                    style={{
-                                        background: '#6b7280',
-                                        color: '#fff',
-                                        padding: '10px 20px',
-                                        borderRadius: '6px',
-                                        fontWeight: '500'
-                                    }}
-                                    className="hover:bg-gray-600"
+                                    variant="secondary"
+                                    onClick={() => setShowModal(false)}
                                 >
-                                    Cancel
+                                    Hủy
                                 </AdminButton>
                                 <AdminButton
-                                    onClick={() => {
-                                        addNotification({
-                                            type: 'success',
-                                            title: 'Booking Updated',
-                                            message: `Booking ${selectedBooking.bookingNumber} has been updated successfully`
-                                        });
-                                        setShowEditModal(false);
-                                        setSelectedBooking(null);
-                                    }}
-                                    style={{
-                                        background: '#f59e0b',
-                                        color: '#fff',
-                                        padding: '10px 20px',
-                                        borderRadius: '6px',
-                                        fontWeight: '500'
-                                    }}
-                                    className="hover:bg-yellow-600"
+                                    onClick={handleSubmit}
+                                    disabled={!formData.customerName || !formData.customerEmail || !formData.checkIn || !formData.checkOut || !formData.hotelId}
                                 >
-                                    Update Booking
+                                    {modalType === 'create' ? 'Tạo đặt phòng' : 'Cập nhật'}
                                 </AdminButton>
                             </div>
                         </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Delete Confirmation Modal */}
-            {showDeleteModal && selectedBooking && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0, 0, 0, 0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 9999
-                }} onClick={() => setShowDeleteModal(false)}>
-                    <div style={{
-                        background: 'var(--admin-bg-primary)',
-                        borderRadius: '12px',
-                        border: '1px solid var(--admin-border)',
-                        width: '90%',
-                        maxWidth: '400px',
-                        padding: '24px'
-                    }} onClick={(e) => e.stopPropagation()}>
-                        <h3 style={{
-                            margin: '0 0 16px 0',
-                            fontSize: '18px',
-                            fontWeight: '600',
-                            color: 'var(--admin-text-primary)'
-                        }}>
-                            Confirm Delete
-                        </h3>
-                        <p style={{
-                            margin: '0 0 24px 0',
-                            color: 'var(--admin-text-secondary)',
-                            lineHeight: '1.5'
-                        }}>
-                            Are you sure you want to delete booking <strong>{selectedBooking.bookingNumber}</strong>? 
-                            This action cannot be undone.
-                        </p>
-                        <div className="flex gap-3 justify-end">
-                            <AdminButton
-                                onClick={() => setShowDeleteModal(false)}
-                                style={{
-                                    background: '#6b7280',
-                                    color: '#fff',
-                                    padding: '8px 16px',
-                                    borderRadius: '6px',
-                                    fontWeight: '500'
-                                }}
-                                className="hover:bg-gray-600"
-                            >
-                                Cancel
-                            </AdminButton>
-                            <AdminButton
-                                onClick={confirmDelete}
-                                style={{
-                                    background: '#ef4444',
-                                    color: '#fff',
-                                    padding: '8px 16px',
-                                    borderRadius: '6px',
-                                    fontWeight: '500'
-                                }}
-                                className="hover:bg-red-600"
-                            >
-                                Delete
-                            </AdminButton>
-                        </div>
-                    </div>
-                </div>
+                    )}
+                </AdminModal>
             )}
         </div>
     );

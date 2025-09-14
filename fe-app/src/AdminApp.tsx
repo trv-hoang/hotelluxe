@@ -1,9 +1,7 @@
 import React, { Suspense, useState } from 'react';
 import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
-import AdminThemeProvider from './contexts/AdminThemeContext';
 import NotificationProvider from './contexts/NotificationContext';
 import AdminNotificationContainer from './components/admin/AdminNotificationContainer';
-import AdminThemeToggle from './components/admin/AdminThemeToggle';
 import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
 import { useAdminAuth } from './hooks/useAdminAuth';
 import './styles/_admin_theme.css';
@@ -12,7 +10,6 @@ import './styles/_admin_theme.css';
 const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminDashboardPage'));
 const UsersPage = React.lazy(() => import('./pages/admin/UsersPage'));
 const BookingsPage = React.lazy(() => import('./pages/admin/BookingsPage'));
-const RoomsPage = React.lazy(() => import('./pages/admin/RoomsPage'));
 const HotelPage = React.lazy(() => import('./pages/admin/HotelPage'));
 const SettingsPage = React.lazy(() => import('./pages/admin/SettingsPage'));
 const AdminLoginPage = React.lazy(() => import('./pages/admin/AdminLoginPage'));
@@ -24,7 +21,6 @@ const sidebarItems = [
     { name: 'Dashboard', link: '/admin/dashboard' },
     { name: 'Users', link: '/admin/users' },
     { name: 'Bookings', link: '/admin/bookings' },
-    { name: 'Rooms', link: '/admin/rooms' },
     { name: 'Hotel', link: '/admin/hotel' },
     { name: 'Settings', link: '/admin/settings' },
 ];
@@ -91,7 +87,10 @@ const AdminSidebarStandalone: React.FC<{collapsed: boolean, onToggle: () => void
             height: '100vh',
             boxSizing: 'border-box',
             transition: 'width 0.3s',
-            position: 'relative',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            zIndex: 1000,
             display: 'flex',
             flexDirection: 'column',
             alignItems: collapsed ? 'center' : 'flex-start',
@@ -127,12 +126,7 @@ const AdminSidebarStandalone: React.FC<{collapsed: boolean, onToggle: () => void
                 </button>
             </div>
             
-            {/* Theme Toggle */}
-            {!collapsed && (
-                <div style={{ padding: '16px', width: '100%', boxSizing: 'border-box' }}>
-                    <AdminThemeToggle />
-                </div>
-            )}
+            {/* Theme Toggle moved to Settings Page */}
             
             <nav style={{ width: '100%', padding: '0 8px', flex: 1 }}>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -222,12 +216,10 @@ const AdminSidebarStandalone: React.FC<{collapsed: boolean, onToggle: () => void
 
 const AdminApp: React.FC = () => {
     return (
-        <AdminThemeProvider>
-            <NotificationProvider>
-                <AdminAppContent />
-                <AdminNotificationContainer />
-            </NotificationProvider>
-        </AdminThemeProvider>
+        <NotificationProvider>
+            <AdminAppContent />
+            <AdminNotificationContainer />
+        </NotificationProvider>
     );
 };
 
@@ -255,18 +247,19 @@ const AdminAppContent: React.FC = () => {
     
     return (
         <div className="admin-container" style={{ 
-            minHeight: '100vh', 
-            display: 'flex'
+            minHeight: '100vh'
         }}>
             <AdminSidebarStandalone 
                 collapsed={collapsed} 
                 onToggle={() => setCollapsed(c => !c)} 
             />
-            <div style={{ 
-                flex: 1, 
+            <div className="admin-content" style={{ 
+                marginLeft: collapsed ? '64px' : '220px',
+                minHeight: '100vh',
                 padding: '24px',
                 background: 'var(--admin-bg-secondary)',
-                overflow: 'auto'
+                transition: 'margin-left 0.3s',
+                boxSizing: 'border-box'
             }}>
                 <Suspense fallback={<AdminLoading />}>
                     <Routes>
@@ -284,11 +277,6 @@ const AdminAppContent: React.FC = () => {
                         <Route path="/bookings" element={
                             <AdminProtectedRoute>
                                 <BookingsPage />
-                            </AdminProtectedRoute>
-                        } />
-                        <Route path="/rooms" element={
-                            <AdminProtectedRoute>
-                                <RoomsPage />
                             </AdminProtectedRoute>
                         } />
                         <Route path="/hotel" element={
