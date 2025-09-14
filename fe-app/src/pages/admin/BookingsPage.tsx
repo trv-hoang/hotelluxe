@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Edit, Trash2, Eye, Plus, Search, Calendar, DollarSign, Hotel, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Edit, Trash2, Eye, Plus, Calendar, DollarSign, Hotel, CheckCircle, Clock, XCircle } from 'lucide-react';
 import AdminButton from '../../components/admin/AdminButton';
 import AdminModal from '../../components/admin/AdminModal';
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
+import AdminStatCard from '../../components/admin/AdminStatCard';
+import AdminLoadingSpinner from '../../components/admin/AdminLoadingSpinner';
+import AdminDataTable from '../../components/admin/AdminDataTable';
 import { formatCurrency, formatDate, generateBookingNumber, calculateNights } from '../../utils/calculatorPrice';
 import homeStayData from '../../data/jsons/__homeStay.json';
 import usersData from '../../data/jsons/__users.json';
@@ -24,6 +28,7 @@ interface BookingData {
     pricePerNight: number;
     createdAt: string;
     updatedAt: string;
+    [key: string]: unknown;
 }
 
 // Generate mock bookings từ JSON data
@@ -65,8 +70,6 @@ const generateMockBookings = (): BookingData[] => {
 const BookingsPage: React.FC = () => {
     const [bookings, setBookings] = useState<BookingData[]>([]);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [paymentFilter, setPaymentFilter] = useState<BookingData['paymentStatus'] | 'all'>('all');
     const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState<'view' | 'edit' | 'create' | 'delete'>('view');
@@ -113,26 +116,7 @@ const BookingsPage: React.FC = () => {
         };
     }, [bookings]);
 
-    // Filtered bookings
-    const filteredBookings = useMemo(() => {
-        let filtered = [...bookings];
-
-        // Search filter
-        if (searchTerm) {
-            filtered = filtered.filter(booking =>
-                booking.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                booking.customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                booking.bookingNumber.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        // Payment status filter
-        if (paymentFilter !== 'all') {
-            filtered = filtered.filter(booking => booking.paymentStatus === paymentFilter);
-        }
-
-        return filtered;
-    }, [bookings, searchTerm, paymentFilter]);
+    // AdminDataTable handles filtering internally
 
     // Get hotel info
     const getHotelInfo = useCallback((hotelId: number) => {
@@ -282,251 +266,184 @@ const BookingsPage: React.FC = () => {
     };
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-96">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
+        return <AdminLoadingSpinner text="Đang tải dữ liệu đặt phòng..." />;
     }
 
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                        Quản lý đặt phòng khách sạn
-                    </h1>
-                    <p className="text-gray-600 mt-1">
-                        Quản lý tất cả đặt phòng khách sạn
-                    </p>
-                </div>
-                <AdminButton onClick={handleCreate} className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Tạo đặt phòng mới
-                </AdminButton>
-            </div>
+            <AdminPageHeader
+                title="Quản lý đặt phòng khách sạn"
+                description="Quản lý tất cả đặt phòng khách sạn"
+                actionButton={{
+                    label: "Tạo đặt phòng mới",
+                    onClick: handleCreate,
+                    icon: Plus,
+                    className: "bg-blue-600 hover:bg-blue-700"
+                }}
+            />
 
             {/* Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-white rounded-lg shadow p-6 border">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-blue-100">
-                            <Hotel className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-600">
-                                Tổng đặt phòng
-                            </p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {statistics.totalBookings}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow p-6 border">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-green-100">
-                            <DollarSign className="w-6 h-6 text-green-600" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-600">
-                                Tổng doanh thu
-                            </p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {formatCurrency(statistics.totalRevenue)}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow p-6 border">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-green-100">
-                            <CheckCircle className="w-6 h-6 text-green-600" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-600">
-                                Đã thanh toán
-                            </p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {statistics.paidBookings}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow p-6 border">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-yellow-100">
-                            <Clock className="w-6 h-6 text-yellow-600" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-600">
-                                Chờ thanh toán
-                            </p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {statistics.pendingBookings}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Filters */}
-            <div className="bg-white rounded-lg shadow border dark:border-gray-700">
-                <div className="p-6">
-                    <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex-1">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                <input
-                                    type="text"
-                                    placeholder="Tìm kiếm theo tên khách hàng, email, mã đặt phòng..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg 
-                                             bg-white text-gray-900 dark:text-white
-                                             focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
-                            </div>
-                        </div>
-                        <div className="md:w-48">
-                            <select
-                                value={paymentFilter}
-                                onChange={(e) => setPaymentFilter(e.target.value as BookingData['paymentStatus'] | 'all')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg 
-                                         bg-white text-gray-900 dark:text-white
-                                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="all">Tất cả trạng thái</option>
-                                <option value="paid">Đã thanh toán</option>
-                                <option value="pending">Chờ thanh toán</option>
-                                <option value="failed">Thất bại</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <AdminStatCard
+                    title="Tổng đặt phòng"
+                    value={statistics.totalBookings}
+                    icon={Hotel}
+                    iconColor="text-blue-600"
+                    iconBgColor="bg-blue-100"
+                />
+                <AdminStatCard
+                    title="Tổng doanh thu"
+                    value={formatCurrency(statistics.totalRevenue)}
+                    icon={DollarSign}
+                    iconColor="text-green-600"
+                    iconBgColor="bg-green-100"
+                />
+                <AdminStatCard
+                    title="Đã thanh toán"
+                    value={statistics.paidBookings}
+                    icon={CheckCircle}
+                    iconColor="text-green-600"
+                    iconBgColor="bg-green-100"
+                />
+                <AdminStatCard
+                    title="Chờ thanh toán"
+                    value={statistics.pendingBookings}
+                    icon={Clock}
+                    iconColor="text-yellow-600"
+                    iconBgColor="bg-yellow-100"
+                />
             </div>
 
             {/* Bookings Table */}
-            <div className="bg-white rounded-lg shadow border dark:border-gray-700">
-                <div className="p-6">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead className="bg-gray-50 dark:bg-gray-800">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Khách hàng
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Khách sạn
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Ngày check-in/out
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Số đêm
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Trạng thái thanh toán
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Số tiền
-                                    </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Thao tác
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700">
-                                {filteredBookings.map((booking) => {
-                                    const hotel = getHotelInfo(booking.hotelId);
-                                    return (
-                                        <tr key={booking.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div>
-                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {booking.customerName}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                        {booking.customerEmail}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {hotel?.title || 'Unknown Hotel'}
-                                                </div>
-                                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                    {formatCurrency(booking.pricePerNight)}/đêm
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center text-sm text-gray-900 dark:text-white">
-                                                    <Calendar className="w-4 h-4 mr-1" />
-                                                    <div>
-                                                        <div>{formatDate(booking.checkIn)}</div>
-                                                        <div className="text-gray-500 dark:text-gray-400">
-                                                            {formatDate(booking.checkOut)}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                {booking.nights} đêm
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <PaymentStatusBadge status={booking.paymentStatus} />
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                                {formatCurrency(booking.totalAmount)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex justify-end space-x-2">
-                                                    <button
-                                                        onClick={() => handleView(booking)}
-                                                        className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-300"
-                                                        title="Xem chi tiết"
-                                                    >
-                                                        <Eye className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleEdit(booking)}
-                                                        className="text-indigo-600 hover:text-indigo-900 dark:hover:text-indigo-300"
-                                                        title="Chỉnh sửa"
-                                                    >
-                                                        <Edit className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(booking)}
-                                                        className="text-red-600 hover:text-red-900 dark:hover:text-red-300"
-                                                        title="Xóa"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-
-                        {filteredBookings.length === 0 && (
-                            <div className="text-center py-12">
-                                <div className="text-gray-500 dark:text-gray-400">
-                                    {searchTerm || paymentFilter !== 'all' 
-                                        ? 'Không tìm thấy đặt phòng nào phù hợp' 
-                                        : 'Chưa có đặt phòng nào'
-                                    }
+            <AdminDataTable
+                data={bookings}
+                columns={[
+                    {
+                        key: 'bookingNumber',
+                        title: 'Mã đặt phòng',
+                        width: '120px'
+                    },
+                    {
+                        key: 'customerName',
+                        title: 'Khách hàng',
+                        render: (_, item: BookingData) => (
+                            <div>
+                                <div className="text-sm font-medium text-gray-900">{item.customerName}</div>
+                                <div className="text-sm text-gray-500">{item.customerEmail}</div>
+                            </div>
+                        ),
+                        width: '200px'
+                    },
+                    {
+                        key: 'hotelId',
+                        title: 'Khách sạn',
+                        render: (_, item: BookingData) => {
+                            const hotel = getHotelInfo(item.hotelId);
+                            return (
+                                <div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                        {hotel?.title || 'Unknown Hotel'}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                        {formatCurrency(item.pricePerNight)}/đêm
+                                    </div>
+                                </div>
+                            );
+                        },
+                        width: '200px'
+                    },
+                    {
+                        key: 'checkIn',
+                        title: 'Ngày check-in/out',
+                        render: (_, item: BookingData) => (
+                            <div className="flex items-center text-sm">
+                                <Calendar className="w-4 h-4 mr-1" />
+                                <div>
+                                    <div>{formatDate(item.checkIn)}</div>
+                                    <div className="text-gray-500">{formatDate(item.checkOut)}</div>
                                 </div>
                             </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+                        ),
+                        width: '160px'
+                    },
+                    {
+                        key: 'nights',
+                        title: 'Số đêm',
+                        width: '80px'
+                    },
+                    {
+                        key: 'paymentStatus',
+                        title: 'Trạng thái',
+                        render: (value) => (
+                            <PaymentStatusBadge status={value as BookingData['paymentStatus']} />
+                        ),
+                        width: '120px'
+                    },
+                    {
+                        key: 'totalAmount',
+                        title: 'Tổng tiền',
+                        render: (value) => (
+                            <div className="text-sm font-medium text-gray-900">
+                                {formatCurrency(Number(value))}
+                            </div>
+                        ),
+                        width: '120px'
+                    },
+                    {
+                        key: 'actions',
+                        title: 'Thao tác',
+                        render: (_, item: BookingData) => (
+                            <div className="flex space-x-2">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleView(item);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-800"
+                                    title="Xem chi tiết"
+                                >
+                                    <Eye className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEdit(item);
+                                    }}
+                                    className="text-green-600 hover:text-green-800"
+                                    title="Chỉnh sửa"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(item);
+                                    }}
+                                    className="text-red-600 hover:text-red-800"
+                                    title="Xóa"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ),
+                        width: '100px'
+                    }
+                ]}
+                searchKey="customerName"
+                searchPlaceholder="Tìm kiếm theo tên khách hàng, email, mã đặt phòng..."
+                filterOptions={{
+                    key: 'paymentStatus',
+                    label: 'trạng thái',
+                    options: [
+                        { value: 'paid', label: 'Đã thanh toán' },
+                        { value: 'pending', label: 'Chờ thanh toán' },
+                        { value: 'failed', label: 'Thất bại' }
+                    ]
+                }}
+                loading={loading}
+                emptyMessage="Không có đặt phòng nào"
+            />
 
             {/* Modal */}
             {showModal && (

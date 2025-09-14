@@ -1,8 +1,11 @@
 
 import React, { useState, useMemo } from 'react';
-import { Edit, Trash2, Eye, Plus, Search, Building2, MapPin, Star, Phone, Mail, Users } from 'lucide-react';
+import { Edit, Trash2, Eye, Plus, Building2, MapPin, Star, Phone, Mail, Users } from 'lucide-react';
 import AdminButton from '../../components/admin/AdminButton';
 import AdminModal from '../../components/admin/AdminModal';
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
+import AdminStatCard from '../../components/admin/AdminStatCard';
+import AdminDataTable from '../../components/admin/AdminDataTable';
 import { useNotifications } from '../../hooks/useNotifications';
 import homeStayData from '../../data/jsons/__homeStay.json';
 
@@ -33,6 +36,7 @@ interface HotelData {
     totalRooms?: number;
     createdAt: string;
     updatedAt: string;
+    [key: string]: unknown;
 }
 
 // City options for hotels
@@ -108,8 +112,7 @@ const HotelPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentHotel, setCurrentHotel] = useState<HotelData | null>(null);
     const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [cityFilter, setCityFilter] = useState('all');
+
 
     // Statistics calculation
     const statistics = useMemo(() => {
@@ -126,16 +129,7 @@ const HotelPage: React.FC = () => {
         };
     }, [hotels]);
 
-    // Filtered hotels
-    const filteredHotels = useMemo(() => {
-        return hotels.filter(hotel => {
-            const matchesSearch = hotel.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                hotel.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                hotel.city.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCity = cityFilter === 'all' || hotel.city === cityFilter;
-            return matchesSearch && matchesCity;
-        });
-    }, [hotels, searchTerm, cityFilter]);
+    // AdminDataTable handles filtering internally
 
     // Modal handlers
     const handleCreateHotel = () => {
@@ -212,16 +206,10 @@ const HotelPage: React.FC = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <div className="p-6 space-y-6">
                 {/* Header */}
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                Quản lý khách sạn
-                            </h1>
-                            <p className="text-gray-600 mt-1">
-                                Quản lý danh sách khách sạn, thêm, sửa, xóa thông tin khách sạn
-                            </p>
-                        </div>
+                <AdminPageHeader
+                    title="Quản lý khách sạn"
+                    description="Quản lý danh sách khách sạn, thêm, sửa, xóa thông tin khách sạn"
+                    extraContent={
                         <AdminButton
                             onClick={handleCreateHotel}
                             variant="primary"
@@ -230,216 +218,177 @@ const HotelPage: React.FC = () => {
                             <Plus className="w-4 h-4" />
                             Thêm khách sạn
                         </AdminButton>
-                    </div>
+                    }
+                />
 
-                    {/* Statistics Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-blue-600 text-sm font-medium">Tổng khách sạn</p>
-                                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                                        {statistics.totalHotels}
-                                    </p>
-                                </div>
-                                <Building2 className="w-8 h-8 text-blue-500" />
-                            </div>
-                        </div>
-
-                        <div className="bg-green-50 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-green-600 text-sm font-medium">Tổng phòng</p>
-                                    <p className="text-2xl font-bold text-green-900 dark:text-green-100">
-                                        {statistics.totalRooms}
-                                    </p>
-                                </div>
-                                <Users className="w-8 h-8 text-green-500" />
-                            </div>
-                        </div>
-
-                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-yellow-600 text-sm font-medium">Đánh giá TB</p>
-                                    <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100">
-                                        {statistics.averageRating}/5
-                                    </p>
-                                </div>
-                                <Star className="w-8 h-8 text-yellow-500" />
-                            </div>
-                        </div>
-
-                        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-purple-600 text-sm font-medium">Thành phố</p>
-                                    <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-                                        {statistics.citiesCount}
-                                    </p>
-                                </div>
-                                <MapPin className="w-8 h-8 text-purple-500" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Filters */}
-                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm theo tên hoặc địa chỉ..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 dark:text-white"
-                            />
-                        </div>
-                        <select
-                            value={cityFilter}
-                            onChange={(e) => setCityFilter(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 dark:text-white"
-                        >
-                            <option value="all">Tất cả thành phố</option>
-                            {cityOptions.map(city => (
-                                <option key={city} value={city}>{city}</option>
-                            ))}
-                        </select>
-                    </div>
+                {/* Statistics Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <AdminStatCard
+                        title="Tổng khách sạn"
+                        value={statistics.totalHotels}
+                        icon={Building2}
+                        iconColor="text-blue-600"
+                        iconBgColor="bg-blue-100"
+                    />
+                    <AdminStatCard
+                        title="Tổng phòng"
+                        value={statistics.totalRooms}
+                        icon={Users}
+                        iconColor="text-green-600"
+                        iconBgColor="bg-green-100"
+                    />
+                    <AdminStatCard
+                        title="Đánh giá TB"
+                        value={`${statistics.averageRating}/5`}
+                        icon={Star}
+                        iconColor="text-yellow-600"
+                        iconBgColor="bg-yellow-100"
+                    />
+                    <AdminStatCard
+                        title="Thành phố"
+                        value={statistics.citiesCount}
+                        icon={MapPin}
+                        iconColor="text-purple-600"
+                        iconBgColor="bg-purple-100"
+                    />
                 </div>
 
                 {/* Hotels Table */}
-                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Khách sạn
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Địa chỉ
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Thành phố
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Đánh giá
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Số phòng
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Liên hệ
-                                    </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Thao tác
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700">
-                                {filteredHotels.map((hotel) => (
-                                    <tr key={hotel.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <img
-                                                    className="h-12 w-16 rounded-lg object-cover"
-                                                    src={hotel.featuredImage}
-                                                    alt={hotel.title}
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        target.src = '/src/assets/travels/default.jpg';
-                                                    }}
-                                                />
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {hotel.title}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                        ID: {hotel.id}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm text-gray-900 max-w-xs truncate">
-                                                {hotel.address}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center text-sm text-gray-900 dark:text-white">
-                                                <MapPin className="w-4 h-4 mr-1 text-gray-400" />
-                                                {hotel.city}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                                                <span className="text-sm text-gray-900 dark:text-white">
-                                                    {hotel.rating}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900 dark:text-white">
-                                                {hotel.totalRooms} phòng
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900 dark:text-white">
-                                                <div className="flex items-center mb-1">
-                                                    <Phone className="w-3 h-3 mr-1 text-gray-400" />
-                                                    {hotel.phone}
-                                                </div>
-                                                <div className="flex items-center">
-                                                    <Mail className="w-3 h-3 mr-1 text-gray-400" />
-                                                    <span className="truncate max-w-32">{hotel.email}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex items-center justify-end space-x-2">
-                                                <button
-                                                    onClick={() => handleViewHotel(hotel)}
-                                                    className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-300"
-                                                    title="Xem chi tiết"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEditHotel(hotel)}
-                                                    className="text-yellow-600 hover:text-yellow-900 dark:hover:text-yellow-300"
-                                                    title="Chỉnh sửa"
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteHotel(hotel)}
-                                                    className="text-red-600 hover:text-red-900 dark:hover:text-red-300"
-                                                    title="Xóa"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                <AdminDataTable
+                    data={hotels}
+                    columns={[
+                        {
+                            key: 'title',
+                            title: 'Khách sạn',
+                            render: (_, hotel: HotelData) => (
+                                <div className="flex items-center">
+                                    <img
+                                        className="h-12 w-16 rounded-lg object-cover"
+                                        src={hotel.featuredImage}
+                                        alt={hotel.title}
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.src = '/src/assets/travels/default.jpg';
+                                        }}
+                                    />
+                                    <div className="ml-4">
+                                        <div className="text-sm font-medium text-gray-900">
+                                            {hotel.title}
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            ID: {hotel.id}
+                                        </div>
+                                    </div>
+                                </div>
+                            ),
+                            width: '250px'
+                        },
+                        {
+                            key: 'address',
+                            title: 'Địa chỉ',
+                            width: '200px'
+                        },
+                        {
+                            key: 'city',
+                            title: 'Thành phố',
+                            width: '120px'
+                        },
+                        {
+                            key: 'rating',
+                            title: 'Đánh giá',
+                            render: (value) => (
+                                <div className="flex items-center">
+                                    <Star className="w-4 h-4 text-yellow-500" />
+                                    <span className="ml-1 text-sm">
+                                        {value ? `${value}/5` : 'Chưa có'}
+                                    </span>
+                                </div>
+                            ),
+                            width: '100px'
+                        },
+                        {
+                            key: 'totalRooms',
+                            title: 'Số phòng',
+                            render: (value) => (value as number) || 'Chưa có',
+                            width: '100px'
+                        },
+                        {
+                            key: 'phone',
+                            title: 'Liên hệ',
+                            render: (_, hotel: HotelData) => (
+                                <div className="text-sm">
+                                    {hotel.phone && (
+                                        <div className="flex items-center">
+                                            <Phone className="w-3 h-3 mr-1" />
+                                            {hotel.phone}
+                                        </div>
+                                    )}
+                                    {hotel.email && (
+                                        <div className="flex items-center mt-1">
+                                            <Mail className="w-3 h-3 mr-1" />
+                                            {hotel.email}
+                                        </div>
+                                    )}
+                                    {!hotel.phone && !hotel.email && (
+                                        <span className="text-gray-500">Không có</span>
+                                    )}
+                                </div>
+                            ),
+                            width: '180px'
+                        },
+                        {
+                            key: 'actions',
+                            title: 'Thao tác',
+                            render: (_, hotel: HotelData) => (
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleViewHotel(hotel);
+                                        }}
+                                        className="text-blue-600 hover:text-blue-800"
+                                        title="Xem chi tiết"
+                                    >
+                                        <Eye className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditHotel(hotel);
+                                        }}
+                                        className="text-green-600 hover:text-green-800"
+                                        title="Chỉnh sửa"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteHotel(hotel);
+                                        }}
+                                        className="text-red-600 hover:text-red-800"
+                                        title="Xóa"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ),
+                            width: '100px'
+                        }
+                    ]}
+                    searchKey="title"
+                    searchPlaceholder="Tìm kiếm theo tên hoặc địa chỉ..."
+                    filterOptions={{
+                        key: 'city',
+                        label: 'thành phố',
+                        options: cityOptions.map(city => ({ value: city, label: city }))
+                    }}
+                    loading={false}
+                    emptyMessage="Không có khách sạn nào"
+                />
 
-                    {filteredHotels.length === 0 && (
-                        <div className="text-center py-12">
-                            <Building2 className="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                                Không tìm thấy khách sạn
-                            </h3>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác.
-                            </p>
-                        </div>
-                    )}
-                </div>
+
+
 
                 {/* Modal */}
                 <AdminModal

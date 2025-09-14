@@ -16,83 +16,9 @@ import {
 import { useNotifications } from '../../hooks/useNotifications';
 import usersData from '../../data/jsons/__users.json';
 import homeStayData from '../../data/jsons/__homeStay.json';
+import AdminStatCard from '../../components/admin/AdminStatCard';
+import AdminChart from '../../components/admin/AdminChart';
 
-// Chart Component for Revenue
-const RevenueChart: React.FC = () => {
-    const revenueData = [
-        { month: 'T1', value: 125 },
-        { month: 'T2', value: 140 },
-        { month: 'T3', value: 135 },
-        { month: 'T4', value: 160 },
-        { month: 'T5', value: 185 },
-        { month: 'T6', value: 220 },
-    ];
-
-    const maxValue = Math.max(...revenueData.map(d => d.value));
-
-    return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Doanh thu (triệu VND)</h3>
-                <BarChart3 className="w-5 h-5 text-blue-500" />
-            </div>
-            <div className="flex items-end justify-between h-48">
-                {revenueData.map((item, index) => (
-                    <div key={index} className="flex flex-col items-center flex-1">
-                        <div
-                            className="bg-blue-500 rounded-t-md w-8 transition-all duration-300 hover:bg-blue-600"
-                            style={{
-                                height: `${(item.value / maxValue) * 100}%`,
-                                minHeight: '20px'
-                            }}
-                            title={`${item.value} triệu VND`}
-                        />
-                        <span className="text-sm text-gray-600 mt-2">{item.month}</span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-// Chart Component for Bookings
-const BookingsChart: React.FC = () => {
-    const bookingData = [
-        { day: 'T2', bookings: 12 },
-        { day: 'T3', bookings: 19 },
-        { day: 'T4', bookings: 15 },
-        { day: 'T5', bookings: 25 },
-        { day: 'T6', bookings: 30 },
-        { day: 'T7', bookings: 35 },
-        { day: 'CN', bookings: 28 },
-    ];
-
-    const maxBookings = Math.max(...bookingData.map(d => d.bookings));
-
-    return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Đặt phòng theo tuần</h3>
-                <PieChart className="w-5 h-5 text-green-500" />
-            </div>
-            <div className="flex items-end justify-between h-48">
-                {bookingData.map((item, index) => (
-                    <div key={index} className="flex flex-col items-center flex-1">
-                        <div
-                            className="bg-green-500 rounded-t-md w-8 transition-all duration-300 hover:bg-green-600"
-                            style={{
-                                height: `${(item.bookings / maxBookings) * 100}%`,
-                                minHeight: '20px'
-                            }}
-                            title={`${item.bookings} đặt phòng`}
-                        />
-                        <span className="text-sm text-gray-600 mt-2">{item.day}</span>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
 
 const AdminDashboardPage: React.FC = () => {
     const { addNotification } = useNotifications();
@@ -194,118 +120,104 @@ const AdminDashboardPage: React.FC = () => {
 
                 {/* Statistics Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Tổng người dùng</p>
-                                <p className="text-2xl font-bold text-gray-900">
-                                    {statistics.totalUsers}
-                                </p>
-                                <p className="text-xs text-green-600 mt-1">
-                                    +12% so với tháng trước
-                                </p>
-                            </div>
-                            <div className="bg-blue-100 p-3 rounded-lg">
-                                <Users className="w-6 h-6 text-blue-600" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Tổng khách sạn</p>
-                                <p className="text-2xl font-bold text-gray-900">
-                                    {statistics.totalHotels}
-                                </p>
-                                <p className="text-xs text-green-600 mt-1">
-                                    +5% so với tháng trước
-                                </p>
-                            </div>
-                            <div className="bg-purple-100 p-3 rounded-lg">
-                                <Building2 className="w-6 h-6 text-purple-600" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Tổng đặt phòng</p>
-                                <p className="text-2xl font-bold text-gray-900">
-                                    {statistics.totalBookings}
-                                </p>
-                                <p className="text-xs text-green-600 mt-1">
-                                    +18% so với tháng trước
-                                </p>
-                            </div>
-                            <div className="bg-green-100 p-3 rounded-lg">
-                                <Calendar className="w-6 h-6 text-green-600" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Tổng doanh thu</p>
-                                <p className="text-2xl font-bold text-gray-900">
-                                    {(statistics.totalRevenue / 1000000).toFixed(1)}M
-                                </p>
-                                <p className="text-xs text-green-600 mt-1">
-                                    +25% so với tháng trước
-                                </p>
-                            </div>
-                            <div className="bg-yellow-100 p-3 rounded-lg">
-                                <DollarSign className="w-6 h-6 text-yellow-600" />
-                            </div>
-                        </div>
-                    </div>
+                    <AdminStatCard
+                        title="Tổng người dùng"
+                        value={statistics.totalUsers}
+                        change="+12% so với tháng trước"
+                        changeType="increase"
+                        icon={Users}
+                        iconColor="text-blue-600"
+                        iconBgColor="bg-blue-100"
+                    />
+                    <AdminStatCard
+                        title="Tổng khách sạn"
+                        value={statistics.totalHotels}
+                        change="+5% so với tháng trước"
+                        changeType="increase"
+                        icon={Building2}
+                        iconColor="text-purple-600"
+                        iconBgColor="bg-purple-100"
+                    />
+                    <AdminStatCard
+                        title="Tổng đặt phòng"
+                        value={statistics.totalBookings}
+                        change="+18% so với tháng trước"
+                        changeType="increase"
+                        icon={Calendar}
+                        iconColor="text-green-600"
+                        iconBgColor="bg-green-100"
+                    />
+                    <AdminStatCard
+                        title="Tổng doanh thu"
+                        value={`${(statistics.totalRevenue / 1000000).toFixed(1)}M`}
+                        change="+25% so với tháng trước"
+                        changeType="increase"
+                        icon={DollarSign}
+                        iconColor="text-yellow-600"
+                        iconBgColor="bg-yellow-100"
+                    />
                 </div>
 
                 {/* Additional Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Quản trị viên</p>
-                                <p className="text-xl font-bold text-gray-900">
-                                    {statistics.adminUsers}
-                                </p>
-                            </div>
-                            <UserCheck className="w-5 h-5 text-red-500" />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Người dùng hoạt động</p>
-                                <p className="text-xl font-bold text-gray-900">
-                                    {statistics.activeUsers}
-                                </p>
-                            </div>
-                            <Activity className="w-5 h-5 text-green-500" />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Đánh giá trung bình</p>
-                                <p className="text-xl font-bold text-gray-900 flex items-center">
-                                    4.8 <Star className="w-4 h-4 text-yellow-500 ml-1" />
-                                </p>
-                            </div>
-                            <TrendingUp className="w-5 h-5 text-blue-500" />
-                        </div>
-                    </div>
+                    <AdminStatCard
+                        title="Quản trị viên"
+                        value={statistics.adminUsers}
+                        icon={UserCheck}
+                        iconColor="text-red-500"
+                        iconBgColor="bg-red-100"
+                    />
+                    <AdminStatCard
+                        title="Người dùng hoạt động"
+                        value={statistics.activeUsers}
+                        icon={Activity}
+                        iconColor="text-green-500"
+                        iconBgColor="bg-green-100"
+                    />
+                    <AdminStatCard
+                        title="Đánh giá trung bình"
+                        value="4.8 ⭐"
+                        icon={TrendingUp}
+                        iconColor="text-blue-500"
+                        iconBgColor="bg-blue-100"
+                    />
                 </div>
 
                 {/* Charts */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <RevenueChart />
-                    <BookingsChart />
+                    <AdminChart
+                        title="Doanh thu (triệu VND)"
+                        data={[
+                            { label: 'T1', value: 125 },
+                            { label: 'T2', value: 140 },
+                            { label: 'T3', value: 135 },
+                            { label: 'T4', value: 160 },
+                            { label: 'T5', value: 185 },
+                            { label: 'T6', value: 220 },
+                        ]}
+                        icon={BarChart3}
+                        iconColor="text-blue-500"
+                        barColor="bg-blue-500"
+                        barHoverColor="bg-blue-600"
+                        unit=" triệu VND"
+                    />
+                    <AdminChart
+                        title="Đặt phòng theo tuần"
+                        data={[
+                            { label: 'T2', value: 12 },
+                            { label: 'T3', value: 19 },
+                            { label: 'T4', value: 15 },
+                            { label: 'T5', value: 25 },
+                            { label: 'T6', value: 30 },
+                            { label: 'T7', value: 35 },
+                            { label: 'CN', value: 28 },
+                        ]}
+                        icon={PieChart}
+                        iconColor="text-green-500"
+                        barColor="bg-green-500"
+                        barHoverColor="bg-green-600"
+                        unit=" đặt phòng"
+                    />
                 </div>
 
                 {/* Recent Activities */}

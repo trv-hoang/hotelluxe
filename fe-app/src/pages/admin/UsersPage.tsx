@@ -1,7 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Edit, Trash2, Eye, Plus, Search, Users, UserCheck, UserX, Crown } from 'lucide-react';
+import { Edit, Trash2, Eye, Plus, Users, UserCheck, UserX, Crown } from 'lucide-react';
 import AdminButton from '../../components/admin/AdminButton';
 import AdminModal from '../../components/admin/AdminModal';
+
+import AdminPageHeader from '../../components/admin/AdminPageHeader';
+import AdminStatCard from '../../components/admin/AdminStatCard';
+import AdminDataTable from '../../components/admin/AdminDataTable';
 import { useNotifications } from '../../hooks/useNotifications';
 import usersData from '../../data/jsons/__users.json';
 
@@ -20,6 +24,7 @@ interface UserData {
     phone?: string;
     gender?: 'male' | 'female' | 'other';
     address?: string;
+    [key: string]: unknown;
 }
 
 // Role Badge Component
@@ -83,8 +88,7 @@ const UsersPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState<UserData | null>(null);
     const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [roleFilter, setRoleFilter] = useState('all');
+
 
     // Statistics calculation
     const statistics = useMemo(() => {
@@ -101,15 +105,7 @@ const UsersPage: React.FC = () => {
         };
     }, [users]);
 
-    // Filtered users
-    const filteredUsers = useMemo(() => {
-        return users.filter(user => {
-            const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                user.email.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-            return matchesSearch && matchesRole;
-        });
-    }, [users, searchTerm, roleFilter]);
+    // AdminDataTable handles filtering internally
 
     // Modal handlers
     const handleCreateUser = () => {
@@ -188,16 +184,10 @@ const UsersPage: React.FC = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <div className="p-6 space-y-6">
                 {/* Header */}
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                Quản lý người dùng
-                            </h1>
-                            <p className="text-gray-600 mt-1">
-                                Quản lý thông tin và quyền hạn người dùng
-                            </p>
-                        </div>
+                <AdminPageHeader
+                    title="Quản lý người dùng"
+                    description="Quản lý thông tin và quyền hạn người dùng"
+                    extraContent={
                         <AdminButton
                             onClick={handleCreateUser}
                             variant="primary"
@@ -206,195 +196,152 @@ const UsersPage: React.FC = () => {
                             <Plus className="w-4 h-4" />
                             Thêm người dùng
                         </AdminButton>
-                    </div>
+                    }
+                />
 
-                    {/* Statistics Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-blue-600 text-sm font-medium">Tổng người dùng</p>
-                                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                                        {statistics.totalUsers}
-                                    </p>
-                                </div>
-                                <Users className="w-8 h-8 text-blue-500" />
-                            </div>
-                        </div>
-
-                        <div className="bg-red-50 p-4 rounded-lg border border-red-200 dark:border-red-800">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-red-600 text-sm font-medium">Quản trị viên</p>
-                                    <p className="text-2xl font-bold text-red-900 dark:text-red-100">
-                                        {statistics.adminUsers}
-                                    </p>
-                                </div>
-                                <Crown className="w-8 h-8 text-red-500" />
-                            </div>
-                        </div>
-
-                        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-purple-600 text-sm font-medium">Quản lý</p>
-                                    <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-                                        {statistics.managerUsers}
-                                    </p>
-                                </div>
-                                <UserCheck className="w-8 h-8 text-purple-500" />
-                            </div>
-                        </div>
-
-                        <div className="bg-green-50 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-green-600 text-sm font-medium">Người dùng</p>
-                                    <p className="text-2xl font-bold text-green-900 dark:text-green-100">
-                                        {statistics.regularUsers}
-                                    </p>
-                                </div>
-                                <UserX className="w-8 h-8 text-green-500" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Filters */}
-                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm theo tên hoặc email..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 dark:text-white"
-                            />
-                        </div>
-                        <select
-                            value={roleFilter}
-                            onChange={(e) => setRoleFilter(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 dark:text-white"
-                        >
-                            <option value="all">Tất cả vai trò</option>
-                            <option value="admin">Quản trị viên</option>
-                            <option value="manager">Quản lý</option>
-                            <option value="user">Người dùng</option>
-                        </select>
-                    </div>
+                {/* Statistics Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <AdminStatCard
+                        title="Tổng người dùng"
+                        value={statistics.totalUsers}
+                        icon={Users}
+                        iconColor="text-blue-600"
+                        iconBgColor="bg-blue-100"
+                    />
+                    <AdminStatCard
+                        title="Quản trị viên"
+                        value={statistics.adminUsers}
+                        icon={Crown}
+                        iconColor="text-red-600"
+                        iconBgColor="bg-red-100"
+                    />
+                    <AdminStatCard
+                        title="Quản lý"
+                        value={statistics.managerUsers}
+                        icon={UserCheck}
+                        iconColor="text-purple-600"
+                        iconBgColor="bg-purple-100"
+                    />
+                    <AdminStatCard
+                        title="Người dùng"
+                        value={statistics.regularUsers}
+                        icon={UserX}
+                        iconColor="text-green-600"
+                        iconBgColor="bg-green-100"
+                    />
                 </div>
 
                 {/* Users Table */}
-                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Người dùng
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Email
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Vai trò
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Số điện thoại
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Ngày tạo
-                                    </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Thao tác
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700">
-                                {filteredUsers.map((user) => (
-                                    <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <img
-                                                    className="h-10 w-10 rounded-full object-cover"
-                                                    src={user.profilePic}
-                                                    alt={user.name}
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        target.src = '/avatar.png';
-                                                    }}
-                                                />
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {user.name}
-                                                    </div>
-                                                    {user.nickname && (
-                                                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                            @{user.nickname}
-                                                        </div>
-                                                    )}
-                                                </div>
+                <AdminDataTable
+                    data={users}
+                    columns={[
+                        {
+                            key: 'name',
+                            title: 'Người dùng',
+                            render: (_, user: UserData) => (
+                                <div className="flex items-center">
+                                    <img
+                                        className="h-10 w-10 rounded-full object-cover"
+                                        src={user.profilePic}
+                                        alt={user.name}
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.src = '/avatar.png';
+                                        }}
+                                    />
+                                    <div className="ml-4">
+                                        <div className="text-sm font-medium text-gray-900">
+                                            {user.name}
+                                        </div>
+                                        {user.nickname && (
+                                            <div className="text-sm text-gray-500">
+                                                @{user.nickname}
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900 dark:text-white">{user.email}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <RoleBadge role={user.role} />
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900 dark:text-white">
-                                                {user.phone || '-'}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900 dark:text-white">
-                                                {formatDate(user.createdAt)}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex items-center justify-end space-x-2">
-                                                <button
-                                                    onClick={() => handleViewUser(user)}
-                                                    className="text-blue-600 hover:text-blue-900 dark:hover:text-blue-300"
-                                                    title="Xem chi tiết"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEditUser(user)}
-                                                    className="text-yellow-600 hover:text-yellow-900 dark:hover:text-yellow-300"
-                                                    title="Chỉnh sửa"
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteUser(user)}
-                                                    className="text-red-600 hover:text-red-900 dark:hover:text-red-300"
-                                                    title="Xóa"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ),
+                            width: '200px'
+                        },
+                        {
+                            key: 'email',
+                            title: 'Email',
+                            width: '200px'
+                        },
+                        {
+                            key: 'role',
+                            title: 'Vai trò',
+                            render: (value) => <RoleBadge role={value as string} />,
+                            width: '120px'
+                        },
+                        {
+                            key: 'phone',
+                            title: 'Số điện thoại',
+                            render: (value) => (value as string) || 'Chưa có',
+                            width: '150px'
+                        },
+                        {
+                            key: 'createdAt',
+                            title: 'Ngày tạo',
+                            render: (value) => formatDate(value as string),
+                            width: '120px'
+                        },
+                        {
+                            key: 'actions',
+                            title: 'Thao tác',
+                            render: (_, user: UserData) => (
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleViewUser(user);
+                                        }}
+                                        className="text-blue-600 hover:text-blue-800"
+                                        title="Xem chi tiết"
+                                    >
+                                        <Eye className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditUser(user);
+                                        }}
+                                        className="text-green-600 hover:text-green-800"
+                                        title="Chỉnh sửa"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteUser(user);
+                                        }}
+                                        className="text-red-600 hover:text-red-800"
+                                        title="Xóa"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ),
+                            width: '100px'
+                        }
+                    ]}
+                    searchKey="name"
+                    searchPlaceholder="Tìm kiếm theo tên hoặc email..."
+                    filterOptions={{
+                        key: 'role',
+                        label: 'vai trò',
+                        options: [
+                            { value: 'admin', label: 'Quản trị viên' },
+                            { value: 'manager', label: 'Quản lý' },
+                            { value: 'user', label: 'Người dùng' }
+                        ]
+                    }}
+                    loading={false}
+                    emptyMessage="Không có người dùng nào"
+                />
 
-                    {filteredUsers.length === 0 && (
-                        <div className="text-center py-12">
-                            <UserX className="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                                Không tìm thấy người dùng
-                            </h3>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác.
-                            </p>
-                        </div>
-                    )}
-                </div>
+
 
                 {/* Modal */}
                 <AdminModal
