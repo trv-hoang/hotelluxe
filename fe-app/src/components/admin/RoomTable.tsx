@@ -178,22 +178,52 @@ const RoomTable: React.FC<RoomTableProps> = ({
                     </span>
                     
                     <AdminButton
-                        variant="primary"
                         onClick={() => onBulkAction(selectedRooms, 'maintenance')}
+                        style={{
+                            background: '#f59e0b',
+                            color: '#fff',
+                            boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
+                            borderRadius: '6px',
+                            fontWeight: '600',
+                            padding: '8px 16px',
+                            fontSize: '12px',
+                            transition: 'all 0.3s ease'
+                        }}
+                        className="hover:bg-yellow-600 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
                     >
                         Set Maintenance
                     </AdminButton>
                     
                     <AdminButton
-                        variant="success"
                         onClick={() => onBulkAction(selectedRooms, 'available')}
+                        style={{
+                            background: '#22c55e',
+                            color: '#fff',
+                            boxShadow: '0 2px 8px rgba(34, 197, 94, 0.3)',
+                            borderRadius: '6px',
+                            fontWeight: '600',
+                            padding: '8px 16px',
+                            fontSize: '12px',
+                            transition: 'all 0.3s ease'
+                        }}
+                        className="hover:bg-green-600 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
                     >
                         Set Available
                     </AdminButton>
                     
                     <AdminButton
-                        variant="danger"
                         onClick={() => onBulkAction(selectedRooms, 'delete')}
+                        style={{
+                            background: '#ef4444',
+                            color: '#fff',
+                            boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)',
+                            borderRadius: '6px',
+                            fontWeight: '600',
+                            padding: '8px 16px',
+                            fontSize: '12px',
+                            transition: 'all 0.3s ease'
+                        }}
+                        className="hover:bg-red-600 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
                     >
                         Delete Selected
                     </AdminButton>
@@ -284,18 +314,31 @@ const RoomTable: React.FC<RoomTableProps> = ({
                             <div>{room.floor}</div>
                             <div>{getStatusBadge(room.status)}</div>
                             <div>{room.roomType.maxGuests} guests</div>
-                            <div>${room.roomType.basePrice}</div>
-                            <div style={{ display: 'flex', gap: '8px' }}>
+                            <div>{room.roomType.basePrice} VND</div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
                                 <button
                                     onClick={() => onEdit(room)}
                                     style={{
-                                        padding: '4px 8px',
-                                        borderRadius: '4px',
-                                        border: '1px solid var(--admin-border)',
-                                        background: 'transparent',
-                                        color: 'var(--admin-text-primary)',
-                                        fontSize: '12px',
-                                        cursor: 'pointer'
+                                        padding: '6px 12px',
+                                        borderRadius: '6px',
+                                        border: 'none',
+                                        background: '#f59e0b',
+                                        color: '#fff',
+                                        fontSize: '11px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: '0 2px 4px rgba(245, 158, 11, 0.3)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = '#d97706';
+                                        e.currentTarget.style.transform = 'translateY(-1px)';
+                                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(245, 158, 11, 0.4)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = '#f59e0b';
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(245, 158, 11, 0.3)';
                                     }}
                                 >
                                     Edit
@@ -304,12 +347,36 @@ const RoomTable: React.FC<RoomTableProps> = ({
                                     value={room.status}
                                     onChange={(e) => onStatusChange(room.id, e.target.value as RoomStatus)}
                                     style={{
-                                        padding: '4px 8px',
-                                        borderRadius: '4px',
-                                        border: '1px solid var(--admin-border)',
-                                        background: 'var(--admin-bg-primary)',
-                                        color: 'var(--admin-text-primary)',
-                                        fontSize: '12px'
+                                        padding: '6px 8px',
+                                        borderRadius: '6px',
+                                        border: 'none',
+                                        background: (() => {
+                                            const statusColors = {
+                                                available: '#10b981',
+                                                occupied: '#ef4444',
+                                                maintenance: '#f59e0b',
+                                                out_of_order: '#6b7280',
+                                                cleaning: '#3b82f6',
+                                                reserved: '#8b5cf6'
+                                            };
+                                            return statusColors[room.status] || '#6b7280';
+                                        })(),
+                                        color: '#fff',
+                                        fontSize: '11px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        boxShadow: `0 2px 4px ${(() => {
+                                            const statusColors = {
+                                                available: '#10b981',
+                                                occupied: '#ef4444',
+                                                maintenance: '#f59e0b',
+                                                out_of_order: '#6b7280',
+                                                cleaning: '#3b82f6',
+                                                reserved: '#8b5cf6'
+                                            };
+                                            return statusColors[room.status] || '#6b7280';
+                                        })()}40`,
+                                        transition: 'all 0.3s ease'
                                     }}
                                 >
                                     <option value="available">Available</option>
@@ -322,13 +389,26 @@ const RoomTable: React.FC<RoomTableProps> = ({
                                 <button
                                     onClick={() => onDelete(room.id)}
                                     style={{
-                                        padding: '4px 8px',
-                                        borderRadius: '4px',
-                                        border: '1px solid #ef4444',
-                                        background: 'transparent',
-                                        color: '#ef4444',
-                                        fontSize: '12px',
-                                        cursor: 'pointer'
+                                        padding: '6px 12px',
+                                        borderRadius: '6px',
+                                        border: 'none',
+                                        background: '#ef4444',
+                                        color: '#fff',
+                                        fontSize: '11px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = '#dc2626';
+                                        e.currentTarget.style.transform = 'translateY(-1px)';
+                                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.4)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = '#ef4444';
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
                                     }}
                                 >
                                     Delete

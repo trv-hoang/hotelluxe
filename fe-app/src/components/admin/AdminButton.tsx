@@ -8,6 +8,7 @@ interface AdminButtonProps {
     disabled?: boolean;
     type?: 'button' | 'submit' | 'reset';
     style?: React.CSSProperties;
+    className?: string;
 }
 
 const AdminButton: React.FC<AdminButtonProps> = ({
@@ -17,7 +18,8 @@ const AdminButton: React.FC<AdminButtonProps> = ({
     size = 'medium',
     disabled = false,
     type = 'button',
-    style = {}
+    style = {},
+    className = ''
 }) => {
     const getVariantStyles = () => {
         switch (variant) {
@@ -69,19 +71,8 @@ const AdminButton: React.FC<AdminButtonProps> = ({
             type={type}
             onClick={disabled ? undefined : onClick}
             style={baseStyles}
+            className={className}
             disabled={disabled}
-            onMouseEnter={e => {
-                if (!disabled) {
-                    e.currentTarget.style.opacity = '0.9';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                }
-            }}
-            onMouseLeave={e => {
-                if (!disabled) {
-                    e.currentTarget.style.opacity = '1';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                }
-            }}
         >
             {children}
         </button>

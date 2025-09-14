@@ -1,45 +1,12 @@
-import type { DateRange } from 'react-day-picker';
+// Utility functions for price calculations and common operations
 
-export interface CalculatorPriceParams {
-    pricePerNight: number;
-    date: DateRange | undefined;
-}
-
-export const calculatorPrice = ({
-    pricePerNight,
-    date,
-}: CalculatorPriceParams) => {
-    // Tính số đêm
-    const nights =
-        date?.from && date?.to
-            ? Math.max(
-                  1,
-                  Math.ceil(
-                      (date.to.getTime() - date.from.getTime()) /
-                          (1000 * 60 * 60 * 24),
-                  ),
-              )
-            : 1;
-
-    // Tổng tiền
-    const total = pricePerNight * nights;
-
-    return {
-        nights,
-        total,
-    };
-};
-
-// Additional utility functions
 export const calculateRoomPrice = (priceString: string, nights: number): number => {
     const basePrice = Number(priceString.replace(/[^\d]/g, '')) || 1500000;
     return Math.round(basePrice * nights);
 };
 
-export const extractPrice = (price: string | number | undefined): number => {
-    if (!price) return 0;
-    if (typeof price === 'number') return price;
-    return Number(price.replace(/[^\d]/g, '')) || 0;
+export const extractPrice = (priceString: string): number => {
+    return Number(priceString.replace(/[^\d]/g, '')) || 0;
 };
 
 export const formatCurrency = (amount: number): string => {

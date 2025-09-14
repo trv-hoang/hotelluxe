@@ -20,7 +20,7 @@ interface User {
 
 const initialUsers: User[] = usersData;
 
-const pageSize = 5;
+const pageSize = 10;
 const roleOptions = [
     { value: 'Admin', label: 'Admin' },
     { value: 'User', label: 'User' },
@@ -160,35 +160,70 @@ const UsersPage: React.FC = () => {
     };
 
     return (
-        <div>
-            <AdminPageHeader
-                title="Users Management"
-                description="Manage user accounts, roles and permissions"
-                breadcrumb="Users"
-            >
-                <AdminButton onClick={handleAddUser} variant="primary">
-                    Add User
-                </AdminButton>
-                <AdminButton onClick={() => handleExportCSV()} variant="success">
-                    Export CSV
-                </AdminButton>
-            </AdminPageHeader>
-            
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
-                <input
-                    type='text'
-                    placeholder='Search by name, email, role...'
-                    value={search}
-                    onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-                    style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', minWidth: '220px', background: '#fff', color: '#222' }}
+        <div className="flex flex-col min-h-[80vh]">
+            <div className="flex justify-between items-start mb-6">
+                <AdminPageHeader
+                    title="Users Management"
+                    description="Manage user accounts, roles and permissions"
+                    breadcrumb="Users"
                 />
+                <div className="flex gap-4">
+                    <AdminButton
+                        onClick={handleAddUser}
+                        variant="success"
+                        style={{
+                            background: '#22c55e',
+                            boxShadow: '0 8px 15px rgba(34, 197, 94, 0.3)',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            fontSize: '16px',
+                            padding: '10px 24px',
+                            transition: 'all 0.3s ease',
+                        }}
+                        className="hover:bg-green-600 hover:shadow-xl hover:-translate-y-1 hover:scale-105 transform transition-all duration-300"
+                    >Add User</AdminButton>
+                    <AdminButton
+                        onClick={handleExportCSV}
+                        style={{
+                            background: '#3b82f6',
+                            boxShadow: '0 6px 12px rgba(59, 130, 246, 0.3)',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            fontSize: '16px',
+                            padding: '10px 24px',
+                            transition: 'all 0.3s ease',
+                        }}
+                        className="hover:bg-blue-600 hover:shadow-xl hover:-translate-y-1 hover:scale-105 transform transition-all duration-300"
+                    >Export CSV</AdminButton>
+                </div>
             </div>
-            
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+                <div style={{ position: 'relative', width: 320 }}>
+                    <input
+                        type='text'
+                        placeholder='Search by name, email, role...'
+                        value={search}
+                        onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+                        style={{
+                            padding: '12px 16px 12px 40px',
+                            borderRadius: '8px',
+                            border: '1.5px solid #22c55e',
+                            background: '#f9fafb',
+                            color: '#222',
+                            fontSize: 16,
+                            boxShadow: '0 2px 8px rgba(34,197,94,0.08)',
+                            width: '100%',
+                            outline: 'none',
+                            transition: 'border 0.2s',
+                        }}
+                    />
+                    <span style={{ position: 'absolute', left: 12, top: 12, color: '#22c55e', fontSize: 18 }}>🔍</span>
+                </div>
+            </div>
             {notification && (
                 <div style={{ marginBottom: '1rem', color: notification.includes('successfully') ? 'green' : 'red' }}>{notification}</div>
             )}
-            
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', flex: 1 }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem', minWidth: '600px' }}>
                     <thead>
                         <tr>
@@ -219,8 +254,36 @@ const UsersPage: React.FC = () => {
                                 <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{user.email}</td>
                                 <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{user.role}</td>
                                 <td style={{ borderBottom: '1px solid #eee', padding: '8px' }}>
-                                    <AdminButton onClick={() => handleEditUser(user)} variant="warning" size="small" style={{ marginRight: '8px' }}>Edit</AdminButton>
-                                    <AdminButton onClick={() => handleDeleteUser(user.id)} variant="danger" size="small">Delete</AdminButton>
+                                    <AdminButton
+                                        onClick={() => handleEditUser(user)}
+                                        style={{
+                                            background: '#f59e0b',
+                                            boxShadow: '0 4px 8px rgba(245, 158, 11, 0.3)',
+                                            borderRadius: '6px',
+                                            fontWeight: '600',
+                                            fontSize: '14px',
+                                            padding: '6px 16px',
+                                            marginRight: '8px',
+                                            transition: 'all 0.3s ease',
+                                        }}
+                                        className="hover:bg-yellow-600 hover:shadow-lg hover:-translate-y-0.5 hover:scale-105 transform transition-all duration-300"
+                                        size="small"
+                                    >Edit</AdminButton>
+                                    <AdminButton
+                                        onClick={() => handleDeleteUser(user.id)}
+                                        variant="danger"
+                                        style={{
+                                            background: '#ef4444',
+                                            boxShadow: '0 4px 8px rgba(239, 68, 68, 0.3)',
+                                            borderRadius: '6px',
+                                            fontWeight: '600',
+                                            fontSize: '14px',
+                                            padding: '6px 16px',
+                                            transition: 'all 0.3s ease',
+                                        }}
+                                        className="hover:bg-red-600 hover:shadow-xl hover:-translate-y-1 hover:scale-105 transform transition-all duration-300"
+                                        size="small"
+                                    >Delete</AdminButton>
                                 </td>
                             </tr>
                         ))}
@@ -228,16 +291,35 @@ const UsersPage: React.FC = () => {
                 </table>
             </div>
             
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <div style={{ display: 'flex', gap: '8px', marginTop: '1rem', justifyContent: 'center' }}>
-                    <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ddd', background: currentPage === 1 ? '#eee' : '#fff', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}>Prev</button>
+            {/* Pagination luôn ở cuối trang */}
+            <div className="mt-auto pt-4 pb-4 sticky bottom-0 bg-white border-t border-gray-200">
+                <div className="flex justify-center items-center" style={{gap: '8px'}}>
+                    <AdminButton
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        className={`bg-gray-200 hover:bg-gray-400 text-gray-700 font-bold px-4 py-1 rounded shadow transition-all duration-200 border border-gray-400 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        size="small"
+                    >Prev</AdminButton>
                     {[...Array(totalPages)].map((_, i) => (
-                        <button key={i} onClick={() => setCurrentPage(i + 1)} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ddd', background: currentPage === i + 1 ? '#2563eb' : '#fff', color: currentPage === i + 1 ? '#fff' : '#222', cursor: 'pointer' }}>{i + 1}</button>
+                        <AdminButton
+                            key={i}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={
+                                currentPage === i + 1
+                                    ? "bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-1 rounded shadow transition-all duration-200 border-2 border-blue-700 text-lg"
+                                    : "bg-gray-100 hover:bg-gray-300 text-gray-700 font-bold px-4 py-1 rounded shadow transition-all duration-200 border border-gray-300 text-lg"
+                            }
+                            size="small"
+                        >{i + 1}</AdminButton>
                     ))}
-                    <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ddd', background: currentPage === totalPages ? '#eee' : '#fff', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}>Next</button>
+                    <AdminButton
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        className={`bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-1 rounded shadow transition-all duration-200 border border-blue-600 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        size="small"
+                    >Next</AdminButton>
                 </div>
-            )}
+            </div>
             
             {/* Add/Edit User Modal */}
             <AdminModal
@@ -267,13 +349,20 @@ const UsersPage: React.FC = () => {
                     <AdminSelect
                         label="Role"
                         value={formData.role}
-                        onChange={e => setFormData({ ...formData, role: e.target.value })}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, role: e.target.value })}
                         options={roleOptions}
                         style={{ marginTop: '1rem' }}
                     />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1.5rem' }}>
-                        <AdminButton type="button" onClick={() => setShowForm(false)} variant="secondary">Cancel</AdminButton>
-                        <AdminButton type="submit" variant="primary">{formType === 'add' ? 'Add' : 'Update'}</AdminButton>
+                        <AdminButton
+                            type="button"
+                            onClick={() => setShowForm(false)}
+                            className="bg-slate-500 hover:bg-slate-700 text-white font-bold px-6 py-2 rounded shadow-md transition-all duration-200"
+                        >Cancel</AdminButton>
+                        <AdminButton
+                            type="submit"
+                            className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold px-6 py-2 rounded shadow-md transition-all duration-200"
+                        >{formType === 'add' ? 'Add' : 'Update'}</AdminButton>
                     </div>
                 </form>
             </AdminModal>

@@ -26,17 +26,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
         return colors[status] || '#6b7280';
     };
 
-    const getStatusIcon = (status: RoomStatus) => {
-        const icons = {
-            available: '✅',
-            occupied: '🏠',
-            maintenance: '🔧',
-            out_of_order: '❌',
-            cleaning: '🧹',
-            reserved: '📅'
-        };
-        return icons[status] || '❓';
-    };
+
 
     return (
         <div className="admin-card" style={{
@@ -73,7 +63,6 @@ const RoomCard: React.FC<RoomCardProps> = ({
                 fontSize: '12px',
                 fontWeight: '600'
             }}>
-                <span>{getStatusIcon(room.status)}</span>
                 {room.status.replace('_', ' ').toUpperCase()}
             </div>
 
@@ -108,7 +97,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                 <div>Floor: {room.floor}</div>
                 <div>Max: {room.roomType.maxGuests} guests</div>
                 <div>Size: {room.roomType.size}m²</div>
-                <div>${room.roomType.basePrice}/night</div>
+                <div>{room.roomType.basePrice} VND/đêm</div>
             </div>
 
             {/* Actions */}
@@ -124,20 +113,31 @@ const RoomCard: React.FC<RoomCardProps> = ({
                     }}
                     style={{
                         flex: 1,
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--admin-border)',
-                        background: 'transparent',
-                        color: 'var(--admin-text-primary)',
-                        fontSize: '12px',
+                        padding: '10px 16px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: '#f59e0b',
+                        color: '#fff',
+                        fontSize: '13px',
+                        fontWeight: '600',
                         cursor: 'pointer',
-                        transition: 'all 0.2s ease'
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
                     }}
+                    className="hover:bg-yellow-600 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'var(--admin-bg-secondary)';
+                        e.currentTarget.style.background = '#d97706';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.4)';
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.background = '#f59e0b';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(245, 158, 11, 0.3)';
                     }}
                 >
                     Edit
@@ -151,13 +151,24 @@ const RoomCard: React.FC<RoomCardProps> = ({
                     }}
                     style={{
                         flex: 1,
-                        padding: '8px 12px',
-                        borderRadius: '6px',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
                         border: '1px solid var(--admin-border)',
-                        background: 'var(--admin-bg-primary)',
-                        color: 'var(--admin-text-primary)',
-                        fontSize: '12px',
-                        cursor: 'pointer'
+                        background: getStatusColor(room.status),
+                        color: '#fff',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        boxShadow: `0 2px 8px ${getStatusColor(room.status)}40`,
+                        transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = `0 4px 12px ${getStatusColor(room.status)}60`;
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = `0 2px 8px ${getStatusColor(room.status)}40`;
                     }}
                 >
                     <option value="available">Available</option>

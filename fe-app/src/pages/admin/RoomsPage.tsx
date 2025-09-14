@@ -6,48 +6,70 @@ import AdminCard from '@/components/admin/AdminCard';
 import RoomCard from '@/components/admin/RoomCard';
 import RoomTable from '@/components/admin/RoomTable';
 import { useNotifications } from '@/hooks/useNotifications';
+import { generateRoomNumber } from '../../utils/calculatorPrice';
 
 import homeStayData from '../../data/jsons/__homeStay.json';
 
-const mockRooms = homeStayData.map((hotel, idx) => ({
-    id: (hotel as { id: number }).id,
-    number: String((hotel as { id: number }).id),
-    floor: 1,
-    roomType: {
-        id: (hotel as { id: number }).id,
-        name: (hotel as { title?: string }).title || '',
-        description: (hotel as { description?: string }).description || '',
-        basePrice: Number((hotel as { price?: string }).price?.replace(/[^\d]/g, '')),
-        maxGuests: (hotel as { maxGuests?: number }).maxGuests ?? 2,
-        bedConfiguration: [{ type: 'king' as const, quantity: (hotel as { bedrooms?: number }).bedrooms ?? 1 }],
-        size: 25,
-        amenities: [],
+// Generate mock rooms từ JSON data
+const generateMockRooms = () => {
+    return homeStayData.flatMap((hotel, hotelIdx) => {
+        // Mỗi khách sạn có 3-8 phòng
+        const roomCount = 3 + (hotelIdx % 6);
+        return Array.from({ length: roomCount }, (_, roomIdx) => ({
+            id: hotelIdx * 100 + roomIdx + 1,
+            number: generateRoomNumber((hotel as { id: number }).id, roomIdx),
+            floor: Math.floor(roomIdx / 4) + 1,
+            roomType: {
+                id: (hotel as { id: number }).id,
+                name: (hotel as { title?: string }).title || '',
+                description: (hotel as { description?: string }).description || '',
+                basePrice: (() => {
+                    const hotelPrice = (hotel as unknown as { price?: string | number }).price;
+                    const priceStr = typeof hotelPrice === 'string' ? hotelPrice : String(hotelPrice || 0);
+                    return Number(priceStr.replace(/[^\d]/g, ''));
+                })(),
+                maxGuests: (hotel as { maxGuests?: number }).maxGuests ?? 2,
+                bedConfiguration: [{ type: 'king' as const, quantity: (hotel as { bedrooms?: number }).bedrooms ?? 1 }] as { type: 'king' | 'queen' | 'single' | 'double' | 'sofa_bed'; quantity: number; }[],
+                size: 25,
+                amenities: [],
                 images: (() => {
                     const galleryImgs = (hotel as { galleryImgs?: string[] }).galleryImgs;
                     return Array.isArray(galleryImgs) && galleryImgs.length > 0 ? galleryImgs : ['/src/assets/logo.png'];
                 })(),
-        isActive: true
-    },
-    status: idx % 3 === 0 ? 'available' as RoomStatus : (idx % 3 === 1 ? 'occupied' as RoomStatus : 'maintenance' as RoomStatus),
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date()
-}));
+                isActive: true
+            },
+            status: (hotelIdx + roomIdx) % 3 === 0 ? 'available' as const : 
+                    ((hotelIdx + roomIdx) % 3 === 1 ? 'occupied' as const : 'maintenance' as const),
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }));
+    });
+};
 
 const RoomsPage: React.FC = () => {
-    const [rooms, setRooms] = useState<Room[]>(mockRooms);
+    const [rooms, setRooms] = useState<Room[]>([]);
     const [loading, setLoading] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
     const { addNotification } = useNotifications();
 
-    // Load rooms data - optimized for faster loading
+    // Load rooms data với cleanup
     useEffect(() => {
-        // TODO: Replace with real API call
+        let isMounted = true;
         setLoading(true);
-        setTimeout(() => {
-            setRooms(mockRooms);
-            setLoading(false);
-        }, 200); // Reduced from 1000 to 200ms
+        
+        const timeoutId = setTimeout(() => {
+            if (isMounted) {
+                const mockRooms = generateMockRooms();
+                setRooms(mockRooms);
+                setLoading(false);
+            }
+        }, 200);
+
+        return () => {
+            isMounted = false;
+            clearTimeout(timeoutId);
+        };
     }, []);
 
     const handleEditRoom = (room: Room) => {
@@ -144,38 +166,66 @@ const RoomsPage: React.FC = () => {
             >
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     {/* View Mode Toggle */}
-                    <div style={{ display: 'flex', gap: '4px' }}>
-                        <button
+                    <div className="flex gap-2">
+                        <AdminButton
                             onClick={() => setViewMode('grid')}
                             style={{
-                                padding: '8px 12px',
-                                borderRadius: '6px',
+                                background: viewMode === 'grid' ? '#3b82f6' : 'var(--admin-bg-primary)',
+                                color: viewMode === 'grid' ? '#fff' : 'var(--admin-text-primary)',
                                 border: '1px solid var(--admin-border)',
-                                background: viewMode === 'grid' ? 'var(--admin-primary)' : 'transparent',
-                                color: viewMode === 'grid' ? 'white' : 'var(--admin-text-primary)',
-                                fontSize: '12px',
-                                cursor: 'pointer'
+                                borderRadius: '8px',
+                                padding: '10px 16px',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: viewMode === 'grid' ? '0 4px 12px rgba(59, 130, 246, 0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
+                                transition: 'all 0.3s ease'
                             }}
+                            className="hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
                         >
                             Grid View
-                        </button>
-                        <button
+                        </AdminButton>
+                        <AdminButton
                             onClick={() => setViewMode('table')}
                             style={{
-                                padding: '8px 12px',
-                                borderRadius: '6px',
+                                background: viewMode === 'table' ? '#3b82f6' : 'var(--admin-bg-primary)',
+                                color: viewMode === 'table' ? '#fff' : 'var(--admin-text-primary)',
                                 border: '1px solid var(--admin-border)',
-                                background: viewMode === 'table' ? 'var(--admin-primary)' : 'transparent',
-                                color: viewMode === 'table' ? 'white' : 'var(--admin-text-primary)',
-                                fontSize: '12px',
-                                cursor: 'pointer'
+                                borderRadius: '8px',
+                                padding: '10px 16px',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: viewMode === 'table' ? '0 4px 12px rgba(59, 130, 246, 0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
+                                transition: 'all 0.3s ease'
                             }}
+                            className="hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
                         >
                             Table View
-                        </button>
+                        </AdminButton>
                     </div>
                     
-                    <AdminButton variant="primary" onClick={handleAddRoom}>
+                    <AdminButton 
+                        onClick={handleAddRoom}
+                        style={{
+                            background: '#22c55e',
+                            color: '#fff',
+                            boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            padding: '12px 20px',
+                            fontSize: '14px',
+                            transition: 'all 0.3s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                        }}
+                        className="hover:bg-green-600 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
+                    >
                         Add Room
                     </AdminButton>
                 </div>
@@ -193,35 +243,30 @@ const RoomsPage: React.FC = () => {
                     value={stats.total.toString()}
                     description="All rooms in hotel"
                     color="#2196f3"
-                    icon="🏨"
                 />
                 <AdminCard
                     title="Available"
                     value={stats.available.toString()}
                     description="Ready for booking"
                     color="#4caf50"
-                    icon="✅"
                 />
                 <AdminCard
                     title="Occupied"
                     value={stats.occupied.toString()}
                     description="Currently in use"
                     color="#ff9800"
-                    icon="🏠"
                 />
                 <AdminCard
                     title="Occupancy Rate"
                     value={`${stats.occupancyRate}%`}
                     description="Current occupancy"
                     color="#9c27b0"
-                    icon="📊"
                 />
                 <AdminCard
                     title="Maintenance"
                     value={stats.maintenance.toString()}
                     description="Under maintenance"
                     color="#f44336"
-                    icon="🔧"
                 />
             </div>
 
@@ -269,10 +314,26 @@ const RoomsPage: React.FC = () => {
                     padding: '60px 20px',
                     color: 'var(--admin-text-secondary)'
                 }}>
-                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏨</div>
+                    <div style={{ fontSize: '48px', marginBottom: '16px', color: 'var(--admin-text-secondary)', opacity: 0.5 }}>🏨</div>
                     <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>No Rooms Found</h3>
                     <p style={{ margin: '0 0 20px 0' }}>Start by adding your first room</p>
-                    <AdminButton variant="primary" onClick={handleAddRoom}>
+                    <AdminButton 
+                        onClick={handleAddRoom}
+                        style={{
+                            background: '#22c55e',
+                            color: '#fff',
+                            boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            padding: '12px 24px',
+                            fontSize: '14px',
+                            transition: 'all 0.3s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                        }}
+                        className="hover:bg-green-600 hover:shadow-lg hover:-translate-y-0.5 transform transition-all duration-300"
+                    >
                         Add Your First Room
                     </AdminButton>
                 </div>

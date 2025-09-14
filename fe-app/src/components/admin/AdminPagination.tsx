@@ -85,24 +85,17 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
                 <AdminButton
                     disabled={currentPage === 1}
                     onClick={() => onPageChange(currentPage - 1)}
-                    variant="secondary"
+                    className={`bg-slate-200 hover:bg-slate-400 text-slate-700 font-bold px-4 py-1 rounded shadow-md transition-all duration-200 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                     size="small"
-                    style={{
-                        opacity: currentPage === 1 ? 0.5 : 1,
-                        cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
-                    }}
                 >
-                    Previous
+                    Prev
                 </AdminButton>
                 
                 {getPageNumbers().map((page, index) => (
                     page === '...' ? (
                         <span
                             key={`ellipsis-${index}`}
-                            style={{
-                                padding: '8px 4px',
-                                color: '#6b7280'
-                            }}
+                            className="px-2 text-slate-400 font-bold"
                         >
                             ...
                         </span>
@@ -110,12 +103,13 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
                         <AdminButton
                             key={page}
                             onClick={() => onPageChange(page as number)}
-                            variant={currentPage === page ? "primary" : "secondary"}
+                            className={
+                                currentPage === page
+                                    ? "bg-cyan-500 hover:bg-cyan-600 text-white font-bold px-4 py-1 rounded shadow-md transition-all duration-200"
+                                    : "bg-purple-200 hover:bg-purple-400 text-purple-700 font-bold px-4 py-1 rounded shadow-md transition-all duration-200"
+                            }
                             size="small"
-                            style={{
-                                minWidth: '36px',
-                                justifyContent: 'center'
-                            }}
+                            style={{ minWidth: '36px', justifyContent: 'center' }}
                         >
                             {page}
                         </AdminButton>
@@ -125,12 +119,8 @@ const AdminPagination: React.FC<AdminPaginationProps> = ({
                 <AdminButton
                     disabled={currentPage === totalPages}
                     onClick={() => onPageChange(currentPage + 1)}
-                    variant="secondary"
+                    className={`bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-1 rounded shadow-md transition-all duration-200 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
                     size="small"
-                    style={{
-                        opacity: currentPage === totalPages ? 0.5 : 1,
-                        cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
-                    }}
                 >
                     Next
                 </AdminButton>
