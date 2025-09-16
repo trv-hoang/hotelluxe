@@ -1,5 +1,4 @@
-// src/components/StayFilter.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useLayoutEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import {
@@ -36,11 +35,11 @@ const parseSaleOff = (saleOff?: string | null): number => {
 };
 
 export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
-    // ✅ Tính maxPrice duy nhất 1 lần khi data vào
-    const maxPrice = useMemo(
-        () => Math.max(...data.map((stay) => parsePrice(stay.price))),
-        [data],
-    );
+    // ✅ Tính maxPrice duy nhất 1 lần khi data thay đổi
+    const maxPrice = useMemo(() => {
+        const prices = data.map((stay) => parsePrice(stay.price));
+        return prices.length > 0 ? Math.max(...prices) : 0;
+    }, [data]);
 
     const [category, setCategory] = useState<string | null>(null);
     const [priceRange, setPriceRange] = useState<[number, number]>([
@@ -54,10 +53,21 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
     >(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-    // Debounce tìm kiếm
-    const debouncedSearch = useMemo(() => debounce(setSearchTerm, 300), []);
-
     React.useEffect(() => {
+        setPriceRange((prev) => {
+            const [prevMin, prevMax] = prev;
+            const newMin = prevMin <= maxPrice ? prevMin : 0;
+            const newMax = Math.min(prevMax, maxPrice);
+            return [Math.min(newMin, newMax), newMax];
+        });
+    }, [maxPrice]);
+    // Debounce tìm kiếm
+    const debouncedSearch = useMemo(
+        () => debounce((value: string) => setSearchTerm(value), 300),
+        [],
+    );
+
+    useLayoutEffect(() => {
         return () => {
             debouncedSearch.cancel();
         };
@@ -82,7 +92,7 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                 matchesBedrooms =
                     bedrooms === '4+'
                         ? bedCount >= 4
-                        : bedCount === parseInt(bedrooms);
+                        : bedCount === parseInt(bedrooms, 10);
             }
 
             return (
@@ -121,15 +131,8 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
         return list;
     }, [filteredData, sortBy, sortOrder]);
 
-    // 🚫 KHÔNG DÙNG useEffect nữa → tránh loop
-    // Thay vào đó: GỌI onFilter TRỰC TIẾP trong các hàm xử lý
-    // Nhưng nếu vẫn dùng, hãy đảm bảo nó chỉ chạy khi thực sự cần
-
-    // ✅ Gọi onFilter trực tiếp từ các handler (không qua useEffect)
-    // Nhưng ở đây ta vẫn cần thông báo mỗi khi sortedData thay đổi → dùng layout effect hoặc callback
-
-    // 🔁 Fix loop: Dùng useRef để lưu giá trị trước, tránh gọi onFilter nếu dữ liệu không đổi
-    const prevSortedDataRef = React.useRef<string | null>(null);
+    // 🔁 Dùng useRef để tránh gọi onFilter nếu dữ liệu không thay đổi
+    const prevSortedDataRef = useRef<string | null>(null);
 
     const getIdentityKey = (data: StayDataType[]) => {
         return data.map((d) => d.id).join(',');
@@ -137,7 +140,7 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
 
     const identityKey = getIdentityKey(sortedData);
 
-    React.useLayoutEffect(() => {
+    useLayoutEffect(() => {
         const prevKey = prevSortedDataRef.current;
         if (prevKey !== identityKey) {
             prevSortedDataRef.current = identityKey;
@@ -181,7 +184,6 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                 <h2 className='text-2xl font-semibold'>
                     Bộ lọc khách sạn ({sortedData.length})
                 </h2>
-
                 <Popover>
                     <PopoverTrigger asChild>
                         <Button
@@ -189,8 +191,7 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                             size='sm'
                             className='flex items-center gap-1'
                         >
-                            <SlidersHorizontal className='w-4 h-4' />
-                            Bộ lọc
+                            <SlidersHorizontal className='w-4 h-4' /> Bộ lọc
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className='w-96 space-y-4'>
@@ -204,10 +205,16 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                                 max={maxPrice}
                                 step={500000}
                                 value={priceRange}
-                                onValueChange={(val) =>
-                                    setPriceRange(val as [number, number])
-                                }
+                                onValueChange={(val) => {
+                                    const [a, b] = val as [number, number];
+                                    // 🔄 ép về dạng [min, max] để kéo thoải mái 2 đầu
+                                    setPriceRange([
+                                        Math.min(a, b),
+                                        Math.max(a, b),
+                                    ]);
+                                }}
                             />
+
                             <div className='flex items-center justify-between mt-3'>
                                 <div className='flex flex-col items-start gap-1'>
                                     <span className='text-sm text-gray-600'>
@@ -293,8 +300,7 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                             onClick={handleReset}
                             className='flex items-center gap-1 w-full'
                         >
-                            <RotateCcw className='w-4 h-4' />
-                            Reset
+                            <RotateCcw className='w-4 h-4' /> Reset
                         </Button>
                     </PopoverContent>
                 </Popover>
