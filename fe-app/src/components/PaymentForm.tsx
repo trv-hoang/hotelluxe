@@ -3,6 +3,8 @@ import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ShoppingCart } from 'lucide-react';
+import toast from 'react-hot-toast';
+
 import {
     Select,
     SelectContent,
@@ -14,6 +16,8 @@ import { paymentFormSchema, PaymentMethod } from '@/types/cart';
 import type { PaymentFormInputs, FullPaymentData } from '@/types/payment';
 import { useCartStore } from '@/store/useCartStore'; //  import store
 import { useBookingStore } from '@/store/useBookingStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useNavigate } from 'react-router-dom';
 type FormField = {
     id: keyof PaymentFormInputs;
     label: string;
@@ -22,6 +26,13 @@ type FormField = {
     inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode']; // optional
 };
 // Cấu hình field nhập liệu
+const MOCK_PAYMENT_DATA: PaymentFormInputs = {
+    cardHolder: 'NGUYEN VAN A',
+    cardNumber: '4111 1111 1111 1111', // Visa test
+    expirationDate: '12/28',
+    cvv: '123',
+    paymentMethod: PaymentMethod.CreditCard,
+};
 const formFields: FormField[] = [
     {
         id: 'cardHolder',
@@ -71,10 +82,11 @@ const paymentLogos = [
 ] as const;
 
 const PaymentForm: React.FC = () => {
+    const navigate = useNavigate();
     //  lấy data & action từ store
-    const { setPaymentData, user, items } = useCartStore();
+    const { setPaymentData, items } = useCartStore();
     const { checkInDate, checkOutDate } = useBookingStore();
-
+    const { authUser } = useAuthStore();
     //  setup react-hook-form
     const {
         register,
@@ -83,23 +95,22 @@ const PaymentForm: React.FC = () => {
         formState: { errors },
     } = useForm<PaymentFormInputs>({
         resolver: zodResolver(paymentFormSchema),
-        defaultValues: {
-            cardHolder: '',
-            cardNumber: '',
-            expirationDate: '',
-            cvv: '',
-            paymentMethod: PaymentMethod.CreditCard,
-        },
+        defaultValues: MOCK_PAYMENT_DATA,
     });
 
     //  khi submit form
-    const handlePaymentForm: SubmitHandler<PaymentFormInputs> = (data) => {
+    const handlePaymentForm: SubmitHandler<PaymentFormInputs> = async (
+        data,
+    ) => {
         // 1. Lưu dữ liệu vào store
         setPaymentData(data);
-
+        if (!authUser) {
+            alert('Vui lòng đăng nhập để tiếp tục thanh toán!');
+            return; // Dừng lại, không gửi API
+        }
         // 2. Tạo FullPaymentData để gửi API
         const fullData: FullPaymentData = {
-            user: user!, // user chắc chắn phải có (nếu null thì cần check login)
+            user: authUser, // từ auth
             items,
             paymentData: data,
             totalAmount: items.reduce(
@@ -115,6 +126,19 @@ const PaymentForm: React.FC = () => {
         console.log(' FullPaymentData gửi API:', fullData);
 
         // TODO: gọi API ở đây
+        try {
+            // hiển thị "loading"
+            const toastId = toast.loading('Đang xử lý thanh toán...');
+
+            // TODO: gọi API thực tế
+            await new Promise((resolve) => setTimeout(resolve, 1500)); // fake API
+
+            toast.success('Thanh toán thành công!', { id: toastId });
+            navigate('/stay');
+        } catch (error) {
+            toast.error('Thanh toán thất bại, vui lòng thử lại!');
+            console.error(error);
+        }
     };
 
     return (

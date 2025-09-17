@@ -20,6 +20,7 @@ export type PaymentFormInputs = {
     paymentMethod: 'credit_card' | 'momo' | 'zalopay';
 };
 
+import type { User } from '@/types/profile';
 import type { StayDataType } from '@/types/stay';
 
 //  Giỏ hàng: giữ nguyên
@@ -39,7 +40,7 @@ export interface PaymentData {
 
 //  Tổng thể dữ liệu thanh toán để gửi API
 export type FullPaymentData = {
-    user: UserPayment;
+    user: User;
     items: CartItem[];
     paymentData: PaymentData;
     totalAmount: number;

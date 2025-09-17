@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import type { CartItem, PaymentData } from '@/types/payment';
-
+import type { User } from '@/types/profile';
 //  Định nghĩa UserPayment (đã được định nghĩa trước đó)
-interface UserPayment {
-    id: string;
-    name: string;
-    email: string;
-}
+// interface User {
+//     id: string;
+//     name: string;
+//     email: string;
+// }
 
 interface CartState {
     // Giỏ hàng
@@ -21,8 +21,8 @@ interface CartState {
     clearPaymentData: () => void;
 
     //  THÊM: Thông tin người dùng (có thể lấy từ auth)
-    user: UserPayment | null;
-    setUser: (user: UserPayment) => void;
+    user: User | null;
+    setUser: (user: User) => void;
     clearUser: () => void;
 }
 

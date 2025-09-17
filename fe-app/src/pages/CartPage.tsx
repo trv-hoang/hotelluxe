@@ -24,7 +24,7 @@ const CartPage: React.FC = () => {
         (sum, item) => sum + item.price * item.nights,
         0,
     );
-    console.log('Cart items:', items);
+    // console.log('Cart items:', items);
     // const reviewImage =
     //     items.length > 0 ? items[0].galleryImgs[0] : '/avatar.png';
     const [searchParams] = useSearchParams();
