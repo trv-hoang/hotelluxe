@@ -9,6 +9,7 @@ interface AdminButtonProps {
     type?: 'button' | 'submit' | 'reset';
     style?: React.CSSProperties;
     className?: string;
+    title?: string;
 }
 
 const AdminButton: React.FC<AdminButtonProps> = ({
@@ -19,7 +20,8 @@ const AdminButton: React.FC<AdminButtonProps> = ({
     disabled = false,
     type = 'button',
     style = {},
-    className = ''
+    className = '',
+    title
 }) => {
     const getVariantStyles = () => {
         switch (variant) {
@@ -73,6 +75,7 @@ const AdminButton: React.FC<AdminButtonProps> = ({
             style={baseStyles}
             className={className}
             disabled={disabled}
+            title={title}
         >
             {children}
         </button>
