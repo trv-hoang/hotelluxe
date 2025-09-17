@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/tooltip';
 import UserSetting from '@/components/UserSetting';
 import { useAuthStore } from '@/store/useAuthStore';
+import NotificationDropdown from '@/components/NotificationDropdown';
 
 // TEMP
 const Navbar = () => {
@@ -52,16 +53,13 @@ const Navbar = () => {
                     {/* Notifications */}
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Link
-                                to='/notifications'
-                                className='hover:bg-accent rounded-md p-2 transition-colors'
-                            >
-                                <Bell className='w-5 h-5 text-gray-600' />
-                            </Link>
+                            <NotificationDropdown>
+                                <Bell className='!w-5 !h-5 text-gray-600' />
+                            </NotificationDropdown>
                         </TooltipTrigger>
-                        <TooltipContent side='bottom'>
+                        {/* <TooltipContent side='bottom'>
                             <p>Thông báo</p>
-                        </TooltipContent>
+                        </TooltipContent> */}
                     </Tooltip>
 
                     {/* plane */}

@@ -15,6 +15,7 @@ import Footer from '@/components/Footer.tsx';
 import ScrollToTop from '@/hooks/ScrollToTop.ts';
 import StayDetailPage from '@/pages/StayDetail.tsx';
 import CartPage from '@/pages/CartPage.tsx';
+import ErrorPage from '@/pages/ErrorPage.tsx';
 
 function App() {
     return (
@@ -43,6 +44,7 @@ function ClientApp() {
             {!hideNavbar && <Navbar />}
             <main className='py-0'>
                 <Routes>
+                    s
                     <Route path='/' element={<HomePage />} />
                     <Route path='/login' element={<LoginPage />} />
                     <Route path='/register' element={<RegisterPage />} />
@@ -57,6 +59,7 @@ function ClientApp() {
                         element={<StayDetailPage />}
                     />
                     <Route path='/cart' element={<CartPage />} />
+                    <Route path='/error' element={<ErrorPage />} />
                 </Routes>
             </main>
             <footer className='mx-auto sx:px-0 p-4 sm:max-x-xl md:max-w-7xl lg:max-w-7xl xl:min-w-[1480px]'>

@@ -2,8 +2,9 @@ import bg from '@/assets/bg.jpg';
 import { ExplorePlace } from '@/components/ExplorePlace';
 import StayListing from '@/components/StayListings';
 import StaySearchForm from '@/components/StaySearchForm';
-
+import { useNavigate } from 'react-router-dom';
 export default function HomePage() {
+    const navigate = useNavigate();
     return (
         <>
             <div className=' mb-24 md:px-0 2xl:px-10 relative mt-20 mx-auto'>
@@ -31,6 +32,7 @@ export default function HomePage() {
                         </div>
 
                         <button
+                            onClick={() => navigate('/stay')}
                             type='button'
                             className='mt-10 sm:mt-20 sm:text-lg relative inline-flex items-center justify-center px-6 py-3 font-medium rounded-full bg-primary text-white hover:bg-primary/80 focus:outline-none focus:ring-4 focus:ring-primary/50 transition-all duration-300 ease-in-out'
                         >
