@@ -45,6 +45,7 @@ import ModalDetail from '@/components/ModelDetail';
 import CategoryBadge from '@/shared/CategoryBadge';
 import { useCartStore } from '@/store/useCartStore';
 import { formatPrice } from '@/lib/utils';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const StayDetailPage = () => {
     const { id } = useParams();
@@ -56,6 +57,7 @@ const StayDetailPage = () => {
     const isDisabled = !checkInDate || !checkOutDate;
     const query = new URLSearchParams(location.search);
     const modal = query.get('modal');
+    const { authUser } = useAuthStore();
 
     // store
     const addItem = useCartStore((state) => state.addItem);
@@ -592,6 +594,11 @@ const StayDetailPage = () => {
 
     const renderSidebar = () => {
         const handleAddToCart = () => {
+            if (!authUser) {
+                alert('Vui lòng đăng nhập để đặt phòng.');
+                navigate('/login');
+                return;
+            }
             if (!stayData || isDisabled) return;
             if (!stayData) return;
 
