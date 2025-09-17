@@ -44,5 +44,7 @@ export type FullPaymentData = {
     paymentData: PaymentData;
     totalAmount: number;
     currency: 'VND';
+    checkInDate: Date;
+    checkOutDate: Date;
     timestamp: string;
 };

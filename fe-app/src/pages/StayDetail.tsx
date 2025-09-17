@@ -44,14 +44,16 @@ import { getRandomDescription } from '@/data/stayDes';
 import ModalDetail from '@/components/ModelDetail';
 import CategoryBadge from '@/shared/CategoryBadge';
 import { useCartStore } from '@/store/useCartStore';
+import { formatPrice } from '@/lib/utils';
 
 const StayDetailPage = () => {
     const { id } = useParams();
     const [isOpenModalAmenities, setIsOpenModalAmenities] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
-    const { date, guests } = useBookingStore();
-
+    const { date, guests, checkInDate, checkOutDate } = useBookingStore();
+    console.log('Check-in:', checkInDate, 'Check-out :', checkOutDate);
+    const isDisabled = !checkInDate || !checkOutDate;
     const query = new URLSearchParams(location.search);
     const modal = query.get('modal');
 
@@ -590,6 +592,7 @@ const StayDetailPage = () => {
 
     const renderSidebar = () => {
         const handleAddToCart = () => {
+            if (!stayData || isDisabled) return;
             if (!stayData) return;
 
             addItem({
@@ -597,6 +600,7 @@ const StayDetailPage = () => {
                 nights, // số đêm chọn
                 totalGuests, // tổng khách
             });
+            navigate('/cart');
         };
 
         return (
@@ -605,7 +609,7 @@ const StayDetailPage = () => {
                     <div className='flex justify-between items-start '>
                         <div>
                             <span className='text-3xl font-semibold'>
-                                {stayData.price}
+                                {formatPrice(stayData.price)}
                             </span>
                             <span className='ml-1 text-base font-normal text-neutral-500 dark:text-neutral-400'>
                                 /đêm
@@ -642,7 +646,7 @@ const StayDetailPage = () => {
                         <Separator />
                         <div className='flex justify-between font-semibold'>
                             <span>Tổng cộng</span>
-                            <span>{total.toLocaleString('vi-VN')}đ</span>
+                            <span>{total.toLocaleString('vi-VN')} đ</span>
                         </div>
                         <div className='text-sm text-neutral-500'>
                             Tổng khách: <b>{totalGuests}</b>
@@ -653,9 +657,9 @@ const StayDetailPage = () => {
                     <Button
                         className='w-full'
                         onClick={handleAddToCart}
-                        asChild
+                        disabled={isDisabled}
                     >
-                        <Link to='/cart'>Đặt phòng ngay</Link>
+                        Đặt phòng ngay
                     </Button>
                 </CardContent>
             </Card>
