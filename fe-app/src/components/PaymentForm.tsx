@@ -13,6 +13,7 @@ import {
 import { paymentFormSchema, PaymentMethod } from '@/types/cart';
 import type { PaymentFormInputs, FullPaymentData } from '@/types/payment';
 import { useCartStore } from '@/store/useCartStore'; //  import store
+import { useBookingStore } from '@/store/useBookingStore';
 type FormField = {
     id: keyof PaymentFormInputs;
     label: string;
@@ -72,6 +73,7 @@ const paymentLogos = [
 const PaymentForm: React.FC = () => {
     //  lấy data & action từ store
     const { setPaymentData, user, items } = useCartStore();
+    const { checkInDate, checkOutDate } = useBookingStore();
 
     //  setup react-hook-form
     const {
@@ -104,6 +106,8 @@ const PaymentForm: React.FC = () => {
                 (sum, item) => sum + item.price * item.nights,
                 0,
             ),
+            checkInDate: checkInDate!,
+            checkOutDate: checkOutDate!,
             currency: 'VND',
             timestamp: new Date().toISOString(),
         };

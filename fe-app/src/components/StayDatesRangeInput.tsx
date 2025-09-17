@@ -6,7 +6,6 @@ import {
     PopoverContent,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-// import type { DateRange } from "react-day-picker";
 import ClearDataButton from './ClearDataButton';
 import { cn } from '@/lib/utils';
 import { useBookingStore } from '@/store/useBookingStore';
@@ -20,11 +19,18 @@ export default function StayDatesRangeInput({
     className = 'lg:flex-[2]',
     fieldClassName = 'px-4 py-2',
 }: StayDatesRangeInputProps) {
-    // ✅ Lấy date và setDate từ Zustand
+    // Lấy date từ store
     const date = useBookingStore((s) => s.date);
     const setDate = useBookingStore((s) => s.setDate);
 
-    const [open, setOpen] = React.useState(false); // track trạng thái mở Popover
+    // Derived checkInDate, checkOutDate từ date
+    const checkInDate = date?.from;
+    const checkOutDate = date?.to;
+
+    // console.log('Check-in:', checkInDate);
+    // console.log('Check-out:', checkOutDate);
+
+    const [open, setOpen] = React.useState(false);
 
     const renderInput = () => (
         <>
@@ -33,15 +39,15 @@ export default function StayDatesRangeInput({
             </div>
             <div className='flex-grow text-left'>
                 <span className='block xl:text-lg font-semibold'>
-                    {date?.from
-                        ? `${date.from.toLocaleDateString('en-US', {
+                    {checkInDate
+                        ? `${checkInDate.toLocaleDateString('en-US', {
                               month: 'short',
                               day: '2-digit',
                           })}`
                         : 'Thêm ngày'}
-                    {date?.to
+                    {checkOutDate
                         ? ' - ' +
-                          date.to.toLocaleDateString('en-US', {
+                          checkOutDate.toLocaleDateString('en-US', {
                               month: 'short',
                               day: '2-digit',
                           })
@@ -74,7 +80,7 @@ export default function StayDatesRangeInput({
                 <Calendar
                     mode='range'
                     selected={date}
-                    onSelect={setDate}
+                    onSelect={(range) => setDate(range ?? undefined)}
                     numberOfMonths={2}
                 />
             </PopoverContent>

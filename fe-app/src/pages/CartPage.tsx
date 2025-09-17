@@ -19,13 +19,14 @@ const steps = [
 
 const CartPage: React.FC = () => {
     const { items, removeItem } = useCartStore();
+    const totalGuests = items.reduce((sum, item) => sum + item.totalGuests, 0);
     const totalAmount = items.reduce(
         (sum, item) => sum + item.price * item.nights,
         0,
     );
     console.log('Cart items:', items);
-    const reviewImage =
-        items.length > 0 ? items[0].galleryImgs[0] : '/avatar.png';
+    // const reviewImage =
+    //     items.length > 0 ? items[0].galleryImgs[0] : '/avatar.png';
     const [searchParams] = useSearchParams();
     const activeStep = parseInt(searchParams.get('step') || '1');
     const [bookingForm, setBookingForm] =
@@ -89,7 +90,7 @@ const CartPage: React.FC = () => {
                                 items.map((item) => (
                                     <div
                                         key={item.id}
-                                        className='flex justify-between p-4 border rounded-xl shadow-sm  '
+                                        className='flex justify-between p-4 border rounded-xl shadow-sm mb-4  '
                                     >
                                         <StayCard data={item} size='default' />
                                         <Button
@@ -115,15 +116,17 @@ const CartPage: React.FC = () => {
                     )}
                 </div>
                 <div className='w-full lg:w-5/12 border shadow-lg border-gray-100 p-5 rounded-xl flex flex-col gap-8'>
-                    <div className='space-y-6 col-span-2'>
+                    <div className='space-y-6 col-span-2 sticky top-28 '>
                         {items.map((item) => (
                             <div
                                 key={item.id}
-                                className='sticky top-28 overflow-hidden space-y-4'
+                                className='overflow-hidden space-y-4'
                             >
                                 <div className='w-full h-40 overflow-hidden rounded-lg'>
                                     <img
-                                        src={reviewImage}
+                                        src={
+                                            item.galleryImgs[0] ?? '/avatar.png'
+                                        }
                                         alt={item.title}
                                         className='w-full h-full object-cover'
                                     />
@@ -135,11 +138,11 @@ const CartPage: React.FC = () => {
 
                                 <Separator />
 
-                                <div className='space-y-3'>
+                                <div className='space-y-3 pb-4 shadow-lg w-full'>
                                     <div className='flex justify-between text-neutral-600 dark:text-neutral-300'>
                                         <span>Số đêm x {item.nights}</span>
                                         <span>
-                                            {formatPrice(item.price)} x{' '}
+                                            {formatPrice(item.price)}đ x{' '}
                                             {item.nights}
                                         </span>
                                     </div>
@@ -150,28 +153,26 @@ const CartPage: React.FC = () => {
                                     </div>
 
                                     <Separator />
-
-                                    <div className='flex justify-between font-semibold'>
-                                        <span>Tổng cộng</span>
-                                        <span>{formatPrice(totalAmount)}</span>
-                                    </div>
-
-                                    <div className='text-sm text-neutral-500'>
-                                        Tổng khách: <b>{item.totalGuests}</b>
-                                    </div>
                                 </div>
-
-                                {activeStep === 1 && (
-                                    <Button className='w-full' asChild>
-                                        <Link
-                                            to={`/cart?step=${activeStep + 1}`}
-                                        >
-                                            Tiếp tục thanh toán
-                                        </Link>
-                                    </Button>
-                                )}
                             </div>
                         ))}
+                        {activeStep === 1 && (
+                            <>
+                                <div className='flex justify-between font-semibold !-mt-1'>
+                                    <span>Tổng cộng</span>
+                                    <span>{formatPrice(totalAmount)}đ</span>
+                                </div>
+
+                                <div className='text-sm text-neutral-500 pb-4 border-b border-gray-300 rounded-b-2xl'>
+                                    Tổng khách: <b>{totalGuests}</b>
+                                </div>
+                                <Button className='w-full' asChild>
+                                    <Link to={`/cart?step=${activeStep + 1}`}>
+                                        Tiếp tục thanh toán
+                                    </Link>
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
