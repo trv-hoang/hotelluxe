@@ -60,12 +60,22 @@ function AdminDataTable<T extends Record<string, unknown>>({
 
     if (loading) {
         return (
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div 
+                className="rounded-lg shadow-sm p-6"
+                style={{ background: 'var(--admin-bg-primary)' }}
+            >
                 <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+                    <div 
+                        className="h-4 rounded w-1/4 mb-4"
+                        style={{ backgroundColor: 'var(--admin-bg-secondary)' }}
+                    ></div>
                     <div className="space-y-3">
                         {[...Array(5)].map((_, i) => (
-                            <div key={i} className="h-4 bg-gray-200 rounded"></div>
+                            <div 
+                                key={i} 
+                                className="h-4 rounded"
+                                style={{ backgroundColor: 'var(--admin-bg-secondary)' }}
+                            ></div>
                         ))}
                     </div>
                 </div>
@@ -74,14 +84,17 @@ function AdminDataTable<T extends Record<string, unknown>>({
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="admin-table" style={{ background: 'var(--admin-bg-primary)', borderRadius: '0.75rem', overflow: 'hidden' }}>
             {/* Search and Filter */}
-            <div className="p-4 border-b border-gray-200">
+            <div style={{ padding: '1rem', borderBottom: '1px solid var(--admin-border-primary)' }}>
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                     {/* Search */}
                     {searchKey && (
                         <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <Search 
+                                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" 
+                                style={{ color: 'var(--admin-text-secondary)' }}
+                            />
                             <AdminInput
                                 type="text"
                                 placeholder={searchPlaceholder}
@@ -113,24 +126,35 @@ function AdminDataTable<T extends Record<string, unknown>>({
 
             {/* Table */}
             <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead className="bg-gray-50">
+                <table className="w-full admin-table">
+                    <thead style={{ background: 'var(--admin-bg-secondary)' }}>
                         <tr>
                             {columns.map((column, index) => (
                                 <th
                                     key={index}
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                    style={{ width: column.width }}
+                                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                                    style={{ 
+                                        width: column.width,
+                                        color: 'var(--admin-text-primary)',
+                                        borderBottom: '1px solid var(--admin-border-primary)'
+                                    }}
                                 >
                                     {column.title}
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody style={{ background: 'var(--admin-bg-primary)' }}>
                         {filteredData.length === 0 ? (
                             <tr>
-                                <td colSpan={columns.length} className="px-6 py-12 text-center text-gray-500">
+                                <td 
+                                    colSpan={columns.length} 
+                                    className="px-6 py-12 text-center"
+                                    style={{ 
+                                        color: 'var(--admin-text-secondary)',
+                                        borderBottom: '1px solid var(--admin-border-secondary)'
+                                    }}
+                                >
                                     {emptyMessage}
                                 </td>
                             </tr>
@@ -139,10 +163,24 @@ function AdminDataTable<T extends Record<string, unknown>>({
                                 <tr
                                     key={rowIndex}
                                     onClick={() => onRowClick?.(item)}
-                                    className={`hover:bg-gray-50 ${onRowClick ? 'cursor-pointer' : ''}`}
+                                    className={`${onRowClick ? 'cursor-pointer' : ''}`}
+                                    style={{ 
+                                        transition: 'background-color 0.2s ease',
+                                        borderBottom: '1px solid var(--admin-border-secondary)'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'var(--admin-bg-hover)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'var(--admin-bg-primary)';
+                                    }}
                                 >
                                     {columns.map((column, colIndex) => (
-                                        <td key={colIndex} className="px-6 py-4 whitespace-nowrap">
+                                        <td 
+                                            key={colIndex} 
+                                            className="px-6 py-4 whitespace-nowrap"
+                                            style={{ color: 'var(--admin-text-primary)' }}
+                                        >
                                             {column.render
                                                 ? column.render(item[column.key as keyof T], item)
                                                 : String(item[column.key as keyof T] || '-')
@@ -158,7 +196,14 @@ function AdminDataTable<T extends Record<string, unknown>>({
 
             {/* Results count */}
             {filteredData.length > 0 && (
-                <div className="px-6 py-3 bg-gray-50 border-t text-sm text-gray-600">
+                <div 
+                    className="px-6 py-3 text-sm"
+                    style={{ 
+                        background: 'var(--admin-bg-secondary)', 
+                        borderTop: '1px solid var(--admin-border-primary)',
+                        color: 'var(--admin-text-secondary)'
+                    }}
+                >
                     Hiển thị {filteredData.length} / {data.length} kết quả
                 </div>
             )}

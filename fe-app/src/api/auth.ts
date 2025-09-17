@@ -11,8 +11,8 @@ export const login = async (email: string, password: string) => {
         throw new Error("Email và password là bắt buộc");
     }
 
-    const res = await api.post("/login", { email, password });
-    localStorage.setItem("token", res.data.token);
+    const res = await api.post("/auth/login", { email, password });
+    localStorage.setItem("token", res.data.data.token);
     return res.data;
 };
 
@@ -35,21 +35,21 @@ export const register = async (
         throw new Error("Password confirmation không khớp");
     }
 
-    const res = await api.post("/register", {
+    const res = await api.post("/auth/register", {
         name,
         email,
         password,
         password_confirmation,
     });
 
-    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("token", res.data.data.token);
     return res.data;
 };
 
 
-export const logout = () => api.post("/logout");
+export const logout = () => api.post("/auth/logout");
 
-export const getUser = () => api.get("/user");
+export const getUser = () => api.get("/auth/user");
 // add
 export const forgotPassword = (email: string) => {
     return api.post('/auth/forgot-password', { email });

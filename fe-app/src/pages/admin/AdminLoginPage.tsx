@@ -114,8 +114,8 @@ const AdminLoginPage: React.FC = () => {
                 fontSize: '12px',
                 color: 'var(--admin-text-secondary)'
             }}>
-                <strong>Demo Credentials:</strong><br />
-                Email: admin@luxe.com<br />
+                <strong>Admin Credentials:</strong><br />
+                Email: admin@hotel.com<br />
                 Password: admin123
             </div>
         </AdminFormCard>
