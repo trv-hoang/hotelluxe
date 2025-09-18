@@ -14,6 +14,37 @@ use Illuminate\Support\Str;
 class HotelController extends Controller
 {
     /**
+     * Transform hotel to original JSON format
+     */
+    private function transformHotelToJsonFormat($hotel)
+    {
+        return [
+            'id' => $hotel->original_id,
+            'authorId' => $hotel->author_id,
+            'date' => $hotel->date,
+            'href' => $hotel->href,
+            'listingCategoryId' => $hotel->listing_category_id,
+            'title' => $hotel->title,
+            'featuredImage' => $hotel->featured_image,
+            'galleryImgs' => $hotel->gallery_imgs,
+            'description' => $hotel->description,
+            'commentCount' => $hotel->comment_count_json,
+            'viewCount' => $hotel->view_count_json,
+            'like' => $hotel->like,
+            'address' => $hotel->address,
+            'reviewStart' => (float) $hotel->review_start,
+            'reviewCount' => $hotel->review_count,
+            'price' => (float) $hotel->price_json,
+            'maxGuests' => $hotel->max_guests_json,
+            'bedrooms' => $hotel->bedrooms,
+            'bathrooms' => $hotel->bathrooms,
+            'saleOff' => $hotel->sale_off_json,
+            'isAds' => (bool) $hotel->is_ads_json,
+            'map' => $hotel->map
+        ];
+    }
+
+    /**
      * Display a listing of hotels with filtering
      */
     public function index(Request $request)
@@ -26,7 +57,7 @@ class HotelController extends Controller
 
         // Filter by category
         if ($request->has('category_id') && $request->category_id) {
-            $query->where('category_id', $request->category_id);
+            $query->where('listing_category_id', $request->category_id);
         }
 
         // Filter by location
@@ -36,10 +67,10 @@ class HotelController extends Controller
 
         // Filter by price range
         if ($request->has('min_price') && $request->min_price) {
-            $query->where('price_per_night', '>=', $request->min_price);
+            $query->where('price_json', '>=', $request->min_price);
         }
         if ($request->has('max_price') && $request->max_price) {
-            $query->where('price_per_night', '<=', $request->max_price);
+            $query->where('price_json', '<=', $request->max_price);
         }
 
         // Search by title or description
@@ -52,22 +83,33 @@ class HotelController extends Controller
         }
 
         // Sort options
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
+        $sortBy = $request->get('sort_by', 'original_id');
+        $sortOrder = $request->get('sort_order', 'asc');
         
         if ($sortBy === 'price') {
-            $query->orderBy('price_per_night', $sortOrder);
+            $query->orderBy('price_json', $sortOrder);
         } else {
-            $query->orderBy('created_at', $sortOrder);
+            $query->orderBy('original_id', $sortOrder);
         }
 
         // Pagination
-        $perPage = $request->get('per_page', 12);
+        $perPage = $request->get('per_page', 30);
         $hotels = $query->paginate($perPage);
+
+        // Transform hotels to JSON format
+        $transformedHotels = $hotels->map(function($hotel) {
+            return $this->transformHotelToJsonFormat($hotel);
+        });
 
         return response()->json([
             'success' => true,
-            'data' => $hotels
+            'data' => $transformedHotels->values()->all(),
+            'pagination' => [
+                'current_page' => $hotels->currentPage(),
+                'total_pages' => $hotels->lastPage(),
+                'per_page' => $hotels->perPage(),
+                'total' => $hotels->total()
+            ]
         ]);
     }
 
@@ -162,11 +204,9 @@ class HotelController extends Controller
      */
     public function show(string $id)
     {
-        $hotel = Hotel::with([
-            'category',
-            'images',
-            'amenities'
-        ])->find($id);
+        // Try to find by original_id first, then by database id
+        $hotel = Hotel::where('original_id', $id)->first() 
+                ?? Hotel::find($id);
 
         if (!$hotel) {
             return response()->json([
@@ -175,9 +215,12 @@ class HotelController extends Controller
             ], 404);
         }
 
+        // Transform to JSON format
+        $transformedHotel = $this->transformHotelToJsonFormat($hotel);
+
         return response()->json([
             'success' => true,
-            'data' => $hotel
+            'data' => $transformedHotel
         ]);
     }
 

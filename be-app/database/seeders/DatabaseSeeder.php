@@ -14,11 +14,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // User::factory(10)->create();
-     // Gọi các seeder khác ở đây
+        // Gọi các seeder khác ở đây
         $this->call([
             AuthorSeeder::class,
-            HomestaySeeder::class,
             UserSeeder::class,
+            // HotelDataSeeder::class, // Uncomment để seed dữ liệu hotel từ JSON
         ]);
         // hoàng
         User::factory()->create([

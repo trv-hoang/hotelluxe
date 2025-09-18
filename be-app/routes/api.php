@@ -180,13 +180,10 @@ Route::get('health', function () {
 });
 
 
-// kha test /stay
+// kha test - guest và author routes
 
-use App\Http\Controllers\Api\HomestayController;
 use App\Http\Controllers\Api\GuestController;
 use App\Http\Controllers\Api\AuthorController;
-Route::get('/stay', [HomestayController::class, 'index']);     // Lấy tất cả
-Route::get('/stay-detail/{id}', [HomestayController::class, 'show']); // Lấy theo ID
 Route::get('/guests', [GuestController::class, 'index']);
 Route::get('/guests/{id}', [GuestController::class, 'show']);
 Route::get('/authors', [AuthorController::class, 'index']);
