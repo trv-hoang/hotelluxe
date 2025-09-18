@@ -178,3 +178,31 @@ Route::get('health', function () {
         'timestamp' => now()->toISOString()
     ]);
 });
+
+
+// kha test /stay
+
+use App\Http\Controllers\Api\HomestayController;
+use App\Http\Controllers\Api\GuestController;
+use App\Http\Controllers\Api\AuthorController;
+Route::get('/stay', [HomestayController::class, 'index']);     // Lấy tất cả
+Route::get('/stay-detail/{id}', [HomestayController::class, 'show']); // Lấy theo ID
+Route::get('/guests', [GuestController::class, 'index']);
+Route::get('/guests/{id}', [GuestController::class, 'show']);
+Route::get('/authors', [AuthorController::class, 'index']);
+Route::get('/authors/{id}', [AuthorController::class, 'show']);
+use App\Http\Controllers\GuestAuthController;
+
+Route::prefix('guest')->group(function () {
+    Route::post('/register', [GuestAuthController::class, 'register']);
+    Route::post('/login', [GuestAuthController::class, 'login']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [GuestAuthController::class, 'logout']);
+        Route::get('/profile', [GuestAuthController::class, 'profile']);
+    });
+});
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/guest/profile', [GuestAuthController::class, 'profile']);
+    Route::put('/guest/profile', [GuestAuthController::class, 'updateProfile']); // FE gọi PUT để update
+});
