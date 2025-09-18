@@ -37,7 +37,7 @@ php artisan db:seed
 
 # thêm theo lựa chọn
 
-php artisan db:seed --class=GuestSeeder
+php artisan db:seed --class=UserSeeder
 php artisan db:seed --class=HomestaySeeder
 php artisan db:seed --class=AuthorSeeder
 
