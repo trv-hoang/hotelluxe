@@ -17,8 +17,8 @@ class DatabaseSeeder extends Seeder
      // Gọi các seeder khác ở đây
         $this->call([
             AuthorSeeder::class,
-            GuestSeeder::class,
             HomestaySeeder::class,
+            UserSeeder::class,
         ]);
         // hoàng
         User::factory()->create([
