@@ -28,6 +28,22 @@ class Hotel extends Model
         'is_ads',
         'is_active',
         'published_at',
+        // Các cột mới từ JSON format
+        'original_id',
+        'author_id',
+        'date',
+        'href',
+        'listing_category_id',
+        'gallery_imgs',
+        'comment_count_json',
+        'view_count_json',
+        'like',
+        'review_start',
+        'price_json',
+        'max_guests_json',
+        'sale_off_json',
+        'is_ads_json',
+        'map',
     ];
 
     protected function casts(): array
@@ -40,6 +56,13 @@ class Hotel extends Model
             'is_ads' => 'boolean',
             'is_active' => 'boolean',
             'published_at' => 'datetime',
+            // Casts cho các cột mới
+            'gallery_imgs' => 'array',
+            'map' => 'array',
+            'like' => 'boolean',
+            'review_start' => 'decimal:1',
+            'price_json' => 'decimal:2',
+            'is_ads_json' => 'boolean',
         ];
     }
 
