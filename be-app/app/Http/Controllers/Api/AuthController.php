@@ -15,52 +15,66 @@ class AuthController extends Controller
     /**
      * Register a new user
      */
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|between:2,100',
-            'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'phone' => 'nullable|string|max:15',
-            'address' => 'nullable|string|max:255',
-            'dob' => 'nullable|date|before:today',
-            'gender' => 'nullable|in:male,female,other',
-            'nickname' => 'nullable|string|max:50',
-        ]);
+ public function register(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|between:2,100',
+        'email' => 'required|string|email|max:100|unique:users',
+        'password' => 'required|string|min:6|confirmed',
+        'phone' => 'nullable|string|max:15',
+        'address' => 'nullable|string|max:255',
+        'dob' => 'nullable|date|before:today',
+        'gender' => 'nullable|in:male,female,other',
+        'nickname' => 'nullable|string|max:50',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation errors',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'dob' => $request->dob,
-            'gender' => $request->gender,
-            'nickname' => $request->nickname,
-            'role' => 'user', // Default role
-        ]);
-
-        $token = JWTAuth::fromUser($user);
-
+    if ($validator->fails()) {
         return response()->json([
-            'success' => true,
-            'message' => 'User registered successfully',
-            'data' => [
-                'user' => $user,
-                'token' => $token,
-                'token_type' => 'bearer',
-                'expires_in' => auth('api')->factory()->getTTL() * 60
-            ]
-        ], 201);
+            'success' => false,
+            'message' => 'Validation errors',
+            'errors' => $validator->errors()
+        ], 422);
     }
+
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'phone' => $request->phone,
+        'address' => $request->address,
+        'dob' => $request->dob,
+        'gender' => $request->gender,
+        'nickname' => $request->nickname,
+        'role' => 'user',
+    ]);
+
+    try {
+        $token = JWTAuth::fromUser($user);
+    } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+        \Log::error('JWTException: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Token creation failed: ' . $e->getMessage()
+        ], 500);
+    } catch (\Exception $e) {
+        \Log::error('General Exception: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Server error during token generation'
+        ], 500);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'User registered successfully',
+        'data' => [
+            'user' => $user,
+            'token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => config('jwt.ttl') * 60 // ✅ Sửa ở đây
+        ]
+    ], 201);
+}
 
     /**
      * Login user
@@ -98,7 +112,7 @@ class AuthController extends Controller
                 'user' => $user,
                 'token' => $token,
                 'token_type' => 'bearer',
-                'expires_in' => auth('api')->factory()->getTTL() * 60
+              'expires_in' => config('jwt.ttl') * 60
             ]
         ]);
     }
@@ -169,7 +183,7 @@ class AuthController extends Controller
             'data' => [
                 'token' => $newToken,
                 'token_type' => 'bearer',
-                'expires_in' => auth('api')->factory()->getTTL() * 60
+              'expires_in' => config('jwt.ttl') * 60
             ]
         ]);
     }
