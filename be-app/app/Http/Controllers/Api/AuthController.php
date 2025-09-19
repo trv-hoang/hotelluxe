@@ -146,7 +146,7 @@ class AuthController extends Controller
             'dob' => 'sometimes|date|before:today',
             'gender' => 'sometimes|in:male,female,other',
             'nickname' => 'sometimes|string|max:50',
-            'profile_pic' => 'sometimes|url',
+            'profile_pic' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048', // Hỗ trợ file upload
         ]);
 
         if ($validator->fails()) {
@@ -157,9 +157,40 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user->update($request->only([
-            'name', 'phone', 'address', 'dob', 'gender', 'nickname', 'profile_pic'
-        ]));
+        // Xử lý upload ảnh profile
+        $updateData = $request->only([
+            'name', 'phone', 'address', 'dob', 'gender', 'nickname'
+        ]);
+
+        if ($request->hasFile('profile_pic')) {
+            try {
+                // Xóa ảnh cũ nếu có
+                if ($user->profile_pic && file_exists(public_path($user->profile_pic))) {
+                    unlink(public_path($user->profile_pic));
+                }
+
+                // Upload ảnh mới
+                $file = $request->file('profile_pic');
+                $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $destinationPath = public_path('uploads/profiles');
+                
+                // Tạo thư mục nếu chưa tồn tại
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0755, true);
+                }
+                
+                $file->move($destinationPath, $fileName);
+                $updateData['profile_pic'] = '/uploads/profiles/' . $fileName;
+                
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to upload profile picture: ' . $e->getMessage()
+                ], 500);
+            }
+        }
+
+        $user->update($updateData);
 
         return response()->json([
             'success' => true,

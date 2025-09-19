@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AuthorSeeder::class,
             UserSeeder::class,
-            // HotelDataSeeder::class, // Uncomment để seed dữ liệu hotel từ JSON
+            HotelDataSeeder::class, // Đã uncomment để seed dữ liệu hotel từ JSON
         ]);
         // hoàng
         User::factory()->create([

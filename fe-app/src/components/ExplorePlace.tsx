@@ -46,7 +46,7 @@ export function ExplorePlace() {
                     </h2>
                     <TrendingUp className='inline-block text-red-500 h-8 w-8' />
                 </div>
-                <Link to='/stay'>
+                <Link to='/hotels'>
                     <Button variant={'link'} className=''>
                         Xem tất cả
                     </Button>

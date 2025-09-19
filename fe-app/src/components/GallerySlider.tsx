@@ -38,7 +38,7 @@ export default function GallerySlider({
     imageClass = '',
     uniqueID = 'gallery-slider',
     galleryClass = 'rounded-xl',
-    href = '/stay-detail',
+    href = '/hotels',
     navigation = true,
     id,
 }: GallerySliderProps) {
@@ -96,6 +96,12 @@ export default function GallerySlider({
                                     alt={`Slide ${index + 1}`}
                                     className={`object-cover w-full h-full ${imageClass}`}
                                     onLoad={() => setLoaded(true)}
+                                    onError={(e) => {
+                                        // Fallback to placeholder image if load fails
+                                        const target =
+                                            e.target as HTMLImageElement;
+                                        target.src = '/placeholder-hotel.jpg';
+                                    }}
                                     loading='lazy'
                                 />
                             </motion.div>

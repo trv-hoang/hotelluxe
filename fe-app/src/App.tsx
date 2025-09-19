@@ -53,11 +53,8 @@ function ClientApp() {
                         path='/forgot-password'
                         element={<ForgotPasswordPage />}
                     />
-                    <Route path='/stay' element={<StayPage />} />
-                    <Route
-                        path='/stay-detail/:id'
-                        element={<StayDetailPage />}
-                    />
+                    <Route path='/hotels' element={<StayPage />} />
+                    <Route path='/hotels/:id' element={<StayDetailPage />} />
                     <Route path='/cart' element={<CartPage />} />
                     <Route path='/error' element={<ErrorPage />} />
                 </Routes>

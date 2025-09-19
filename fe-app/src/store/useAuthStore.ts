@@ -96,16 +96,27 @@ export const useAuthStore = create<AuthState>()(
             },
 
             //  ĐÃ SỬA: Giả sử /auth/profile trả về user trong data.data.user
-            updateProfile: async (data) => {
+            updateProfile: async (data: UpdateProfilePayload) => {
                 set({ isUpdatingProfile: true });
                 try {
                     const token = localStorage.getItem('token');
-                    const response = await api.put('/auth/profile', data, {
+                    const formData = new FormData();
+
+                    // Nếu data.profilePic là File thì append file
+                    if (data.profilePic instanceof File) {
+                        formData.append('profilePic', data.profilePic);
+                    }
+
+                    // append các field khác
+                    if (data.name) formData.append('name', data.name);
+                    if (data.email) formData.append('email', data.email);
+                    // ... các field khác
+
+                    const response = await api.put('/auth/profile', formData, {
                         headers: { Authorization: `Bearer ${token}` },
                     });
 
-                    const apiData = response.data.data; // 👈 đồng bộ cấu trúc
-
+                    const apiData = response.data.data;
                     set({ authUser: apiData.user });
                     toast.success('Cập nhật hồ sơ thành công');
                 } catch (error) {

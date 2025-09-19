@@ -31,11 +31,11 @@ const Footer = () => {
 
             {/* Links column 2 */}
             <div className='flex flex-col gap-4 text-sm text-gray-400 items-center md:items-start'>
-                <p className='text-sm text-amber-50'>Stays</p>
-                <Link to='/stay'>All Stays</Link>
-                <Link to='/stay'>New Stays</Link>
-                <Link to='/stay'>Trend Stays</Link>
-                <Link to='/stay'>Popular Stays</Link>
+                <p className='text-sm text-amber-50'>Hotels</p>
+                <Link to='/hotels'>All hotels</Link>
+                <Link to='/hotels'>New hotels</Link>
+                <Link to='/hotels'>Trend hotels</Link>
+                <Link to='/hotels'>Popular hotels</Link>
             </div>
 
             {/* Links column 3 */}

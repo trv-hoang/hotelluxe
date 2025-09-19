@@ -83,7 +83,7 @@ const StayDetailPage = () => {
     useEffect(() => {
         const fetchStay = async () => {
             try {
-                const res = await api.get(`/stay-detail/${id}`);
+                const res = await api.get(`/hotels/${id}`);
                 setStayData(res.data.data);
                 if (res.data.data.authorId) {
                     const authorRes = await api.get(
