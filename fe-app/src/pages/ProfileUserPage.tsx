@@ -31,25 +31,54 @@ import {
 } from '@/components/ui/tooltip';
 
 const ProfileUserPage = () => {
-    const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
+    const { authUser, isUpdatingProfile, updateProfile, checkAuth } = useAuthStore();
     const [selectedImg, setSelectedImg] = useState<string | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [open, setOpen] = useState(false);
     const [profile, setProfile] = useState<IUser | null>(null);
+
+    // Check auth khi component mount
+    useEffect(() => {
+        checkAuth();
+    }, [checkAuth]);
 
     // Đồng bộ authUser vào state local
     useEffect(() => {
         if (authUser) {
             setProfile(authUser);
+            // Reset selectedImg khi authUser thay đổi để hiển thị ảnh mới từ server
+            setSelectedImg(null);
         }
     }, [authUser]);
 
     const fullName = profile?.name || '';
     const email = profile?.email || '';
 
+    // Debug và helper functions
+    const getImageSrc = () => {
+        const token = localStorage.getItem('token');
+        console.log('Token exists:', !!token);
+        
+        if (selectedImg) {
+            return selectedImg;
+        }
+        
+        if (authUser?.profilePic) {
+            const serverUrl = `http://localhost:8000${authUser.profilePic}`;
+            return serverUrl;
+        }
+            return '/avatar.png';
+    };
+
     // Upload avatar
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        
+        // Lưu file để gửi lên backend
+        setSelectedFile(file);
+        
+        // Tạo preview URL cho hiển thị
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = () => {
@@ -67,8 +96,30 @@ const ProfileUserPage = () => {
     // Submit update
     const handleSubmit = async () => {
         if (!profile) return;
-        await updateProfile(profile);
-        setOpen(false);
+        
+        try {
+            // Tạo payload với file nếu có
+            const updateData = {
+                name: profile.name,
+                nickname: profile.nickname,
+                email: profile.email,
+                dob: profile.dob,
+                phone: profile.phone,
+                address: profile.address,
+                gender: profile.gender,
+                profilePic: selectedFile || undefined, // Gửi File object thay vì base64
+            };
+            
+            await updateProfile(updateData);
+            
+            // Reset form và close dialog
+            setOpen(false);
+            setSelectedFile(null);
+            setSelectedImg(null);
+            
+        } catch (error) {
+            console.error('Update profile failed:', error);
+        }
     };
 
     return (
@@ -115,17 +166,15 @@ const ProfileUserPage = () => {
                                     <div className='space-y-4'>
                                         {/* Upload avatar */}
                                         <div className='flex flex-col items-center gap-3 relative'>
-                                            <img
-                                                src={
-                                                    selectedImg ||
-                                                    profile.profilePic ||
-                                                    'src/assets/user2.avif'
-                                                }
-                                                alt='Profile'
-                                                className='w-24 h-24 rounded-full object-cover border-2 border-gray-300 '
-                                            />
-
-                                            <label
+                            <img
+                                src={getImageSrc()}
+                                alt='Profile'
+                                className='w-24 h-24 rounded-full object-cover border-2 border-gray-300'
+                                onError={(e) => {
+                                    console.log('Dialog image error, fallback to default');
+                                    (e.target as HTMLImageElement).src = '/avatar.png';
+                                }}
+                            />                                            <label
                                                 htmlFor='avatar-upload-main'
                                                 className={`absolute bottom-2 right-[35%] flex items-center justify-center w-8 h-8 rounded-full bg-green-600 text-white cursor-pointer transition hover:scale-105 ${
                                                     isUpdatingProfile
@@ -241,13 +290,14 @@ const ProfileUserPage = () => {
                     <div className='flex flex-col items-center gap-4'>
                         <div className='relative'>
                             <img
-                                src={
-                                    selectedImg ||
-                                    authUser?.profilePic ||
-                                    'src/assets/user2.avif'
-                                }
+                                src={getImageSrc()}
                                 alt='Profile'
                                 className='w-32 h-32 rounded-full object-cover border-4 border-white shadow-md'
+                                onLoad={() => console.log('Image loaded successfully')}
+                                onError={(e) => {
+                                    console.error('Failed to load image:', (e.target as HTMLImageElement).src);
+                                    (e.target as HTMLImageElement).src = '/avatar.png';
+                                }}
                             />
                         </div>
                         <p className='text-sm text-gray-500'>
