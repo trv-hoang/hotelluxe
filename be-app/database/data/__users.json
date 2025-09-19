@@ -188,10 +188,10 @@
     },
     {
         "id": 12,
-        "name": "Admin Example",
-        "email": "admin@example.com",
+        "name": "Admin Hotel",
+        "email": "admin@hotel.com",
         "email_verified_at": null,
-        "password": "123456",
+        "password": "admin123",
         "role": "admin",
         "profile_pic": "https://i.pravatar.cc/150?u=admin@example.com",
         "nickname": "Admin",

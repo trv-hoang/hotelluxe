@@ -47,12 +47,12 @@ import { useCartStore } from '@/store/useCartStore';
 import { formatPrice } from '@/lib/utils';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/api/axios';
-
+import { motion } from 'framer-motion';
 const StayDetailPage = () => {
     const { id } = useParams();
     console.log('🏨 StayDetailPage rendered with ID:', id);
     console.log('📍 Current location:', window.location.href);
-    
+
     const [isOpenModalAmenities, setIsOpenModalAmenities] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
@@ -86,7 +86,7 @@ const StayDetailPage = () => {
     useEffect(() => {
         const fetchStay = async () => {
             console.log('🏨 Fetching stay with ID:', id);
-            
+
             try {
                 const res = await api.get(`/hotels/${id}`);
                 console.log('✅ Stay API Response:', res.data);
@@ -101,12 +101,14 @@ const StayDetailPage = () => {
             } catch (error) {
                 console.error('❌ Lỗi khi fetch stay:', error);
                 console.log('🔄 Using fallback stay data for ID:', id);
-                
+
                 // Fallback to static data
-                import('@/data/__homeStay.json').then(module => {
+                import('@/data/__homeStay.json').then((module) => {
                     const homeStayData = module.default;
-                    const fallbackStay = homeStayData.find(hotel => hotel.id.toString() === id?.toString());
-                    
+                    const fallbackStay = homeStayData.find(
+                        (hotel) => hotel.id.toString() === id?.toString(),
+                    );
+
                     if (fallbackStay) {
                         const mappedStay: ExtendedStayDataType = {
                             id: fallbackStay.id,
@@ -115,15 +117,21 @@ const StayDetailPage = () => {
                             href: `/hotels/${fallbackStay.id}`,
                             title: fallbackStay.title,
                             featuredImage: fallbackStay.featuredImage,
-                            galleryImgs: fallbackStay.galleryImgs || [fallbackStay.featuredImage],
-                            description: fallbackStay.description || getRandomDescription(),
+                            galleryImgs: fallbackStay.galleryImgs || [
+                                fallbackStay.featuredImage,
+                            ],
+                            description:
+                                fallbackStay.description ||
+                                getRandomDescription(),
                             price: fallbackStay.price || 500000,
-                            address: fallbackStay.address || 'Địa chỉ không xác định',
+                            address:
+                                fallbackStay.address ||
+                                'Địa chỉ không xác định',
                             category: {
                                 id: 1,
                                 name: 'Khách sạn',
                                 href: '/categories/hotel',
-                                color: 'blue'
+                                color: 'blue',
                             },
                             reviewStart: fallbackStay.reviewStart || 4.5,
                             reviewCount: fallbackStay.reviewCount || 10,
@@ -135,7 +143,10 @@ const StayDetailPage = () => {
                             bathrooms: fallbackStay.bathrooms || 1,
                             saleOff: fallbackStay.saleOff || null,
                             isAds: fallbackStay.isAds || false,
-                            map: fallbackStay.map || { lat: 21.0285, lng: 105.8542 },
+                            map: fallbackStay.map || {
+                                lat: 21.0285,
+                                lng: 105.8542,
+                            },
                             // Extended fields
                             displayName: `Host ${fallbackStay.id}`,
                             avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg',
@@ -143,12 +154,16 @@ const StayDetailPage = () => {
                             responseRate: '95%',
                             checkInTime: '15:00',
                             checkOutTime: '11:00',
-                            cancellationPolicy: 'Free cancellation before 24 hours',
-                            specialNotes: ['Không hút thuốc', 'Không nuôi thú cưng'],
-                            amenities: 'Wifi, TV, Điều hòa'
+                            cancellationPolicy:
+                                'Free cancellation before 24 hours',
+                            specialNotes: [
+                                'Không hút thuốc',
+                                'Không nuôi thú cưng',
+                            ],
+                            amenities: 'Wifi, TV, Điều hòa',
                         };
                         setStayData(mappedStay);
-                        
+
                         // Set fallback author
                         setAuthor({
                             id: fallbackStay.authorId || 1,
@@ -161,7 +176,7 @@ const StayDetailPage = () => {
                             count: 10,
                             href: '#',
                             jobName: 'Hotel Manager',
-                            desc: 'Experienced hospitality professional'
+                            desc: 'Experienced hospitality professional',
                         });
                         console.log('✅ Fallback stay data set:', mappedStay);
                     }
@@ -178,9 +193,17 @@ const StayDetailPage = () => {
     if (loading) {
         return (
             <div className='flex items-center justify-center h-screen text-lg'>
-                <div className='text-center'>
+                <div className='text-center flex flex-col items-center'>
                     <p>Đang tải dữ liệu...</p>
-                    <p className='text-sm text-gray-500 mt-2'>ID: {id}</p>
+                    <motion.div
+                        className='w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full'
+                        animate={{ rotate: 360 }}
+                        transition={{
+                            repeat: Infinity,
+                            duration: 1,
+                            ease: 'linear',
+                        }}
+                    />
                 </div>
             </div>
         );
@@ -191,8 +214,12 @@ const StayDetailPage = () => {
             <div className='flex items-center justify-center h-screen text-lg text-red-500'>
                 <div className='text-center'>
                     <p>Không tìm thấy chỗ ở!</p>
-                    <p className='text-sm text-gray-500 mt-2'>ID được tìm: {id}</p>
-                    <p className='text-xs text-gray-400 mt-1'>URL: {window.location.href}</p>
+                    <p className='text-sm text-gray-500 mt-2'>
+                        ID được tìm: {id}
+                    </p>
+                    <p className='text-xs text-gray-400 mt-1'>
+                        URL: {window.location.href}
+                    </p>
                 </div>
             </div>
         );
