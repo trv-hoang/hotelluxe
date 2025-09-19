@@ -67,6 +67,9 @@ Hệ thống quản lý khách sạn toàn diện với React frontend và Larav
 # Run this
 cd be-app
 composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate:fresh --seed
 php artisan serve
 ```
 
@@ -85,17 +88,17 @@ npm run dev
 
 ## 🔑 Default Login Credentials
 
-### 👨‍💼 Admin Account
-- **Email**: `admin@hotel.com`
-- **Password**: `admin123`
-- **Role**: Administrator
-- **Access**: Full system management
-
 ### 👤 User Account
 - **Email**: `user@example.com`
 - **Password**: `123456`
 - **Role**: Customer
 - **Access**: Hotel booking & profile management
+
+### 👨‍💼 Admin Account
+- **Email**: `admin@hotel.com`
+- **Password**: `admin123`
+- **Role**: Administrator
+- **Access**: Full system management
 
 > ⚠️ **Security Note**: Đổi mật khẩu mặc định trước khi deploy production!
 
