@@ -1,186 +1,290 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Eye, DollarSign, Hotel, CheckCircle, Clock, XCircle, Building2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Edit, Trash2, Eye, Plus, Calendar, DollarSign, Hotel, CheckCircle, Clock, XCircle } from 'lucide-react';
 import AdminButton from '../../components/admin/AdminButton';
 import AdminModal from '../../components/admin/AdminModal';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
 import AdminStatCard from '../../components/admin/AdminStatCard';
-import AdminAvatarDisplay from '../../components/admin/AdminAvatarDisplay';
+import AdminLoadingSpinner from '../../components/admin/AdminLoadingSpinner';
+import AdminDataTable from '../../components/admin/AdminDataTable';
+import { formatCurrency, formatDate, generateBookingNumber, calculateNights } from '../../utils/calculatorPrice';
+import homeStayData from '../../data/__homeStay.json';
+import usersData from '../../data/jsons/__users.json';
 import { useNotifications } from '../../hooks/useNotifications';
-import { adminApi, type AdminBooking } from '../../api/admin';
 
-// Status Badge Component
-const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-    const getStatusConfig = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'confirmed':
-            case 'completed':
-                return {
-                    color: 'bg-green-100 text-green-800',
-                    icon: CheckCircle,
-                    label: 'Đã xác nhận'
-                };
-            case 'pending':
-                return {
-                    color: 'bg-yellow-100 text-yellow-800',
-                    icon: Clock,
-                    label: 'Chờ xử lý'
-                };
-            case 'cancelled':
-                return {
-                    color: 'bg-red-100 text-red-800',
-                    icon: XCircle,
-                    label: 'Đã hủy'
-                };
-            default:
-                return {
-                    color: 'bg-gray-100 text-gray-800',
-                    icon: Clock,
-                    label: status
-                };
-        }
-    };
+// Booking interface
+interface BookingData {
+    id: number;
+    bookingNumber: string;
+    hotelId: number;
+    customerId: number;
+    customerName: string;
+    customerEmail: string;
+    customerPhone: string;
+    checkIn: string;
+    checkOut: string;
+    nights: number;
+    paymentStatus: 'paid' | 'pending' | 'failed';
+    totalAmount: number;
+    pricePerNight: number;
+    createdAt: string;
+    updatedAt: string;
+    [key: string]: unknown;
+}
 
-    const config = getStatusConfig(status);
-    const Icon = config.icon;
-
-    return (
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
-            <Icon className="w-3 h-3" />
-            {config.label}
-        </span>
-    );
+// Generate mock bookings từ JSON data
+const generateMockBookings = (): BookingData[] => {
+    const paymentStatuses: BookingData['paymentStatus'][] = ['paid', 'pending', 'failed'];
+    
+    return homeStayData.slice(0, 20).map((hotel, idx) => {
+        const customer = usersData[idx % usersData.length];
+        const checkInDate = new Date();
+        checkInDate.setDate(checkInDate.getDate() + Math.floor(Math.random() * 30));
+        const checkOutDate = new Date(checkInDate);
+        const nights = Math.floor(Math.random() * 7) + 1;
+        checkOutDate.setDate(checkOutDate.getDate() + nights);
+        
+        const pricePerNight = typeof hotel.price === 'string' 
+            ? parseFloat((hotel.price as string).replace(/[^\d]/g, '')) || 500000
+            : (hotel.price as number) || 500000;
+        
+        return {
+            id: idx + 1,
+            bookingNumber: generateBookingNumber(idx),
+            hotelId: hotel.id,
+            customerId: customer.id,
+            customerName: customer.name,
+            customerEmail: customer.email,
+            customerPhone: customer.phone || '0912345678',
+            checkIn: checkInDate.toISOString().split('T')[0],
+            checkOut: checkOutDate.toISOString().split('T')[0],
+            nights,
+            paymentStatus: paymentStatuses[Math.floor(Math.random() * paymentStatuses.length)],
+            totalAmount: pricePerNight * nights,
+            pricePerNight,
+            createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+    });
 };
 
-const BookingsPageFixed: React.FC = () => {
+const BookingsPage: React.FC = () => {
+    const [bookings, setBookings] = useState<BookingData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
+    const [showModal, setShowModal] = useState(false);
+    const [modalType, setModalType] = useState<'view' | 'edit' | 'create' | 'delete'>('view');
+    const [formData, setFormData] = useState<Partial<BookingData>>({});
     const { addNotification } = useNotifications();
-    const [bookings, setBookings] = useState<AdminBooking[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentBooking, setCurrentBooking] = useState<AdminBooking | null>(null);
-    const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filterStatus, setFilterStatus] = useState('all');
 
-    // Fetch bookings from API
+    // Load bookings data
     useEffect(() => {
-        const fetchBookings = async () => {
+        const loadData = async () => {
             try {
-                setIsLoading(true);
-                const response = await adminApi.getBookings();
-                setBookings(response.data || []);
+                setLoading(true);
+                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+                const mockBookings = generateMockBookings();
+                setBookings(mockBookings);
             } catch (error) {
-                console.error('Failed to fetch bookings:', error);
+                console.error('Error loading bookings:', error);
                 addNotification({
                     type: 'error',
-                    title: 'Lỗi tải dữ liệu',
-                    message: 'Không thể tải danh sách đặt phòng'
+                    title: 'Lỗi',
+                    message: 'Failed to load bookings data'
                 });
             } finally {
-                setIsLoading(false);
+                setLoading(false);
             }
         };
 
-        fetchBookings();
+        loadData();
     }, [addNotification]);
 
-    // Statistics calculation
+    // Statistics calculations
     const statistics = useMemo(() => {
         const totalBookings = bookings.length;
-        const confirmedBookings = bookings.filter(booking => 
-            booking.status.toLowerCase() === 'confirmed' || booking.status.toLowerCase() === 'completed'
-        ).length;
-        const pendingBookings = bookings.filter(booking => 
-            booking.status.toLowerCase() === 'pending'
-        ).length;
-        const cancelledBookings = bookings.filter(booking => 
-            booking.status.toLowerCase() === 'cancelled'
-        ).length;
         const totalRevenue = bookings
-            .filter(booking => booking.status.toLowerCase() === 'confirmed' || booking.status.toLowerCase() === 'completed')
-            .reduce((sum, booking) => sum + parseFloat(booking.total_amount || '0'), 0);
+            .filter(b => b.paymentStatus === 'paid')
+            .reduce((sum, b) => sum + b.totalAmount, 0);
+        const paidBookings = bookings.filter(b => b.paymentStatus === 'paid').length;
+        const pendingBookings = bookings.filter(b => b.paymentStatus === 'pending').length;
 
         return {
             totalBookings,
-            confirmedBookings,
-            pendingBookings,
-            cancelledBookings,
-            totalRevenue
+            totalRevenue,
+            paidBookings,
+            pendingBookings
         };
     }, [bookings]);
 
-    // Filter bookings based on search and status
-    const filteredBookings = useMemo(() => {
-        return bookings.filter(booking => {
-            const matchesSearch = 
-                booking.booking_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                booking.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                booking.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                booking.hotel.title.toLowerCase().includes(searchTerm.toLowerCase());
-            
-            const matchesStatus = filterStatus === 'all' || booking.status.toLowerCase() === filterStatus.toLowerCase();
-            
-            return matchesSearch && matchesStatus;
+    // AdminDataTable handles filtering internally
+
+    // Get hotel info
+    const getHotelInfo = useCallback((hotelId: number) => {
+        return homeStayData.find(hotel => hotel.id === hotelId);
+    }, []);
+
+    // Handle create booking
+    const handleCreate = useCallback(() => {
+        setFormData({
+            customerName: '',
+            customerEmail: '',
+            customerPhone: '',
+            checkIn: '',
+            checkOut: '',
+            paymentStatus: 'pending',
+            hotelId: homeStayData[0]?.id || 1
         });
-    }, [bookings, searchTerm, filterStatus]);
+        setModalType('create');
+        setShowModal(true);
+    }, []);
 
-    // Modal handlers
-    const handleViewBooking = (booking: AdminBooking) => {
-        setCurrentBooking(booking);
-        setModalMode('view');
-        setIsModalOpen(true);
-    };
+    // Handle edit booking
+    const handleEdit = useCallback((booking: BookingData) => {
+        setSelectedBooking(booking);
+        setFormData(booking);
+        setModalType('edit');
+        setShowModal(true);
+    }, []);
 
+    // Handle view booking
+    const handleView = useCallback((booking: BookingData) => {
+        setSelectedBooking(booking);
+        setModalType('view');
+        setShowModal(true);
+    }, []);
 
+    // Handle delete booking
+    const handleDelete = useCallback((booking: BookingData) => {
+        setSelectedBooking(booking);
+        setModalType('delete');
+        setShowModal(true);
+    }, []);
 
-    const handleUpdateStatus = async (booking: AdminBooking, newStatus: string) => {
+    // Handle form submit
+    const handleSubmit = useCallback(async () => {
         try {
-            await adminApi.updateBookingStatus(booking.id, newStatus);
-            setBookings(bookings.map(b => 
-                b.id === booking.id 
-                    ? { ...b, status: newStatus }
-                    : b
-            ));
-            addNotification({
-                type: 'success',
-                title: 'Cập nhật thành công',
-                message: `Đã cập nhật trạng thái đặt phòng ${booking.booking_number}`
-            });
+            if (modalType === 'create') {
+                const newBooking: BookingData = {
+                    id: Math.max(...bookings.map(b => b.id)) + 1,
+                    bookingNumber: generateBookingNumber(bookings.length),
+                    hotelId: formData.hotelId!,
+                    customerId: 1, // Default customer
+                    customerName: formData.customerName!,
+                    customerEmail: formData.customerEmail!,
+                    customerPhone: formData.customerPhone!,
+                    checkIn: formData.checkIn!,
+                    checkOut: formData.checkOut!,
+                    nights: calculateNights(formData.checkIn!, formData.checkOut!),
+                    paymentStatus: formData.paymentStatus!,
+                    totalAmount: 0, // Will be calculated
+                    pricePerNight: 500000, // Default price
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                // Calculate total amount
+                const hotel = getHotelInfo(newBooking.hotelId);
+                if (hotel) {
+                    const pricePerNight = typeof hotel.price === 'string' 
+                        ? parseFloat((hotel.price as string).replace(/[^\d]/g, '')) || 500000
+                        : (hotel.price as number) || 500000;
+                    newBooking.pricePerNight = pricePerNight;
+                    newBooking.totalAmount = pricePerNight * newBooking.nights;
+                }
+
+                setBookings(prev => [...prev, newBooking]);
+                addNotification({
+                    type: 'success',
+                    title: 'Thành công',
+                    message: `Đặt phòng ${newBooking.bookingNumber} đã được tạo thành công`
+                });
+            } else if (modalType === 'edit' && selectedBooking) {
+                const updatedBooking = {
+                    ...selectedBooking,
+                    ...formData,
+                    nights: calculateNights(formData.checkIn!, formData.checkOut!),
+                    updatedAt: new Date().toISOString()
+                };
+
+                // Recalculate total amount
+                const hotel = getHotelInfo(updatedBooking.hotelId);
+                if (hotel) {
+                    const pricePerNight = typeof hotel.price === 'string' 
+                        ? parseFloat((hotel.price as string).replace(/[^\d]/g, '')) || 500000
+                        : (hotel.price as number) || 500000;
+                    updatedBooking.pricePerNight = pricePerNight;
+                    updatedBooking.totalAmount = pricePerNight * updatedBooking.nights;
+                }
+
+                setBookings(prev => prev.map(b => 
+                    b.id === selectedBooking.id ? updatedBooking : b
+                ));
+                addNotification({
+                    type: 'success',
+                    title: 'Thành công',
+                    message: `Đặt phòng ${selectedBooking.bookingNumber} đã được cập nhật`
+                });
+            } else if (modalType === 'delete' && selectedBooking) {
+                setBookings(prev => prev.filter(b => b.id !== selectedBooking.id));
+                addNotification({
+                    type: 'success',
+                    title: 'Thành công',
+                    message: `Đặt phòng ${selectedBooking.bookingNumber} đã được xóa`
+                });
+            }
+
+            setShowModal(false);
+            setSelectedBooking(null);
+            setFormData({});
         } catch (error) {
-            console.error('Failed to update booking status:', error);
+            console.error('Error handling booking operation:', error);
             addNotification({
                 type: 'error',
-                title: 'Lỗi cập nhật',
-                message: 'Không thể cập nhật trạng thái đặt phòng'
+                title: 'Lỗi',
+                message: 'Có lỗi xảy ra khi xử lý đặt phòng'
             });
         }
+    }, [modalType, formData, selectedBooking, bookings, addNotification, getHotelInfo]);
+
+    // Payment status badge
+    const PaymentStatusBadge = ({ status }: { status: BookingData['paymentStatus'] }) => {
+        const styles = {
+            paid: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle },
+            pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock },
+            failed: { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle }
+        };
+        
+        const style = styles[status];
+        const Icon = style.icon;
+        
+        return (
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}`}>
+                <Icon className="w-3 h-3 mr-1" />
+                {status === 'paid' ? 'Đã thanh toán' : status === 'pending' ? 'Chờ thanh toán' : 'Thất bại'}
+            </span>
+        );
     };
 
-    if (isLoading) {
-        return (
-            <div className="p-6">
-                <div className="animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
-                        {[1,2,3,4,5].map(i => (
-                            <div key={i} className="bg-gray-200 h-24 rounded"></div>
-                        ))}
-                    </div>
-                    <div className="bg-gray-200 h-96 rounded"></div>
-                </div>
-            </div>
-        );
+    if (loading) {
+        return <AdminLoadingSpinner text="Đang tải dữ liệu đặt phòng..." />;
     }
 
     return (
-        <div className="p-6 space-y-6">
-            {/* Page Header */}
-            <AdminPageHeader 
-                title="Quản lý đặt phòng"
-                description="Quản lý tất cả đặt phòng và trạng thái thanh toán"
+        <div className="space-y-6">
+            {/* Header */}
+            <AdminPageHeader
+                title="Quản lý đặt phòng khách sạn"
+                description="Quản lý tất cả đặt phòng khách sạn"
+                actionButton={{
+                    label: "Tạo đặt phòng mới",
+                    onClick: handleCreate,
+                    icon: Plus,
+                    className: "bg-blue-600 hover:bg-blue-700"
+                }}
             />
 
             {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <AdminStatCard
                     title="Tổng đặt phòng"
                     value={statistics.totalBookings}
@@ -189,446 +293,409 @@ const BookingsPageFixed: React.FC = () => {
                     iconBgColor="bg-blue-100"
                 />
                 <AdminStatCard
-                    title="Đã xác nhận"
-                    value={statistics.confirmedBookings}
+                    title="Tổng doanh thu"
+                    value={formatCurrency(statistics.totalRevenue)}
+                    icon={DollarSign}
+                    iconColor="text-green-600"
+                    iconBgColor="bg-green-100"
+                />
+                <AdminStatCard
+                    title="Đã thanh toán"
+                    value={statistics.paidBookings}
                     icon={CheckCircle}
                     iconColor="text-green-600"
                     iconBgColor="bg-green-100"
                 />
                 <AdminStatCard
-                    title="Chờ xử lý"
+                    title="Chờ thanh toán"
                     value={statistics.pendingBookings}
                     icon={Clock}
                     iconColor="text-yellow-600"
                     iconBgColor="bg-yellow-100"
                 />
-                <AdminStatCard
-                    title="Đã hủy"
-                    value={statistics.cancelledBookings}
-                    icon={XCircle}
-                    iconColor="text-red-600"
-                    iconBgColor="bg-red-100"
-                />
-                <AdminStatCard
-                    title="Tổng doanh thu"
-                    value={`${new Intl.NumberFormat('vi-VN').format(statistics.totalRevenue)} VND`}
-                    icon={DollarSign}
-                    iconColor="text-green-600"
-                    iconBgColor="bg-green-100"
-                />
             </div>
 
             {/* Bookings Table */}
-            <div className="bg-white rounded-lg shadow">
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-medium text-gray-900">
-                            Danh sách đặt phòng
-                        </h3>
-                    </div>
+            <AdminDataTable
+                data={bookings}
+                columns={[
+                    {
+                        key: 'bookingNumber',
+                        title: 'Mã đặt phòng',
+                        width: '120px'
+                    },
+                    {
+                        key: 'customerName',
+                        title: 'Khách hàng',
+                        render: (_, item: BookingData) => (
+                            <div>
+                                <div className="text-sm font-medium text-gray-900">{item.customerName}</div>
+                                <div className="text-sm text-gray-500">{item.customerEmail}</div>
+                            </div>
+                        ),
+                        width: '200px'
+                    },
+                    {
+                        key: 'hotelId',
+                        title: 'Khách sạn',
+                        render: (_, item: BookingData) => {
+                            const hotel = getHotelInfo(item.hotelId);
+                            return (
+                                <div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                        {hotel?.title || 'Unknown Hotel'}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                        {formatCurrency(item.pricePerNight)}/đêm
+                                    </div>
+                                </div>
+                            );
+                        },
+                        width: '200px'
+                    },
+                    {
+                        key: 'checkIn',
+                        title: 'Ngày check-in/out',
+                        render: (_, item: BookingData) => (
+                            <div className="flex items-center text-sm">
+                                <Calendar className="w-4 h-4 mr-1" />
+                                <div>
+                                    <div>{formatDate(item.checkIn)}</div>
+                                    <div className="text-gray-500">{formatDate(item.checkOut)}</div>
+                                </div>
+                            </div>
+                        ),
+                        width: '160px'
+                    },
+                    {
+                        key: 'nights',
+                        title: 'Số đêm',
+                        width: '80px'
+                    },
+                    {
+                        key: 'paymentStatus',
+                        title: 'Trạng thái',
+                        render: (value) => (
+                            <PaymentStatusBadge status={value as BookingData['paymentStatus']} />
+                        ),
+                        width: '120px'
+                    },
+                    {
+                        key: 'totalAmount',
+                        title: 'Tổng tiền',
+                        render: (value) => (
+                            <div className="text-sm font-medium text-gray-900">
+                                {formatCurrency(Number(value))}
+                            </div>
+                        ),
+                        width: '120px'
+                    },
+                    {
+                        key: 'actions',
+                        title: 'Thao tác',
+                        render: (_, item: BookingData) => (
+                            <div className="flex space-x-2">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleView(item);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-800"
+                                    title="Xem chi tiết"
+                                >
+                                    <Eye className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEdit(item);
+                                    }}
+                                    className="text-green-600 hover:text-green-800"
+                                    title="Chỉnh sửa"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(item);
+                                    }}
+                                    className="text-red-600 hover:text-red-800"
+                                    title="Xóa"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ),
+                        width: '100px'
+                    }
+                ]}
+                searchKey="customerName"
+                searchPlaceholder="Tìm kiếm theo tên khách hàng, email, mã đặt phòng..."
+                filterOptions={{
+                    key: 'paymentStatus',
+                    label: 'trạng thái',
+                    options: [
+                        { value: 'paid', label: 'Đã thanh toán' },
+                        { value: 'pending', label: 'Chờ thanh toán' },
+                        { value: 'failed', label: 'Thất bại' }
+                    ]
+                }}
+                loading={loading}
+                emptyMessage="Không có đặt phòng nào"
+            />
 
-                    {/* Search and Filter */}
-                    <div className="flex gap-4 mb-4">
-                        <div className="flex-1">
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm theo mã đặt phòng, tên khách hàng, email hoặc khách sạn..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="admin-input"
-                                style={{
-                                    width: '100%',
-                                    padding: '0.75rem',
-                                    borderRadius: '6px',
-                                    border: '1px solid var(--admin-border-primary)',
-                                    background: 'var(--admin-bg-primary)',
-                                    color: 'var(--admin-text-primary)',
-                                    fontSize: '14px',
-                                    fontFamily: 'inherit',
-                                    outline: 'none',
-                                    transition: 'all 0.2s ease'
-                                }}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = 'var(--admin-sidebar-active)';
-                                    e.target.style.boxShadow = '0 0 0 2px rgba(14, 165, 233, 0.1)';
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = 'var(--admin-border-primary)';
-                                    e.target.style.boxShadow = 'none';
-                                }}
-                            />
+            {/* Modal */}
+            {showModal && (
+                <AdminModal
+                    isOpen={showModal}
+                    onClose={() => {
+                        setShowModal(false);
+                        setSelectedBooking(null);
+                        setFormData({});
+                    }}
+                    title={
+                        modalType === 'create' ? 'Tạo đặt phòng mới' :
+                        modalType === 'edit' ? 'Chỉnh sửa đặt phòng' :
+                        modalType === 'view' ? 'Chi tiết đặt phòng' :
+                        'Xác nhận xóa'
+                    }
+                >
+                    {modalType === 'delete' ? (
+                        <div className="space-y-4">
+                            <p className="text-gray-600 dark:text-gray-300">
+                                Bạn có chắc chắn muốn xóa đặt phòng này không? Hành động này không thể hoàn tác.
+                            </p>
+                            <div className="flex justify-end space-x-3">
+                                <AdminButton
+                                    variant="secondary"
+                                    onClick={() => setShowModal(false)}
+                                >
+                                    Hủy
+                                </AdminButton>
+                                <AdminButton
+                                    variant="danger"
+                                    onClick={handleSubmit}
+                                >
+                                    Xóa
+                                </AdminButton>
+                            </div>
                         </div>
-                        <div className="min-w-[200px]">
-                            <select
-                                value={filterStatus}
-                                onChange={(e) => setFilterStatus(e.target.value)}
-                                className="admin-select"
-                                style={{
-                                    width: '100%',
-                                    padding: '0.75rem',
-                                    borderRadius: '6px',
-                                    border: '1px solid var(--admin-border-primary)',
-                                    background: 'var(--admin-bg-primary)',
-                                    color: 'var(--admin-text-primary)',
-                                    fontSize: '14px',
-                                    fontFamily: 'inherit',
-                                    outline: 'none',
-                                    transition: 'all 0.2s ease',
-                                    cursor: 'pointer',
-                                    appearance: 'none',
-                                    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundPosition: 'right 12px center',
-                                    backgroundSize: '16px',
-                                    paddingRight: '40px'
-                                }}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = 'var(--admin-sidebar-active)';
-                                    e.target.style.boxShadow = '0 0 0 2px rgba(14, 165, 233, 0.1)';
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = 'var(--admin-border-primary)';
-                                    e.target.style.boxShadow = 'none';
-                                }}
-                            >
-                                <option value="all">Tất cả trạng thái</option>
-                                <option value="confirmed">Đã xác nhận</option>
-                                <option value="pending">Chờ xử lý</option>
-                                <option value="cancelled">Đã hủy</option>
-                                <option value="completed">Hoàn thành</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    {/* Custom Table */}
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ) : modalType === 'view' && selectedBooking ? (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Mã đặt phòng
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {selectedBooking.bookingNumber}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Khách hàng
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {selectedBooking.customerName}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Email
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {selectedBooking.customerEmail}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Số điện thoại
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {selectedBooking.customerPhone}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Khách sạn
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {getHotelInfo(selectedBooking.hotelId)?.title || 'Unknown Hotel'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Trạng thái thanh toán
+                                    </label>
+                                    <div className="mt-1">
+                                        <PaymentStatusBadge status={selectedBooking.paymentStatus} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Check-in
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {formatDate(selectedBooking.checkIn)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Check-out
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {formatDate(selectedBooking.checkOut)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Số đêm
+                                    </label>
+                                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                        {selectedBooking.nights} đêm
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Tổng tiền
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Trạng thái
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Ngày tạo
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Thao tác
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {filteredBookings.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                                            Không có dữ liệu đặt phòng
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredBookings.map((booking) => (
-                                        <tr key={booking.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-blue-600">
-                                                    #{booking.booking_number}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <AdminAvatarDisplay 
-                                                        src={booking.user.profile_pic || undefined} 
-                                                        alt={booking.user.name}
-                                                        size="small"
-                                                    />
-                                                    <div className="ml-3">
-                                                        <div className="text-sm font-medium text-gray-900">
-                                                            {booking.user.name}
-                                                        </div>
-                                                        <div className="text-sm text-gray-500">
-                                                            {booking.user.email}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <Building2 className="w-4 h-4 text-gray-400 mr-2" />
-                                                    <div>
-                                                        <div className="text-sm font-medium text-gray-900">
-                                                            {booking.hotel.title}
-                                                        </div>
-                                                        <div className="text-sm text-gray-500">
-                                                            {new Intl.NumberFormat('vi-VN').format(parseFloat(booking.hotel.price_per_night))} VND/đêm
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-green-600">
-                                                    {new Intl.NumberFormat('vi-VN').format(parseFloat(booking.total_amount))} VND
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <StatusBadge status={booking.status} />
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {new Date(booking.created_at).toLocaleDateString('vi-VN')}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex space-x-2">
-                                                    <AdminButton
-                                                        variant="secondary"
-                                                        size="small"
-                                                        onClick={() => handleViewBooking(booking)}
-                                                        title="Xem chi tiết đặt phòng"
-                                                    >
-                                                        <Eye className="w-4 h-4" />
-                                                    </AdminButton>
-                                                    {booking.status.toLowerCase() === 'pending' && (
-                                                        <>
-                                                            <AdminButton
-                                                                variant="success"
-                                                                size="small"
-                                                                onClick={() => handleUpdateStatus(booking, 'confirmed')}
-                                                                title="Xác nhận đặt phòng"
-                                                            >
-                                                                <CheckCircle className="w-4 h-4" />
-                                                            </AdminButton>
-                                                            <AdminButton
-                                                                variant="danger"
-                                                                size="small"
-                                                                onClick={() => handleUpdateStatus(booking, 'cancelled')}
-                                                                title="Hủy đặt phòng"
-                                                            >
-                                                                <XCircle className="w-4 h-4" />
-                                                            </AdminButton>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    </label>
+                                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                                        {formatCurrency(selectedBooking.totalAmount)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Tên khách hàng *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.customerName || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Email *
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={formData.customerEmail || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Số điện thoại
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={formData.customerPhone || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Khách sạn *
+                                    </label>
+                                    <select
+                                        value={formData.hotelId || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, hotelId: parseInt(e.target.value) }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                    >
+                                        <option value="">Chọn khách sạn</option>
+                                        {homeStayData.slice(0, 10).map(hotel => (
+                                            <option key={hotel.id} value={hotel.id}>
+                                                {hotel.title}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Ngày check-in *
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={formData.checkIn || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, checkIn: e.target.value }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Ngày check-out *
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={formData.checkOut || ''}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, checkOut: e.target.value }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Trạng thái thanh toán
+                                    </label>
+                                    <select
+                                        value={formData.paymentStatus || 'pending'}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, paymentStatus: e.target.value as BookingData['paymentStatus'] }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md 
+                                                 bg-white text-gray-900 dark:text-white
+                                                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        <option value="pending">Chờ thanh toán</option>
+                                        <option value="paid">Đã thanh toán</option>
+                                        <option value="failed">Thất bại</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                    {/* Results count */}
-                    {filteredBookings.length > 0 && (
-                        <div className="px-6 py-3 bg-gray-50 border-t text-sm text-gray-600 mt-4">
-                            Hiển thị {filteredBookings.length} / {bookings.length} kết quả
+                            <div className="flex justify-end space-x-3 pt-4">
+                                <AdminButton
+                                    variant="secondary"
+                                    onClick={() => setShowModal(false)}
+                                >
+                                    Hủy
+                                </AdminButton>
+                                <AdminButton
+                                    onClick={handleSubmit}
+                                    disabled={!formData.customerName || !formData.customerEmail || !formData.checkIn || !formData.checkOut || !formData.hotelId}
+                                >
+                                    {modalType === 'create' ? 'Tạo đặt phòng' : 'Cập nhật'}
+                                </AdminButton>
+                            </div>
                         </div>
                     )}
-                </div>
-            </div>
-
-            {/* Booking Modal */}
-            <AdminModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                title={
-                    modalMode === 'view' ? 'Chi tiết đặt phòng' : 'Chỉnh sửa đặt phòng'
-                }
-            >
-                <BookingForm 
-                    booking={currentBooking}
-                    onUpdateStatus={handleUpdateStatus}
-                    onCancel={() => setIsModalOpen(false)}
-                />
-            </AdminModal>
+                </AdminModal>
+            )}
         </div>
     );
 };
 
-// Booking Form Component
-interface BookingFormProps {
-    booking: AdminBooking | null;
-    onUpdateStatus: (booking: AdminBooking, status: string) => Promise<void>;
-    onCancel: () => void;
-}
-
-const BookingForm: React.FC<BookingFormProps> = ({ booking, onUpdateStatus, onCancel }) => {
-    const [isUpdating, setIsUpdating] = useState(false);
-
-    if (!booking) {
-        return (
-            <div className="p-6 text-center text-gray-500">
-                Không có thông tin đặt phòng
-            </div>
-        );
-    }
-
-    const handleStatusUpdate = async (status: string) => {
-        setIsUpdating(true);
-        try {
-            await onUpdateStatus(booking, status);
-            onCancel();
-        } catch (error) {
-            console.error('Failed to update status:', error);
-        } finally {
-            setIsUpdating(false);
-        }
-    };
-
-    return (
-        <div className="space-y-6">
-            {/* Booking Information */}
-            <div className="grid grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Mã đặt phòng
-                    </label>
-                    <p className="text-sm text-blue-600 font-medium">#{booking.booking_number}</p>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Trạng thái hiện tại
-                    </label>
-                    <StatusBadge status={booking.status} />
-                </div>
-            </div>
-
-            {/* Customer Information */}
-            <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-3">Thông tin khách hàng</h4>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Tên khách hàng
-                        </label>
-                        <div className="flex items-center">
-                            <AdminAvatarDisplay 
-                                src={booking.user.profile_pic || undefined} 
-                                alt={booking.user.name}
-                                size="small"
-                            />
-                            <span className="ml-2 text-sm">{booking.user.name}</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Email
-                        </label>
-                        <p className="text-sm text-gray-600">{booking.user.email}</p>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Vai trò
-                        </label>
-                        <p className="text-sm text-gray-600 capitalize">{booking.user.role}</p>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Số điện thoại
-                        </label>
-                        <p className="text-sm text-gray-600">{booking.user.phone || 'Chưa có'}</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Hotel Information */}
-            <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-3">Thông tin khách sạn</h4>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Tên khách sạn
-                        </label>
-                        <p className="text-sm text-gray-600">{booking.hotel.title}</p>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Giá phòng/đêm
-                        </label>
-                        <p className="text-sm text-green-600 font-medium">
-                            {new Intl.NumberFormat('vi-VN').format(parseFloat(booking.hotel.price_per_night))} VND
-                        </p>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Đánh giá
-                        </label>
-                        <p className="text-sm text-gray-600">
-                            {booking.hotel.review_score}/5 ⭐ ({booking.hotel.review_count} đánh giá)
-                        </p>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Trạng thái khách sạn
-                        </label>
-                        <p className="text-sm text-gray-600">
-                            {booking.hotel.is_active ? 'Đang hoạt động' : 'Tạm dừng'}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Payment Information */}
-            <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-3">Thông tin thanh toán</h4>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Tổng tiền
-                        </label>
-                        <p className="text-lg font-semibold text-green-600">
-                            {new Intl.NumberFormat('vi-VN').format(parseFloat(booking.total_amount))} VND
-                        </p>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Ngày đặt
-                        </label>
-                        <p className="text-sm text-gray-600">
-                            {new Date(booking.created_at).toLocaleString('vi-VN')}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-between pt-4 border-t border-gray-200">
-                <AdminButton
-                    type="button"
-                    variant="secondary"
-                    onClick={onCancel}
-                >
-                    Đóng
-                </AdminButton>
-                
-                {booking.status.toLowerCase() === 'pending' && (
-                    <div className="flex space-x-3">
-                        <AdminButton
-                            variant="success"
-                            onClick={() => handleStatusUpdate('confirmed')}
-                            disabled={isUpdating}
-                        >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Xác nhận
-                        </AdminButton>
-                        <AdminButton
-                            variant="danger"
-                            onClick={() => handleStatusUpdate('cancelled')}
-                            disabled={isUpdating}
-                        >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Hủy bỏ
-                        </AdminButton>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-export default BookingsPageFixed;
+export default BookingsPage;

@@ -12,11 +12,13 @@ import {
 } from '@/components/ui/card';
 import { useAuthStore } from '@/store/useAuthStore';
 import { GoogleIcon } from '@/components/icons/GoogleIcon';
+import { EyeIcon, EyeOffIcon } from 'lucide-react'; //  THÊM DÒNG NÀY
 
 export default function LoginPage() {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false); //  THÊM DÒNG NÀY
 
     // lấy login + isLoggingIn từ zustand
     const login = useAuthStore((state) => state.login);
@@ -89,14 +91,38 @@ export default function LoginPage() {
                                     Quên mật khẩu?
                                 </Link>
                             </div>
-                            <Input
-                                id='password'
-                                type='password'
-                                placeholder='••••••••'
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
+
+                            <div className='relative'>
+                                <Input
+                                    id='password'
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder='••••••••'
+                                    value={password}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
+                                    required
+                                    className='pr-10'
+                                />
+                                <button
+                                    type='button'
+                                    onClick={() =>
+                                        setShowPassword(!showPassword)
+                                    }
+                                    className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none'
+                                    aria-label={
+                                        showPassword
+                                            ? 'Ẩn mật khẩu'
+                                            : 'Hiện mật khẩu'
+                                    }
+                                >
+                                    {showPassword ? (
+                                        <EyeIcon className='h-5 w-5' />
+                                    ) : (
+                                        <EyeOffIcon className='h-5 w-5' />
+                                    )}
+                                </button>
+                            </div>
                         </div>
 
                         <Button

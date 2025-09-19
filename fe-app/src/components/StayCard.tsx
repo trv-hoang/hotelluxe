@@ -1,7 +1,6 @@
 import type { StayDataType } from '@/types/stay';
 import GallerySlider from './GallerySlider';
 import { Link } from 'react-router-dom';
-import { DEMO_STAY_LISTINGS } from '@/data/listings';
 import StartRating from '@/components/StarRating';
 import BtnLikeIcon from '@/components/BtnLikeIcon';
 import SaleOffBadge from '@/components/SaleOffBadge';
@@ -14,13 +13,7 @@ export interface StayCardProps {
     size?: 'default' | 'small';
 }
 
-const DEMO_DATA = DEMO_STAY_LISTINGS[0];
-
-function StayCard({
-    size = 'default',
-    className = '',
-    data = DEMO_DATA,
-}: StayCardProps) {
+function StayCard({ size = 'default', className = '', data }: StayCardProps) {
     const {
         galleryImgs,
         category,
@@ -35,7 +28,7 @@ function StayCard({
         reviewStart,
         reviewCount,
         id,
-    } = data;
+    } = data || {};
     // console.log('galleryImgs', galleryImgs);
 
     const renderSliderGallery = () => (
@@ -43,7 +36,7 @@ function StayCard({
             <GallerySlider
                 uniqueID={`StayCard_${id}`}
                 ratioClass='aspect-[4/3]'
-                galleryImgs={galleryImgs}
+                galleryImgs={galleryImgs || []}
                 href={href}
                 galleryClass={size === 'default' ? undefined : ''}
                 id={id}
@@ -65,7 +58,7 @@ function StayCard({
         <div className={size === 'default' ? 'p-4 space-y-4' : 'p-3 space-y-1'}>
             <div className={size === 'default' ? 'space-y-2' : 'space-y-1'}>
                 <span className='text-sm text-neutral-500 dark:text-neutral-400'>
-                    {category.name} · {bedrooms} beds
+                    {category?.name} · {bedrooms} beds
                 </span>
                 <div className='flex items-center space-x-2'>
                     {isAds && <Badge name='ADS' color='green' />}
@@ -105,7 +98,7 @@ function StayCard({
             <div className='w-14 border-b border-neutral-100 dark:border-neutral-800'></div>
             <div className='flex justify-between items-center'>
                 <span className='text-base font-semibold'>
-                    {formatPrice(price)}đ{' '}
+                    {formatPrice(price || 0)}đ{' '}
                     {size === 'default' && (
                         <span className='text-sm text-neutral-500 dark:text-neutral-400 font-normal'>
                             /đêm

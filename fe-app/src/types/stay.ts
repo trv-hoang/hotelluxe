@@ -33,7 +33,7 @@ export interface StayCategory {
 }
 export interface StayDataType {
     id: string | number;
-    author: AuthorType; // Người đăng
+    authorId: number; // 19/08 sửa
     date: string; // Ngày đăng
     href: string; // Link chi tiết stay
     title: string; // Tên khách sạn/villa...
@@ -72,7 +72,7 @@ export interface PostCategory {
 }
 export interface PostDataType {
     id: string | number;
-    author: AuthorType;
+    authorId: AuthorType;
     date: string;
     href: string;
     categories: PostCategory[];

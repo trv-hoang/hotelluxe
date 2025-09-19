@@ -64,13 +64,13 @@ Route::middleware('auth.api')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
     });
     
-    // Test protected route
-    Route::get('user', function (Request $request) {
-        return response()->json([
-            'success' => true,
-            'data' => $request->user()
-        ]);
-    });
+    // Test protected route - DEPRECATED: Use /auth/profile instead
+    // Route::get('user', function (Request $request) {
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => $request->user()
+    //     ]);
+    // });
 
     // Protected hotel management routes (Admin only)
     Route::prefix('hotels')->middleware('role:admin')->group(function () {
@@ -188,18 +188,9 @@ Route::get('/guests', [GuestController::class, 'index']);
 Route::get('/guests/{id}', [GuestController::class, 'show']);
 Route::get('/authors', [AuthorController::class, 'index']);
 Route::get('/authors/{id}', [AuthorController::class, 'show']);
-use App\Http\Controllers\GuestAuthController;
 
-Route::prefix('guest')->group(function () {
-    Route::post('/register', [GuestAuthController::class, 'register']);
-    Route::post('/login', [GuestAuthController::class, 'login']);
+// Test endpoint for dashboard (no auth required for testing)
+Route::get('test/dashboard/overview', [DashboardController::class, 'overview']);
 
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/logout', [GuestAuthController::class, 'logout']);
-        Route::get('/profile', [GuestAuthController::class, 'profile']);
-    });
-});
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/guest/profile', [GuestAuthController::class, 'profile']);
-    Route::put('/guest/profile', [GuestAuthController::class, 'updateProfile']); // FE gọi PUT để update
-});
+// REMOVED: Duplicate GuestAuthController routes
+// Use /auth/* endpoints instead for consistency
