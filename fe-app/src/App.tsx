@@ -55,6 +55,7 @@ function ClientApp() {
                     />
                     <Route path='/hotels' element={<StayPage />} />
                     <Route path='/hotels/:id' element={<StayDetailPage />} />
+                    <Route path='/test/:id' element={<div style={{padding: '50px', textAlign: 'center'}}><h1>Test Route Works!</h1><p>ID: {window.location.pathname.split('/').pop()}</p></div>} />
                     <Route path='/cart' element={<CartPage />} />
                     <Route path='/error' element={<ErrorPage />} />
                 </Routes>

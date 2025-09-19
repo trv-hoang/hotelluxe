@@ -80,6 +80,10 @@ export default function GallerySlider({
                     <Link
                         to={`${href}/${id}`}
                         className={`relative flex items-center justify-center ${ratioClass}`}
+                        onClick={() => {
+                            const finalUrl = `${href}/${id}`;
+                            console.log('🔗 GallerySlider URL clicked:', { href, id, finalUrl });
+                        }}
                     >
                         <AnimatePresence initial={false} custom={direction}>
                             <motion.div
