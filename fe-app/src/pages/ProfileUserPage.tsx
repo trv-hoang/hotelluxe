@@ -47,19 +47,14 @@ const ProfileUserPage = () => {
     const email = profile?.email || '';
 
     // Upload avatar
-    const handleImageUpload = async (
-        e: React.ChangeEvent<HTMLInputElement>,
-    ) => {
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        reader.onload = async () => {
+        reader.onload = () => {
             const base64Image = reader.result as string;
-            setSelectedImg(base64Image);
-            if (profile) {
-                await updateProfile({ ...profile, profile_pic: base64Image });
-            }
+            setSelectedImg(base64Image); // chỉ preview
         };
     };
 
@@ -123,7 +118,7 @@ const ProfileUserPage = () => {
                                             <img
                                                 src={
                                                     selectedImg ||
-                                                    profile.profile_pic ||
+                                                    profile.profilePic ||
                                                     'src/assets/user2.avif'
                                                 }
                                                 alt='Profile'
@@ -248,7 +243,7 @@ const ProfileUserPage = () => {
                             <img
                                 src={
                                     selectedImg ||
-                                    authUser?.profile_pic ||
+                                    authUser?.profilePic ||
                                     'src/assets/user2.avif'
                                 }
                                 alt='Profile'

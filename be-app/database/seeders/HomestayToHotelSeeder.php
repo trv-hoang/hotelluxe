@@ -42,7 +42,8 @@ class HomestayToHotelSeeder extends Seeder
 
             // Chuyển đổi dữ liệu từ homestay sang hotel
             $hotelData = [
-                'user_id' => $homestay['authorId'] ?? 1, // Sử dụng authorId làm user_id
+                // Cột cũ
+                'user_id' => $homestay['authorId'] ?? 1,
                 'category_id' => $homestay['listingCategoryId'] ?? 1,
                 'title' => $homestay['title'],
                 'slug' => $slug,
@@ -63,6 +64,27 @@ class HomestayToHotelSeeder extends Seeder
                 'is_ads' => $homestay['isAds'] ?? false,
                 'is_active' => true,
                 'published_at' => now(),
+                
+                // Cột mới từ migration 2025_09_18_180506
+                'original_id' => $homestay['id'],
+                'author_id' => $homestay['authorId'] ?? null,
+                'date' => $homestay['date'] ?? null,
+                'href' => $homestay['href'] ?? null,
+                'listing_category_id' => $homestay['listingCategoryId'] ?? null,
+                'gallery_imgs' => json_encode($homestay['galleryImgs'] ?? []),
+                'comment_count_json' => $homestay['commentCount'] ?? null,
+                'view_count_json' => $homestay['viewCount'] ?? null,
+                'like' => $homestay['like'] ?? false,
+                'review_start' => $homestay['reviewStart'] ?? null,
+                'price_json' => $homestay['price'] ?? null,
+                'max_guests_json' => $homestay['maxGuests'] ?? null,
+                'sale_off_json' => $homestay['saleOff'] ?? null,
+                'is_ads_json' => $homestay['isAds'] ?? null,
+                'map' => json_encode([
+                    'lat' => $homestay['map']['lat'] ?? null,
+                    'lng' => $homestay['map']['lng'] ?? null
+                ]),
+                
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

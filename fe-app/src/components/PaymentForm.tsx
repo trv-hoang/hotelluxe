@@ -134,7 +134,7 @@ const PaymentForm: React.FC = () => {
             await new Promise((resolve) => setTimeout(resolve, 1500)); // fake API
 
             toast.success('Thanh toán thành công!', { id: toastId });
-            navigate('/stay');
+            navigate('/hotels');
         } catch (error) {
             toast.error('Thanh toán thất bại, vui lòng thử lại!');
             console.error(error);

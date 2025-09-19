@@ -21,7 +21,7 @@ export interface GuestsInputProps {
 const GuestsInput = ({
     fieldClassName = '[ nc-hero-field-padding ]',
     className = '[ nc-flex-1 ]',
-    buttonSubmitHref = '/stay',
+    buttonSubmitHref = '/hotels',
     hasButtonSubmit = false,
 }: GuestsInputProps) => {
     const { guests, setGuests, clearGuests } = useBookingStore();

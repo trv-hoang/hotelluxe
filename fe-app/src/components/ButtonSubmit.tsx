@@ -6,7 +6,7 @@ interface Props {
     href?: PathName;
 }
 // search button
-const ButtonSubmit = ({ href = '/stay' }: Props) => {
+const ButtonSubmit = ({ href = '/hotels' }: Props) => {
     return (
         <Link
             to={href}

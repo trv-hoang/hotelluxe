@@ -125,7 +125,7 @@ function StayCard({ size = 'default', className = '', data }: StayCardProps) {
             data-nc-id='StayCard'
         >
             {renderSliderGallery()}
-            <Link to={`/stay-detail/${id}`}>{renderContent()}</Link>
+            <Link to={`/hotels/${id}`}>{renderContent()}</Link>
         </div>
     );
 }
