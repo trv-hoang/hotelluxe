@@ -83,6 +83,7 @@ Route::middleware('auth.api')->group(function () {
     Route::prefix('bookings')->group(function () {
         Route::get('/', [BookingController::class, 'index']);
         Route::post('/', [BookingController::class, 'store']);
+        Route::get('admin/all', [BookingController::class, 'getAllBookings']); // Admin endpoint
         Route::get('{id}', [BookingController::class, 'show']);
         Route::put('{id}', [BookingController::class, 'update']);
         Route::delete('{id}', [BookingController::class, 'destroy']);
@@ -103,6 +104,7 @@ Route::middleware('auth.api')->group(function () {
     Route::prefix('payments')->group(function () {
         Route::get('/', [PaymentController::class, 'getUserPayments']);
         Route::post('/', [PaymentController::class, 'createPayment']);
+        Route::post('process-booking', [PaymentController::class, 'processBookingFromFrontend']);
         Route::post('confirm-card', [PaymentController::class, 'confirmCardPayment']);
         Route::get('{paymentId}', [PaymentController::class, 'getPayment']);
         Route::post('{paymentId}/cancel', [PaymentController::class, 'cancelPayment']);
@@ -188,9 +190,5 @@ Route::get('/guests', [GuestController::class, 'index']);
 Route::get('/guests/{id}', [GuestController::class, 'show']);
 Route::get('/authors', [AuthorController::class, 'index']);
 Route::get('/authors/{id}', [AuthorController::class, 'show']);
-
-// Test endpoint for dashboard (no auth required for testing)
-Route::get('test/dashboard/overview', [DashboardController::class, 'overview']);
-
 // REMOVED: Duplicate GuestAuthController routes
 // Use /auth/* endpoints instead for consistency

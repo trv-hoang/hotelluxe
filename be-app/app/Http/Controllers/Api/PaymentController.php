@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Models\Hotel;
 use App\Services\MoMoPaymentService;
 use App\Services\StripePaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
@@ -434,6 +436,195 @@ class PaymentController extends Controller
                 'success' => false,
                 'message' => 'Failed to request refund: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Process booking and payment from frontend
+     */
+    public function processBookingFromFrontend(Request $request)
+    {
+        try {
+            // Validate request data
+            $validator = Validator::make($request->all(), [
+                'user' => 'required|array',
+                'user.id' => 'required|integer',
+                'user.name' => 'required|string',
+                'user.email' => 'required|email',
+                'items' => 'required|array|min:1',
+                'items.*.id' => 'required|integer',
+                'items.*.title' => 'required|string',
+                'items.*.price' => 'required|numeric',
+                'items.*.nights' => 'required|integer|min:1',
+                'paymentData' => 'required|array',
+                'paymentData.cardHolder' => 'required|string',
+                'paymentData.cardNumber' => 'required|string',
+                'paymentData.expirationDate' => 'required|string',
+                'paymentData.cvv' => 'required|string',
+                'paymentData.paymentMethod' => 'required|string',
+                'totalAmount' => 'required|numeric',
+                'currency' => 'required|string',
+                'checkInDate' => 'required|date',
+                'checkOutDate' => 'required|date|after:checkInDate',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            // Get first item (hotel booking)
+            $firstItem = $request->input('items')[0];
+            $hotel = Hotel::find($firstItem['id']);
+
+            if (!$hotel) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hotel not found'
+                ], 404);
+            }
+
+            // Parse dates
+            $checkInDate = Carbon::parse($request->input('checkInDate'));
+            $checkOutDate = Carbon::parse($request->input('checkOutDate'));
+            $nights = $checkInDate->diffInDays($checkOutDate);
+            $pricePerNight = $firstItem['price'];
+
+            // Create booking
+            $booking = Booking::create([
+                'booking_number' => 'BK' . time() . rand(100, 999),
+                'user_id' => auth()->id(),
+                'hotel_id' => $hotel->id,
+                'check_in_date' => $checkInDate->format('Y-m-d'),
+                'check_out_date' => $checkOutDate->format('Y-m-d'),
+                'adults' => $firstItem['totalGuests'] ?? 2,
+                'children' => 0,
+                'infants' => 0,
+                'nights' => $nights,
+                'price_per_night' => $pricePerNight,
+                'subtotal' => $request->input('totalAmount'),
+                'total_amount' => $request->input('totalAmount'),
+                'status' => 'pending',
+                'special_requests' => null,
+            ]);
+
+            // Create payment
+            $paymentData = $request->input('paymentData');
+            $paymentMethod = match ($paymentData['paymentMethod']) {
+                'credit_card' => 'credit_card',
+                'momo' => 'momo',
+                'zalopay' => 'zalopay',
+                default => 'credit_card'
+            };
+
+            $payment = Payment::create([
+                'payment_number' => Payment::generatePaymentIdForBooking(auth()->id(), $checkInDate),
+                'booking_id' => $booking->id,
+                'user_id' => auth()->id(),
+                'amount' => $request->input('totalAmount'),
+                'currency' => $request->input('currency', 'VND'),
+                'payment_method' => $paymentMethod,
+                'gateway' => $paymentMethod === 'momo' ? 'momo' : 'stripe',
+                'status' => 'pending',
+                'card_holder_name' => $paymentData['cardHolder'] ?? null,
+                'card_last_four' => isset($paymentData['cardNumber']) ? substr($paymentData['cardNumber'], -4) : null,
+                'metadata' => [
+                    'frontend_timestamp' => $request->input('timestamp'),
+                    'card_data' => [
+                        'number' => $paymentData['cardNumber'] ?? null,
+                        'exp_month' => isset($paymentData['expirationDate']) ? (int) explode('/', $paymentData['expirationDate'])[0] : null,
+                        'exp_year' => isset($paymentData['expirationDate']) ? (int) ('20' . explode('/', $paymentData['expirationDate'])[1]) : null,
+                        'cvc' => $paymentData['cvv'] ?? null,
+                        'card_holder_name' => $paymentData['cardHolder'] ?? null,
+                    ],
+                    'original_payment_method' => $paymentData['paymentMethod'],
+                    'custom_payment_id_info' => [
+                        'user_id' => auth()->id(),
+                        'check_in_date' => $checkInDate->format('Y-m-d'),
+                        'generated_at' => now()->toISOString(),
+                    ]
+                ]
+            ]);
+
+            // Simulate payment processing
+            $paymentResult = $this->simulatePaymentProcessing($paymentMethod, $paymentData, $request->input('totalAmount'));
+
+            if ($paymentResult['success']) {
+                // Update payment status
+                $payment->update([
+                    'status' => 'completed',
+                    'paid_at' => now(),
+                    'transaction_id' => $paymentResult['transaction_id'] ?? null
+                ]);
+
+                // Update booking status
+                $booking->update(['status' => 'confirmed']);
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment processed successfully',
+                    'data' => [
+                        'booking' => $booking,
+                        'payment' => $payment,
+                        'payment_id' => $payment->payment_number,
+                        'transaction_id' => $paymentResult['transaction_id']
+                    ]
+                ]);
+            } else {
+                // Update payment as failed
+                $payment->update([
+                    'status' => 'failed',
+                    'gateway_response' => $paymentResult['message'] ?? 'Payment failed'
+                ]);
+
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment failed: ' . ($paymentResult['message'] ?? 'Unknown error')
+                ], 422);
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking processing failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Simulate payment processing for different methods
+     */
+    private function simulatePaymentProcessing($paymentMethod, $paymentData, $amount)
+    {
+        // Simulate processing time
+        usleep(rand(500000, 1500000)); // 0.5 to 1.5 seconds
+
+        // Simulate success/failure (90% success rate)
+        $success = rand(1, 10) <= 9;
+
+        if ($success) {
+            return [
+                'success' => true,
+                'transaction_id' => strtoupper($paymentMethod) . '_' . time() . rand(1000, 9999),
+                'message' => 'Payment processed successfully'
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => 'Payment declined by gateway',
+                'error_code' => 'DECLINED_' . rand(1000, 9999)
+            ];
         }
     }
 }

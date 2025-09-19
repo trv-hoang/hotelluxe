@@ -41,8 +41,16 @@ export const useHotels = () => {
     return { hotels, loading, error, refetch: () => window.location.reload() };
 };
 
+interface User {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    created_at: string;
+}
+
 export const useUsers = () => {
-    const [users, setUsers] = useState([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 

@@ -47,6 +47,105 @@ class BookingController extends Controller
     }
 
     /**
+     * Get all bookings for admin panel
+     */
+    public function getAllBookings(Request $request)
+    {
+        $user = auth('api')->user();
+        
+        // Check if user is admin
+        if ($user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
+        $query = Booking::with([
+            'hotel:id,title,slug,featured_image,address,price_per_night',
+            'hotel.category:id,name,icon',
+            'user:id,name,email,phone',
+            'guests',
+            'payments'
+        ]);
+
+        // Filter by status
+        if ($request->has('status') && $request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by payment status through payments relationship
+        if ($request->has('payment_status') && $request->payment_status) {
+            $query->whereHas('payments', function ($q) use ($request) {
+                $q->where('status', $request->payment_status);
+            });
+        }
+
+        // Search by customer name, email, or booking number
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('booking_number', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($userQuery) use ($search) {
+                      $userQuery->where('name', 'like', "%{$search}%")
+                               ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Sort by date
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        $perPage = $request->get('per_page', 20);
+        $bookings = $query->paginate($perPage);
+
+        // Transform data to match frontend expectations
+        $transformedBookings = $bookings->getCollection()->map(function ($booking) {
+            $paymentStatus = 'pending';
+            if ($booking->payments && $booking->payments->count() > 0) {
+                $latestPayment = $booking->payments->sortByDesc('created_at')->first();
+                $paymentStatus = $latestPayment->status === 'completed' ? 'paid' : 
+                               ($latestPayment->status === 'failed' ? 'failed' : 'pending');
+            }
+
+            return [
+                'id' => $booking->id,
+                'bookingNumber' => $booking->booking_number,
+                'hotelId' => $booking->hotel_id,
+                'customerId' => $booking->user_id,
+                'customerName' => $booking->user->name ?? 'Unknown',
+                'customerEmail' => $booking->user->email ?? '',
+                'customerPhone' => $booking->user->phone ?? '',
+                'checkIn' => $booking->check_in_date,
+                'checkOut' => $booking->check_out_date,
+                'nights' => $booking->nights,
+                'paymentStatus' => $paymentStatus,
+                'totalAmount' => (float) $booking->total_amount,
+                'pricePerNight' => (float) $booking->price_per_night,
+                'createdAt' => $booking->created_at->toISOString(),
+                'updatedAt' => $booking->updated_at->toISOString(),
+                'hotel' => $booking->hotel,
+                'status' => $booking->status
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'data' => $transformedBookings,
+                'pagination' => [
+                    'current_page' => $bookings->currentPage(),
+                    'per_page' => $bookings->perPage(),
+                    'total' => $bookings->total(),
+                    'last_page' => $bookings->lastPage()
+                ]
+            ]
+        ]);
+    }
+
+    /**
      * Create a new booking
      */
     public function store(Request $request)
