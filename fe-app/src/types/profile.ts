@@ -20,21 +20,22 @@
 //     // tuỳ theo API của bạn
 // }
 
-// Kiểu dữ liệu User mới
+// Kiểu dữ liệu User - Match với Backend User Model
 export interface User {
   id: number;
   name: string;
   email: string;
-  password: string; // chỉ để mockup
+  // Remove password from frontend for security
   role: "admin" | "user";
-  profilePic?: string;
+  profile_pic?: string; // Match backend field name
   nickname?: string;
   dob?: string;
   phone?: string;
   gender?: string;
   address?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  email_verified_at?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Payloads
@@ -56,5 +57,5 @@ export interface UpdateProfilePayload {
   phone?: string;
   address?: string;
   gender?: string;
-  profilePic?: string;
+  profile_pic?: string; // Match backend field name
 }

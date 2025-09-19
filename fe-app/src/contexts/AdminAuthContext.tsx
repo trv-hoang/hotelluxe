@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { axiosInstance } from '@/lib/axios';
 
 interface AdminUser {
     id: number;
@@ -31,16 +30,14 @@ const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }) => {
     const isAdminAuthenticated = !!adminUser;
 
     // Check if admin is authenticated on app load
-    const checkAdminAuth = async () => {
+    const checkAdminAuth = () => {
         try {
             const adminToken = localStorage.getItem('admin-token');
             const storedAdminUser = localStorage.getItem('admin-user');
             
             if (adminToken && storedAdminUser) {
                 const user = JSON.parse(storedAdminUser);
-                if (user.role === 'admin') { // Updated to match API role
-                    // Set Authorization header for all requests
-                    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${adminToken}`;
+                if (user.role === 'Admin') {
                     setAdminUser(user);
                 }
             }
@@ -48,7 +45,6 @@ const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }) => {
             console.error('Admin auth check failed:', error);
             localStorage.removeItem('admin-token');
             localStorage.removeItem('admin-user');
-            delete axiosInstance.defaults.headers.common['Authorization'];
         } finally {
             setIsLoading(false);
         }
@@ -56,54 +52,23 @@ const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }) => {
 
     const adminLogin = async (email: string, password: string) => {
         setIsLoading(true);
-        console.log('🔐 Admin login attempt:', { email, baseURL: axiosInstance.defaults.baseURL });
-        
         try {
-            // Call real API endpoint
-            const response = await axiosInstance.post('/auth/login', {
-                email,
-                password
-            });
-
-            console.log('✅ Login response received:', response.status, response.data);
-            const { data } = response.data;
-            
-            // Check if user has admin role
-            if (data.user.role !== 'admin') {
-                throw new Error('Access denied. Admin privileges required.');
+            // Demo credentials - replace with real API call
+            if (email === 'admin@luxe.com' && password === 'admin123') {
+                const adminUser: AdminUser = {
+                    id: 1,
+                    name: 'Admin User',
+                    email: 'admin@luxe.com',
+                    role: 'Admin'
+                };
+                
+                // Store admin session
+                localStorage.setItem('admin-token', 'admin-jwt-token');
+                localStorage.setItem('admin-user', JSON.stringify(adminUser));
+                setAdminUser(adminUser);
+            } else {
+                throw new Error('Invalid admin credentials');
             }
-
-            const adminUser: AdminUser = {
-                id: data.user.id,
-                name: data.user.name,
-                email: data.user.email,
-                role: data.user.role
-            };
-            
-            // Store admin session
-            const token = data.token;
-            localStorage.setItem('admin-token', token);
-            localStorage.setItem('admin-user', JSON.stringify(adminUser));
-            
-            // Set Authorization header for future requests
-            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            
-            setAdminUser(adminUser);
-        } catch (error: unknown) {
-            console.error('❌ Admin login failed:', error);
-            let errorMessage = 'Login failed';
-            
-            if (error && typeof error === 'object' && 'response' in error) {
-                const axiosError = error as { response?: { status?: number; data?: { message?: string } } };
-                console.error('API Error details:', {
-                    status: axiosError.response?.status,
-                    message: axiosError.response?.data?.message,
-                    fullResponse: axiosError.response?.data
-                });
-                errorMessage = axiosError.response?.data?.message || 'Login failed';
-            }
-            
-            throw new Error(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -112,7 +77,6 @@ const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }) => {
     const adminLogout = () => {
         localStorage.removeItem('admin-token');
         localStorage.removeItem('admin-user');
-        delete axiosInstance.defaults.headers.common['Authorization'];
         setAdminUser(null);
     };
 

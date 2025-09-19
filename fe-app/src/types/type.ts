@@ -16,12 +16,13 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    password: string;
+    // Remove password from frontend for security
     role: 'admin' | 'user';
-    profilePic?: string;
-    createdAt?: string;
-    updatedAt?: string;
-    // add
+    profile_pic?: string; // Match backend field name
+    email_verified_at?: string;
+    created_at?: string;
+    updated_at?: string;
+    // Additional fields
     nickname?: string;
     dob?: string; // yyyy-mm-dd
     phone?: string;

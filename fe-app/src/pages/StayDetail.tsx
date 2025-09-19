@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -34,9 +34,9 @@ import LikeSaveBtns from '@/shared/LikeSaveBtn';
 import StayDatesRangeInput from '@/components/StayDatesRangeInput';
 import SectionDateRange from '@/components/SectionDaterange';
 
-import { DEMO_STAY_LISTINGS } from '@/data/listings';
+// import { mapStay } from '@/data/listings';
 import GuestsInput from '@/components/GuestsInput';
-import type { StayDataType } from '@/types/stay';
+import type { AuthorType, StayDataType } from '@/types/stay';
 import LocationMap from '@/components/LocationMap';
 import { useBookingStore } from '@/store/useBookingStore';
 import { calculatorPrice } from '@/utils/calculatorPrice';
@@ -46,6 +46,7 @@ import CategoryBadge from '@/shared/CategoryBadge';
 import { useCartStore } from '@/store/useCartStore';
 import { formatPrice } from '@/lib/utils';
 import { useAuthStore } from '@/store/useAuthStore';
+import api from '@/api/axios';
 
 const StayDetailPage = () => {
     const { id } = useParams();
@@ -74,9 +75,36 @@ const StayDetailPage = () => {
         amenities?: string;
     };
 
-    const stayData = DEMO_STAY_LISTINGS.find(
-        (item) => item.id === parseInt(id || '0'),
-    ) as ExtendedStayDataType;
+    const [stayData, setStayData] = useState<ExtendedStayDataType | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [author, setAuthor] = useState<AuthorType>();
+    console.log('stayData', stayData);
+    console.log('author', author);
+    useEffect(() => {
+        const fetchStay = async () => {
+            try {
+                const res = await api.get(`/stay-detail/${id}`);
+                setStayData(res.data.data);
+                if (res.data.data.authorId) {
+                    const authorRes = await api.get(
+                        `/authors/${res.data.data.authorId}`,
+                    );
+                    setAuthor(authorRes.data.data);
+                }
+            } catch (error) {
+                console.error('Lỗi khi fetch stay:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (id) {
+            fetchStay();
+        }
+    }, [id]);
+
+    if (loading) {
+        return <div>Đang tải dữ liệu...</div>;
+    }
 
     if (!stayData) {
         return (
@@ -99,8 +127,8 @@ const StayDetailPage = () => {
         bathrooms,
         price,
         saleOff,
-        author,
         map,
+        // author,
 
         // displayName = 'Chủ nhà',
         // avatar = '/host-avatar.jpg',
@@ -112,6 +140,7 @@ const StayDetailPage = () => {
         specialNotes = ['Vui lòng giữ yên tĩnh sau 23h'],
         description = getRandomDescription(),
     } = stayData;
+
     // function closeModalAmenities() {
     //     setIsOpenModalAmenities(false);
     // }
@@ -134,7 +163,7 @@ const StayDetailPage = () => {
         });
     };
 
-    const { displayName, avatar } = author;
+    const { displayName, avatar } = author || {};
     //  RENDER HEADER IMAGE LAYOUT MỚI
     const renderHeaderImages = () => {
         const mainImage = featuredImage || '/src/assets/travels/dalat.jpg';

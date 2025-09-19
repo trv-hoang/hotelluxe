@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useLayoutEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import {
@@ -35,7 +35,7 @@ const parseSaleOff = (saleOff?: string | null): number => {
 };
 
 export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
-    // ✅ Tính maxPrice duy nhất 1 lần khi data thay đổi
+    // Tính maxPrice
     const maxPrice = useMemo(() => {
         const prices = data.map((stay) => parsePrice(stay.price));
         return prices.length > 0 ? Math.max(...prices) : 0;
@@ -53,47 +53,39 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
     >(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-    React.useEffect(() => {
-        setPriceRange((prev) => {
-            const [prevMin, prevMax] = prev;
-            const newMin = prevMin <= maxPrice ? prevMin : 0;
-            const newMax = Math.min(prevMax, maxPrice);
-            return [Math.min(newMin, newMax), newMax];
-        });
+    // Đồng bộ priceRange với maxPrice khi data thay đổi
+    useEffect(() => {
+        setPriceRange([0, maxPrice]);
     }, [maxPrice]);
-    // Debounce tìm kiếm
-    const debouncedSearch = useMemo(
-        () => debounce((value: string) => setSearchTerm(value), 300),
-        [],
-    );
 
-    useLayoutEffect(() => {
-        return () => {
-            debouncedSearch.cancel();
-        };
+    // Debounce search
+    const debouncedSearch = useMemo(() => debounce(setSearchTerm, 300), []);
+
+    useEffect(() => {
+        return () => debouncedSearch.cancel();
     }, [debouncedSearch]);
 
-    // 🔒 Filter: chỉ phụ thuộc vào data + các state filter
+    // Filter dữ liệu
     const filteredData = useMemo(() => {
         return data.filter((stay) => {
             const price = parsePrice(stay.price);
+
             const matchesCategory = category
                 ? stay.category?.id.toString() === category
                 : true;
+
             const matchesPrice =
                 price >= priceRange[0] && price <= priceRange[1];
+
             const matchesSearch = searchTerm
                 ? stay.title.toLowerCase().includes(searchTerm.toLowerCase())
                 : true;
 
-            let matchesBedrooms = true;
-            if (bedrooms) {
-                const bedCount = stay.bedrooms ?? 0;
-                matchesBedrooms =
-                    bedrooms === '4+'
-                        ? bedCount >= 4
-                        : bedCount === parseInt(bedrooms, 10);
-            }
+            const matchesBedrooms = bedrooms
+                ? bedrooms === '4+'
+                    ? (stay.bedrooms ?? 0) >= 4
+                    : (stay.bedrooms ?? 0) === parseInt(bedrooms, 10)
+                : true;
 
             return (
                 matchesCategory &&
@@ -104,10 +96,9 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
         });
     }, [data, category, priceRange, searchTerm, bedrooms]);
 
-    // 🔒 Sort: tạo mảng mới, nhưng đảm bảo không thay đổi reference nếu không cần
+    // Sort dữ liệu
     const sortedData = useMemo(() => {
         const list = [...filteredData];
-
         if (sortBy === 'saleOff') {
             list.sort((a, b) => {
                 const aOff = parseSaleOff(a.saleOff);
@@ -127,28 +118,15 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                     : b.reviewCount - a.reviewCount,
             );
         }
-
         return list;
     }, [filteredData, sortBy, sortOrder]);
 
-    // 🔁 Dùng useRef để tránh gọi onFilter nếu dữ liệu không thay đổi
-    const prevSortedDataRef = useRef<string | null>(null);
+    // Gọi onFilter mỗi khi sortedData thay đổi
+    useEffect(() => {
+        onFilter?.(sortedData);
+    }, [sortedData, onFilter]);
 
-    const getIdentityKey = (data: StayDataType[]) => {
-        return data.map((d) => d.id).join(',');
-    };
-
-    const identityKey = getIdentityKey(sortedData);
-
-    useLayoutEffect(() => {
-        const prevKey = prevSortedDataRef.current;
-        if (prevKey !== identityKey) {
-            prevSortedDataRef.current = identityKey;
-            onFilter?.(sortedData);
-        }
-    }, [sortedData, identityKey, onFilter]);
-
-    // Reset bộ lọc
+    // Reset filter
     const handleReset = () => {
         setCategory(null);
         setPriceRange([0, maxPrice]);
@@ -157,7 +135,7 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
         setSortBy(null);
         setSortOrder('desc');
         debouncedSearch.cancel();
-        onFilter?.(data); // trả về data gốc
+        onFilter?.(data);
     };
 
     const handleSort = (field: 'saleOff' | 'viewCount' | 'reviewCount') => {
@@ -207,14 +185,12 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                                 value={priceRange}
                                 onValueChange={(val) => {
                                     const [a, b] = val as [number, number];
-                                    // 🔄 ép về dạng [min, max] để kéo thoải mái 2 đầu
                                     setPriceRange([
                                         Math.min(a, b),
                                         Math.max(a, b),
                                     ]);
                                 }}
                             />
-
                             <div className='flex items-center justify-between mt-3'>
                                 <div className='flex flex-col items-start gap-1'>
                                     <span className='text-sm text-gray-600'>
@@ -258,7 +234,7 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
 
                         {/* Loại hình */}
                         <Select
-                            onValueChange={setCategory}
+                            onValueChange={(val) => setCategory(val || null)}
                             value={category ?? ''}
                         >
                             <SelectTrigger>
@@ -274,7 +250,7 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
 
                         {/* Phòng ngủ */}
                         <Select
-                            onValueChange={setBedrooms}
+                            onValueChange={(val) => setBedrooms(val || null)}
                             value={bedrooms ?? ''}
                         >
                             <SelectTrigger>

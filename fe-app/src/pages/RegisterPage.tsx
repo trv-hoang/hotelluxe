@@ -11,6 +11,7 @@ import {
     CardDescription,
     CardContent,
 } from '@/components/ui/card';
+import { EyeIcon, EyeOffIcon } from 'lucide-react'; // 👈 THÊM DÒNG NÀY
 
 export default function RegisterPage() {
     const navigate = useNavigate();
@@ -20,6 +21,8 @@ export default function RegisterPage() {
         password: '',
         password_confirmation: '',
     });
+    const [showPassword, setShowPassword] = useState(false); // 👈 THÊM
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false); // 👈 THÊM
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -101,22 +104,66 @@ export default function RegisterPage() {
                             onChange={handleChange}
                             required
                         />
-                        <Input
-                            name='password'
-                            placeholder='Mật khẩu'
-                            type='password'
-                            value={form.password}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            name='password_confirmation'
-                            placeholder='Xác nhận mật khẩu'
-                            type='password'
-                            value={form.password_confirmation}
-                            onChange={handleChange}
-                            required
-                        />
+
+                        {/* 👇👇👇 BỔ SUNG CHO Ô MẬT KHẨU */}
+                        <div className='relative'>
+                            <Input
+                                name='password'
+                                placeholder='Mật khẩu'
+                                type={showPassword ? 'text' : 'password'}
+                                value={form.password}
+                                onChange={handleChange}
+                                required
+                                className='pr-10'
+                            />
+                            <button
+                                type='button'
+                                onClick={() => setShowPassword(!showPassword)}
+                                className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none'
+                                aria-label={
+                                    showPassword
+                                        ? 'Ẩn mật khẩu'
+                                        : 'Hiện mật khẩu'
+                                }
+                            >
+                                {showPassword ? (
+                                    <EyeIcon className='h-5 w-5' />
+                                ) : (
+                                    <EyeOffIcon className='h-5 w-5' />
+                                )}
+                            </button>
+                        </div>
+
+                        {/* 👇👇👇 BỔ SUNG CHO Ô XÁC NHẬN MẬT KHẨU */}
+                        <div className='relative'>
+                            <Input
+                                name='password_confirmation'
+                                placeholder='Xác nhận mật khẩu'
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                value={form.password_confirmation}
+                                onChange={handleChange}
+                                required
+                                className='pr-10'
+                            />
+                            <button
+                                type='button'
+                                onClick={() =>
+                                    setShowConfirmPassword(!showConfirmPassword)
+                                }
+                                className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none'
+                                aria-label={
+                                    showConfirmPassword
+                                        ? 'Ẩn mật khẩu'
+                                        : 'Hiện mật khẩu'
+                                }
+                            >
+                                {showConfirmPassword ? (
+                                    <EyeIcon className='h-5 w-5' />
+                                ) : (
+                                    <EyeOffIcon className='h-5 w-5' />
+                                )}
+                            </button>
+                        </div>
 
                         <Button
                             type='submit'

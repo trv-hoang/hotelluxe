@@ -58,7 +58,7 @@ const ProfileUserPage = () => {
             const base64Image = reader.result as string;
             setSelectedImg(base64Image);
             if (profile) {
-                await updateProfile({ ...profile, profilePic: base64Image });
+                await updateProfile({ ...profile, profile_pic: base64Image });
             }
         };
     };
@@ -123,7 +123,7 @@ const ProfileUserPage = () => {
                                             <img
                                                 src={
                                                     selectedImg ||
-                                                    profile.profilePic ||
+                                                    profile.profile_pic ||
                                                     'src/assets/user2.avif'
                                                 }
                                                 alt='Profile'
@@ -248,7 +248,7 @@ const ProfileUserPage = () => {
                             <img
                                 src={
                                     selectedImg ||
-                                    authUser?.profilePic ||
+                                    authUser?.profile_pic ||
                                     'src/assets/user2.avif'
                                 }
                                 alt='Profile'
