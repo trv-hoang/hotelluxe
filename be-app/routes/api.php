@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\HotelController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\UserManagementController;
 use App\Http\Controllers\Api\Admin\HotelManagementController;
@@ -109,6 +110,12 @@ Route::middleware('auth.api')->group(function () {
         Route::get('{paymentId}', [PaymentController::class, 'getPayment']);
         Route::post('{paymentId}/cancel', [PaymentController::class, 'cancelPayment']);
         Route::post('{paymentId}/refund', [PaymentController::class, 'requestRefund']);
+    });
+
+    // Notification routes (User access)
+    Route::prefix('notifications')->group(function () {
+        Route::get('/payments', [NotificationController::class, 'getPaymentNotifications']);
+        Route::post('/mark-read', [NotificationController::class, 'markAsRead']);
     });
 
     // Admin Panel Routes (Admin only)

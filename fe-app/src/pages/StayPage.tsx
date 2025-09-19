@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { motion } from 'framer-motion'; // ✅ import Framer Motion
 import StayCard from '@/components/StayCard';
 import { StayFilter } from '@/components/StayFilter';
 import PaginationCus from '@/components/PaginationCus';
@@ -12,10 +13,11 @@ export default function StayPage() {
     const [allStays, setAllStays] = useState<StayDataType[]>([]);
     const [filteredData, setFilteredData] = useState<StayDataType[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(true);
 
-    // ✅ Fetch dữ liệu 1 lần, lưu cả gốc và filtered
     useEffect(() => {
         const fetchStays = async () => {
+            setLoading(true);
             try {
                 const res = await api.get('/hotels');
                 const stays: StayDataType[] = res.data.data.map(
@@ -25,6 +27,8 @@ export default function StayPage() {
                 setFilteredData(stays);
             } catch (error) {
                 console.error('Lỗi khi fetch /hotels:', error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -39,7 +43,6 @@ export default function StayPage() {
         return filteredData.slice(start, end);
     }, [filteredData, currentPage]);
 
-    // ✅ Logic chèn quảng cáo
     const injectAds = useCallback((items: StayDataType[]): StayDataType[] => {
         const ads = items.filter((item) => item.isAds);
         const normal = items.filter((item) => !item.isAds);
@@ -72,7 +75,6 @@ export default function StayPage() {
         [currentItems, injectAds],
     );
 
-    // ✅ Nhận dữ liệu lọc từ StayFilter
     const handleFilterChange = useCallback((data: StayDataType[]) => {
         setFilteredData(data);
         setCurrentPage(1);
@@ -86,23 +88,38 @@ export default function StayPage() {
                 </h2>
             </div>
 
-            {/* ✅ Truyền allStays làm data gốc cho filter */}
             <StayFilter data={allStays} onFilter={handleFilterChange} />
 
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 justify-center'>
-                {displayedItems.map((stay) => (
-                    <StayCard key={stay.id} data={stay} />
-                ))}
-            </div>
-
-            {totalPages > 1 && (
-                <div className='flex justify-center mt-8'>
-                    <PaginationCus
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={(page) => setCurrentPage(page)}
+            {loading ? (
+                <div className='flex justify-center items-center h-64'>
+                    <motion.div
+                        className='w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full'
+                        animate={{ rotate: 360 }}
+                        transition={{
+                            repeat: Infinity,
+                            duration: 1,
+                            ease: 'linear',
+                        }}
                     />
                 </div>
+            ) : (
+                <>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 justify-center'>
+                        {displayedItems.map((stay) => (
+                            <StayCard key={stay.id} data={stay} />
+                        ))}
+                    </div>
+
+                    {totalPages > 1 && (
+                        <div className='flex justify-center mt-8'>
+                            <PaginationCus
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={(page) => setCurrentPage(page)}
+                            />
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

@@ -79,10 +79,10 @@ const LocationInput = ({
     const renderSearchValue = () => (
         <>
             {[
-                'Ha Noi, Viet Nam',
-                'San Diego, CA',
-                'Humboldt Park, Chicago, IL',
-                'Bangor, Northern Ireland',
+                'Hà Nội, Việt Nam',
+                'Đà Nẵng, Việt Nam',
+                'Tp. Hồ Chí Minh, Việt Nam',
+                'Nha Trang, Việt Nam',
             ].map((item) => (
                 <span
                     onClick={() => handleSelectLocation(item)}
