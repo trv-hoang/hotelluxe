@@ -64,97 +64,37 @@ Hệ thống quản lý khách sạn toàn diện với React frontend và Larav
 
 ### 🔧 Backend Setup (Laravel)
 ```bash
-# Clone repository
-git clone [repository-url]
-cd hotelluxe/be-app
-
-# Install PHP dependencies
+# Run this
+cd be-app
 composer install
-
-# Environment setup
-cp .env.example .env
-
-# Generate application key
-php artisan key:generate
-
-# Generate JWT secret
-php artisan jwt:secret
-
-# Configure database in .env file
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=hotelluxe
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-
-# Configure payment gateways
-STRIPE_KEY=your_stripe_publishable_key
-STRIPE_SECRET=your_stripe_secret_key
-MOMO_PARTNER_CODE=your_momo_partner_code
-MOMO_ACCESS_KEY=your_momo_access_key
-MOMO_SECRET_KEY=your_momo_secret_key
-
-# Run migrations and seed data
-php artisan migrate
-php artisan db:seed
-
-# Start development server
 php artisan serve
 ```
 
 ### 🎨 Frontend Setup (React)
 ```bash
-cd ../fe-app
-
-# Install dependencies
+# Run this
+cd fe-app
 npm install
-
-# Environment setup
-cp .env.example .env.local
-
-# Configure API endpoint
-VITE_API_BASE_URL=http://localhost:8000/api
-VITE_UNSPLASH_ACCESS_KEY=your_unsplash_access_key
-
-# Start development server
 npm run dev
 ```
-
-### 🗄️ Database Setup
-```sql
--- Create database
-CREATE DATABASE hotelluxe CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- Grant permissions (adjust username/password)
-GRANT ALL PRIVILEGES ON hotelluxe.* TO 'your_username'@'localhost';
-FLUSH PRIVILEGES;
-```
-
 ## 🌐 Application URLs
 
-- **Frontend (Customer)**: http://localhost:5174
-- **Admin Panel**: http://localhost:5174/admin
+- **Frontend (Customer)**: http://localhost:5173
+- **Admin Panel**: http://localhost:5173/admin
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/api/documentation
 
 ## 🔑 Default Login Credentials
 
 ### 👨‍💼 Admin Account
-- **Email**: `admin@hotelluxe.com`
-- **Password**: `admin123456`
+- **Email**: `admin@hotel.com`
+- **Password**: `admin123`
 - **Role**: Administrator
 - **Access**: Full system management
 
-### 🏨 Hotel Manager Account  
-- **Email**: `manager@hotelluxe.com`
-- **Password**: `manager123456`
-- **Role**: Hotel Manager
-- **Access**: Hotel & booking management
-
-### 👤 Customer Account
-- **Email**: `customer@hotelluxe.com`
-- **Password**: `customer123456`
+### 👤 User Account
+- **Email**: `user@example.com`
+- **Password**: `123456`
 - **Role**: Customer
 - **Access**: Hotel booking & profile management
 
@@ -209,7 +149,7 @@ hotelluxe/
 - ✅ JWT Authentication với refresh tokens
 - ✅ Role-based access control (Admin/Manager/Customer)
 - ✅ Password encryption và validation
-- ✅ Profile management với avatar upload
+- ✅ Profile management
 - ✅ Session management và logout
 
 ### 🏨 Hotel Management
@@ -249,29 +189,29 @@ hotelluxe/
 ## 🚧 Roadmap & Future Enhancements
 
 ### 📈 Phase 1 - Analytics & Reporting
-- [ ] Advanced dashboard analytics với charts
-- [ ] Revenue reporting và export
-- [ ] Booking trends analysis
-- [ ] User activity tracking
+- Advanced dashboard analytics với charts
+- Revenue reporting và export
+- Booking trends analysis
+- User activity tracking
 
 ### ⭐ Phase 2 - Review System
-- [ ] Hotel review và rating system
-- [ ] Review moderation tools
-- [ ] Review analytics
-- [ ] Response system cho hotel owners
+- Hotel review và rating system
+- Review moderation tools
+- Review analytics
+- Response system cho hotel owners
 
 ### 📧 Phase 3 - Communication
-- [ ] Email notification system
-- [ ] SMS notifications (Vietnam)
-- [ ] In-app messaging
-- [ ] Booking confirmation emails
+- Email notification system
+- SMS notifications (Vietnam)
+- In-app messaging
+- Booking confirmation emails
 
 ### 🔧 Phase 4 - Advanced Features
-- [ ] Multi-language support (Vietnamese/English)
-- [ ] Advanced search với AI recommendations
-- [ ] Loyalty program
-- [ ] Mobile app development
-- [ ] Integration với third-party booking platforms
+- Multi-language support (Vietnamese/English)
+- Advanced search với AI recommendations
+- Loyalty program
+- Mobile app development
+- Integration với third-party booking platforms
 
 ## 🔧 API Endpoints
 
@@ -310,28 +250,6 @@ POST /api/payments/momo     # Process MoMo payment
 GET  /api/payments/{id}     # Get payment status
 ```
 
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### Database Connection Error
-```bash
-# Check MySQL service
-brew services start mysql  # macOS
-sudo systemctl start mysql # Linux
-
-# Verify database credentials in .env
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=hotelluxe
-```
-
-#### CORS Errors
-```bash
-# Verify CORS configuration in config/cors.php
-'allowed_origins' => ['http://localhost:5174']
-```
-
 #### JWT Token Issues
 ```bash
 # Regenerate JWT secret
@@ -341,75 +259,13 @@ php artisan jwt:secret
 php artisan config:clear
 ```
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes với proper testing
-4. Commit changes: `git commit -m 'Add amazing feature'`
-5. Push to branch: `git push origin feature/amazing-feature`
-6. Submit Pull Request
-
-### Development Guidelines
-- Follow PSR-12 coding standards cho PHP
-- Use TypeScript và proper typing cho React
-- Write descriptive commit messages
-- Add proper documentation cho new features
-- Include tests cho critical functionality
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
 ## � Team
 
-**Project Lead**: Việt Hoàng  
+**Project Contributors**: Việt Hoàng, Phạm Linh, Đăng Tân, Uyên, Đông Kha  
 **Frontend**: React + TypeScript  
-**Backend**: Laravel + MySQL  
-**DevOps**: Local Development Setup
-
-## � Support
-
-For support và questions:
-- Create an issue on GitHub
-- Email: support@hotelluxe.com
-- Documentation: Check README và inline comments
+**Backend**: Laravel(PHP) + MySQL  
 
 ---
-
-## 🚀 Production Deployment
-
-### Server Requirements
-- **Server**: Ubuntu 20.04+ hoặc CentOS 7+
-- **Web Server**: Nginx hoặc Apache
-- **PHP**: 8.1+ với required extensions
-- **Database**: MySQL 8.0+ hoặc MariaDB 10.4+
-- **SSL Certificate**: Let's Encrypt hoặc commercial SSL
-
-### Deployment Steps
-```bash
-# 1. Clone và setup trên production server
-git clone [repository] /var/www/hotelluxe
-cd /var/www/hotelluxe
-
-# 2. Backend deployment
-cd be-app
-composer install --optimize-autoloader --no-dev
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-
-# 3. Frontend build
-cd ../fe-app
-npm ci
-npm run build
-
-# 4. Setup web server (Nginx example)
-# Configure virtual host pointing to be-app/public
-```
-
----
-
 ⭐ **Nếu project này hữu ích, hãy cho chúng tôi một star trên GitHub!**
 
 🔗 **Demo**: [Live Demo URL] (updating...)  
