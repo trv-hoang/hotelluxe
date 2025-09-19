@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import fallbackBg from '@/assets/background.avif';
 
 interface RandomEnvironmentImageProps {
     query?: string;
@@ -21,20 +22,27 @@ const RandomEnvironmentImage = ({
     children,
 }: RandomEnvironmentImageProps) => {
     const [imageUrl, setImageUrl] = useState('');
-    const fallbackImage = 'src/assets/background.avif';
+    const fallbackImage = fallbackBg;
 
     useEffect(() => {
         const fetchImage = async () => {
             try {
+                const apiKey = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
+                
+                // Nếu không có API key, sử dụng fallback image ngay
+                if (!apiKey) {
+                    console.log('No Unsplash API key found, using fallback image');
+                    setImageUrl(fallbackImage);
+                    return;
+                }
+
                 let image: UnsplashImage | null = null;
                 let attempts = 0;
                 const maxAttempts = 5;
 
                 while (attempts < maxAttempts) {
                     const res = await fetch(
-                        `https://api.unsplash.com/photos/random?query=${query}&client_id=${
-                            import.meta.env.VITE_UNSPLASH_ACCESS_KEY
-                        }`,
+                        `https://api.unsplash.com/photos/random?query=${query}&client_id=${apiKey}`,
                     );
 
                     if (!res.ok) {
@@ -62,7 +70,7 @@ const RandomEnvironmentImage = ({
         };
 
         fetchImage();
-    }, [query]);
+    }, [query, fallbackImage]);
 
     return (
         <div

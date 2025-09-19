@@ -169,10 +169,10 @@ class AuthController extends Controller
                     unlink(public_path($user->profile_pic));
                 }
 
-                // Upload ảnh mới
+                // Upload ảnh mới vào thư mục /public/avatars/
                 $file = $request->file('profile_pic');
-                $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                $destinationPath = public_path('uploads/profiles');
+                $fileName = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $destinationPath = public_path('avatars');
                 
                 // Tạo thư mục nếu chưa tồn tại
                 if (!file_exists($destinationPath)) {
@@ -180,7 +180,7 @@ class AuthController extends Controller
                 }
                 
                 $file->move($destinationPath, $fileName);
-                $updateData['profile_pic'] = '/uploads/profiles/' . $fileName;
+                $updateData['profile_pic'] = '/avatars/' . $fileName;
                 
             } catch (\Exception $e) {
                 return response()->json([

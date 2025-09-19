@@ -19,6 +19,7 @@ interface AuthState {
     logout: () => Promise<void>;
     signup: (data: SignupPayload) => Promise<void>;
     updateProfile: (data: UpdateProfilePayload) => Promise<void>;
+    checkAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -95,25 +96,35 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
 
-            //  ĐÃ SỬA: Giả sử /auth/profile trả về user trong data.data.user
+            //  Cập nhật hồ sơ người dùng với upload ảnh
             updateProfile: async (data: UpdateProfilePayload) => {
                 set({ isUpdatingProfile: true });
                 try {
                     const token = localStorage.getItem('token');
                     const formData = new FormData();
 
-                    // Nếu data.profilePic là File thì append file
+                    // Nếu data.profilePic là File thì append file với tên đúng backend expects
                     if (data.profilePic instanceof File) {
-                        formData.append('profilePic', data.profilePic);
+                        formData.append('profile_pic', data.profilePic);
                     }
 
-                    // append các field khác
+                    // Append tất cả các field khác nếu có giá trị
                     if (data.name) formData.append('name', data.name);
+                    if (data.nickname) formData.append('nickname', data.nickname);
                     if (data.email) formData.append('email', data.email);
-                    // ... các field khác
+                    if (data.dob) formData.append('dob', data.dob);
+                    if (data.phone) formData.append('phone', data.phone);
+                    if (data.address) formData.append('address', data.address);
+                    if (data.gender) formData.append('gender', data.gender);
 
-                    const response = await api.put('/auth/profile', formData, {
-                        headers: { Authorization: `Bearer ${token}` },
+                    // Laravel cần _method=PUT cho multipart form data
+                    formData.append('_method', 'PUT');
+                    
+                    const response = await api.post('/auth/profile', formData, {
+                        headers: { 
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'multipart/form-data'
+                        },
                     });
 
                     const apiData = response.data.data;
@@ -122,8 +133,32 @@ export const useAuthStore = create<AuthState>()(
                 } catch (error) {
                     toast.error('Không thể cập nhật hồ sơ');
                     console.error('Update profile error:', error);
+                    throw error;
                 } finally {
                     set({ isUpdatingProfile: false });
+                }
+            },
+
+            // Kiểm tra và load thông tin user từ token
+            checkAuth: async () => {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        set({ authUser: null });
+                        return;
+                    }
+
+                    const response = await api.get('/auth/profile', {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+
+                    const apiData = response.data.data;
+                    set({ authUser: apiData.user });
+                    console.log('Auth checked, user loaded:', apiData.user);
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                    localStorage.removeItem('token');
+                    set({ authUser: null });
                 }
             },
         }),
