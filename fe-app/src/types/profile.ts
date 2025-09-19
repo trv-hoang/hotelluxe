@@ -22,19 +22,20 @@
 
 // Kiểu dữ liệu User mới
 export interface User {
-  id: number;
-  name: string;
-  email: string;
-  password: string; // chỉ để mockup
-  role: "admin" | "user";
-  profilePic?: string;
-  nickname?: string;
-  dob?: string;
-  phone?: string;
-  gender?: string;
-  address?: string;
-  createdAt?: string;
-  updatedAt?: string;
+    id: number;
+    name: string;
+    email: string;
+    password: string; // chỉ để mockup
+    role: 'admin' | 'user';
+    profilePic?: string;
+    nickname?: string;
+    dob?: string;
+    phone?: string;
+    gender?: string;
+    address?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    profile_pic?: string; // cho tương thích backend
 }
 
 // Payloads

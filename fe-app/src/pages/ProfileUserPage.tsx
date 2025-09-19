@@ -53,31 +53,27 @@ const ProfileUserPage = () => {
 
     const fullName = profile?.name || '';
     const email = profile?.email || '';
-
     // Debug và helper functions
     const getImageSrc = () => {
-        const token = localStorage.getItem('token');
-        console.log('Token exists:', !!token);
-        
         if (selectedImg) {
             return selectedImg;
         }
-        
-        if (authUser?.profilePic) {
-            const serverUrl = `http://localhost:8000${authUser.profilePic}`;
+
+        if (authUser?.profile_pic) {
+            const serverUrl = `http://localhost:8000${authUser.profile_pic}`;
             return serverUrl;
         }
-            return '/avatar.png';
+        return '/avatar.png';
     };
 
     // Upload avatar
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        
+
         // Lưu file để gửi lên backend
         setSelectedFile(file);
-        
+
         // Tạo preview URL cho hiển thị
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -96,7 +92,7 @@ const ProfileUserPage = () => {
     // Submit update
     const handleSubmit = async () => {
         if (!profile) return;
-        
+
         try {
             // Tạo payload với file nếu có
             const updateData = {
@@ -109,14 +105,13 @@ const ProfileUserPage = () => {
                 gender: profile.gender,
                 profilePic: selectedFile || undefined, // Gửi File object thay vì base64
             };
-            
+
             await updateProfile(updateData);
-            
+
             // Reset form và close dialog
             setOpen(false);
             setSelectedFile(null);
             setSelectedImg(null);
-            
         } catch (error) {
             console.error('Update profile failed:', error);
         }

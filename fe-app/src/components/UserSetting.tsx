@@ -11,16 +11,16 @@ import { Link } from 'react-router-dom';
 import { LogOut, Settings, User } from 'lucide-react';
 import userImg from '@/assets/user2.avif';
 import { useAuthStore } from '@/store/useAuthStore';
-
+const BASE_URL = 'http://localhost:8000';
 export default function UserSetting() {
     const { authUser, logout } = useAuthStore();
-
+    console.log('Auth user hello:', authUser);
     return (
         <DropdownMenu>
             <DropdownMenuTrigger className='focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-primary rounded-full'>
                 <Avatar className='w-10 h-10'>
                     <AvatarImage
-                        src={authUser?.profilePic || userImg}
+                        src={BASE_URL + authUser?.profile_pic || userImg}
                         alt={authUser?.name || 'user'}
                         className='object-cover w-full h-full'
                     />
