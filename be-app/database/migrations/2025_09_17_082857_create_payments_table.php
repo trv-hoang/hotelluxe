@@ -17,7 +17,9 @@ return new class extends Migration
             $table->foreignId('booking_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->decimal('amount', 12, 2);
+            $table->string('currency', 3)->default('VND'); // Currency code (USD, VND, etc.)
             $table->enum('payment_method', ['credit_card', 'debit_card', 'bank_transfer', 'momo', 'zalopay', 'vnpay', 'cash'])->default('credit_card');
+            $table->string('gateway')->nullable(); // Payment gateway (stripe, momo, zalopay, etc.)
             $table->enum('status', ['pending', 'processing', 'completed', 'failed', 'refunded'])->default('pending');
             $table->string('transaction_id')->nullable(); // Gateway transaction ID
             $table->string('gateway_response')->nullable(); // Payment gateway response code
@@ -25,6 +27,7 @@ return new class extends Migration
             $table->string('card_holder_name')->nullable();
             $table->string('card_last_four')->nullable();
             $table->string('card_brand')->nullable(); // Visa, Mastercard, etc.
+            $table->json('metadata')->nullable(); // Additional payment metadata
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('refunded_at')->nullable();
             $table->decimal('refund_amount', 12, 2)->nullable();
