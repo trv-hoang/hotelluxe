@@ -79,10 +79,9 @@ npm run dev
 ```
 ## 🌐 Application URLs
 
-- **Frontend (Customer)**: http://localhost:5173
+- **Frontend (User)**: http://localhost:5173
 - **Admin Panel**: http://localhost:5173/admin
 - **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/api/documentation
 
 ## 🔑 Default Login Credentials
 
