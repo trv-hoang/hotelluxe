@@ -77,7 +77,45 @@ export default function useAuthors() {
     useEffect(() => {
         api.get('/authors')
             .then((res) => setAuthors(res.data.data))
-            .catch((err) => console.error(err))
+            .catch((err) => {
+                console.error('❌ Authors API failed:', err);
+                console.log('🔄 Using fallback authors data...');
+                
+                // Fallback authors data
+                const fallbackAuthors: Author[] = [
+                    {
+                        id: 1,
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        displayName: 'John Doe',
+                        email: 'john@hotel.com',
+                        gender: 'male',
+                        avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg',
+                        count: 15,
+                        href: '#',
+                        desc: 'Experienced hotel manager with 10 years in hospitality',
+                        jobName: 'Hotel Manager',
+                        address: 'Ho Chi Minh City, Vietnam',
+                        createdAt: '2020-05-15T00:00:00Z'
+                    },
+                    {
+                        id: 10,
+                        firstName: 'Sarah',
+                        lastName: 'Wilson',
+                        displayName: 'Sarah Wilson',
+                        email: 'sarah@hotel.com',
+                        gender: 'female',
+                        avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg',
+                        count: 25,
+                        href: '#',
+                        desc: 'Hospitality professional specializing in luxury experiences',
+                        jobName: 'Guest Relations Manager',
+                        address: 'Hanoi, Vietnam',
+                        createdAt: '2019-03-20T00:00:00Z'
+                    }
+                ];
+                setAuthors(fallbackAuthors);
+            })
             .finally(() => setLoading(false));
     }, []);
 

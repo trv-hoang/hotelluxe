@@ -50,6 +50,9 @@ import api from '@/api/axios';
 
 const StayDetailPage = () => {
     const { id } = useParams();
+    console.log('🏨 StayDetailPage rendered with ID:', id);
+    console.log('📍 Current location:', window.location.href);
+    
     const [isOpenModalAmenities, setIsOpenModalAmenities] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
@@ -82,17 +85,87 @@ const StayDetailPage = () => {
     console.log('author', author);
     useEffect(() => {
         const fetchStay = async () => {
+            console.log('🏨 Fetching stay with ID:', id);
+            
             try {
                 const res = await api.get(`/hotels/${id}`);
+                console.log('✅ Stay API Response:', res.data);
                 setStayData(res.data.data);
                 if (res.data.data.authorId) {
                     const authorRes = await api.get(
                         `/authors/${res.data.data.authorId}`,
                     );
+                    console.log('✅ Author API Response:', authorRes.data);
                     setAuthor(authorRes.data.data);
                 }
             } catch (error) {
-                console.error('Lỗi khi fetch stay:', error);
+                console.error('❌ Lỗi khi fetch stay:', error);
+                console.log('🔄 Using fallback stay data for ID:', id);
+                
+                // Fallback to static data
+                import('@/data/__homeStay.json').then(module => {
+                    const homeStayData = module.default;
+                    const fallbackStay = homeStayData.find(hotel => hotel.id.toString() === id?.toString());
+                    
+                    if (fallbackStay) {
+                        const mappedStay: ExtendedStayDataType = {
+                            id: fallbackStay.id,
+                            authorId: fallbackStay.authorId || 1,
+                            date: fallbackStay.date || new Date().toISOString(),
+                            href: `/hotels/${fallbackStay.id}`,
+                            title: fallbackStay.title,
+                            featuredImage: fallbackStay.featuredImage,
+                            galleryImgs: fallbackStay.galleryImgs || [fallbackStay.featuredImage],
+                            description: fallbackStay.description || getRandomDescription(),
+                            price: fallbackStay.price || 500000,
+                            address: fallbackStay.address || 'Địa chỉ không xác định',
+                            category: {
+                                id: 1,
+                                name: 'Khách sạn',
+                                href: '/categories/hotel',
+                                color: 'blue'
+                            },
+                            reviewStart: fallbackStay.reviewStart || 4.5,
+                            reviewCount: fallbackStay.reviewCount || 10,
+                            commentCount: fallbackStay.commentCount || 5,
+                            viewCount: fallbackStay.viewCount || 100,
+                            like: false,
+                            maxGuests: fallbackStay.maxGuests || 4,
+                            bedrooms: fallbackStay.bedrooms || 2,
+                            bathrooms: fallbackStay.bathrooms || 1,
+                            saleOff: fallbackStay.saleOff || null,
+                            isAds: fallbackStay.isAds || false,
+                            map: fallbackStay.map || { lat: 21.0285, lng: 105.8542 },
+                            // Extended fields
+                            displayName: `Host ${fallbackStay.id}`,
+                            avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg',
+                            joinDate: 'May 2020',
+                            responseRate: '95%',
+                            checkInTime: '15:00',
+                            checkOutTime: '11:00',
+                            cancellationPolicy: 'Free cancellation before 24 hours',
+                            specialNotes: ['Không hút thuốc', 'Không nuôi thú cưng'],
+                            amenities: 'Wifi, TV, Điều hòa'
+                        };
+                        setStayData(mappedStay);
+                        
+                        // Set fallback author
+                        setAuthor({
+                            id: fallbackStay.authorId || 1,
+                            firstName: `Host`,
+                            lastName: `${fallbackStay.id}`,
+                            displayName: `Host ${fallbackStay.id}`,
+                            email: `host${fallbackStay.id}@hotel.com`,
+                            avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg',
+                            bgImage: '',
+                            count: 10,
+                            href: '#',
+                            jobName: 'Hotel Manager',
+                            desc: 'Experienced hospitality professional'
+                        });
+                        console.log('✅ Fallback stay data set:', mappedStay);
+                    }
+                });
             } finally {
                 setLoading(false);
             }
@@ -103,13 +176,24 @@ const StayDetailPage = () => {
     }, [id]);
 
     if (loading) {
-        return <div>Đang tải dữ liệu...</div>;
+        return (
+            <div className='flex items-center justify-center h-screen text-lg'>
+                <div className='text-center'>
+                    <p>Đang tải dữ liệu...</p>
+                    <p className='text-sm text-gray-500 mt-2'>ID: {id}</p>
+                </div>
+            </div>
+        );
     }
 
     if (!stayData) {
         return (
             <div className='flex items-center justify-center h-screen text-lg text-red-500'>
-                Không tìm thấy chỗ ở!
+                <div className='text-center'>
+                    <p>Không tìm thấy chỗ ở!</p>
+                    <p className='text-sm text-gray-500 mt-2'>ID được tìm: {id}</p>
+                    <p className='text-xs text-gray-400 mt-1'>URL: {window.location.href}</p>
+                </div>
             </div>
         );
     }
