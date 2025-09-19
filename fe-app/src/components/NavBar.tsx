@@ -1,7 +1,7 @@
 import SearchBar from '@/components/SearchBar';
 import logo from '@/assets/logo.png';
 import { Button } from '@/components/ui/button';
-import { Bell, MapPin, Plane } from 'lucide-react';
+import { BadgeInfo, Bell, Plane } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
     Tooltip,
@@ -42,11 +42,11 @@ const Navbar = () => {
                                 to='/locations'
                                 className='hover:bg-accent rounded-md p-2 transition-colors'
                             >
-                                <MapPin className='w-5 h-5 text-gray-600' />
+                                <BadgeInfo className='w-5 h-5 text-gray-600' />
                             </Link>
                         </TooltipTrigger>
                         <TooltipContent side='bottom'>
-                            <p>Địa điểm</p>
+                            <p>Giới thiệu</p>
                         </TooltipContent>
                     </Tooltip>
 
@@ -66,7 +66,7 @@ const Navbar = () => {
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Link
-                                to='/cart'
+                                to='/hotels'
                                 className='hover:bg-accent rounded-md p-2 transition-colors'
                             >
                                 {/* Icon */}
@@ -74,7 +74,7 @@ const Navbar = () => {
                             </Link>
                         </TooltipTrigger>
                         <TooltipContent side='bottom'>
-                            <p>Chuyến bay</p>
+                            <p>Khám phá</p>
                         </TooltipContent>
                     </Tooltip>
 
