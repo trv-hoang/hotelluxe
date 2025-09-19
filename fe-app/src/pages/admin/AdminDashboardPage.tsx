@@ -72,6 +72,13 @@ const AdminDashboardPage: React.FC = () => {
             });
             // Set default data in case of API failure
             setDashboardStats({
+                totalUsers: 0,
+                totalBookings: 0,
+                totalRevenue: 0,
+                activeHotels: 0,
+                monthlyRevenue: [],
+                bookingTrends: [],
+                topHotels: [],
                 users: { total: 0, new_this_month: 0, active_users: 0, verified_users: 0 },
                 hotels: { total: 0, active: 0, pending_approval: 0, average_rating: 0 },
                 bookings: { total: 0, today: 0, this_month: 0, confirmed: 0, pending: 0, cancelled: 0 },

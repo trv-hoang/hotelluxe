@@ -124,7 +124,7 @@ class Payment extends Model
         return $this->update([
             'status' => self::STATUS_COMPLETED,
             'paid_at' => now(),
-            'gateway_transaction_id' => $gatewayTransactionId,
+            'transaction_id' => $gatewayTransactionId,
             'gateway_response' => $gatewayResponse
         ]);
     }
@@ -187,5 +187,20 @@ class Payment extends Model
     public function scopeFailed($query)
     {
         return $query->where('status', self::STATUS_FAILED);
+    }
+
+    /**
+     * Generate custom payment ID for booking
+     */
+    public static function generatePaymentIdForBooking($userId, $checkInDate)
+    {
+        // Convert date to timestamp for consistency
+        $timestamp = is_string($checkInDate) ? strtotime($checkInDate) : $checkInDate->timestamp;
+        
+        // Generate random suffix
+        $randomSuffix = strtoupper(substr(md5(uniqid()), 0, 6));
+        
+        // Format: PAY_U{userId}_CI{timestamp}_{random}
+        return "PAY_U{$userId}_CI{$timestamp}_{$randomSuffix}";
     }
 }

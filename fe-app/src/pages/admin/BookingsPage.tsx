@@ -10,6 +10,7 @@ import { formatCurrency, formatDate, generateBookingNumber, calculateNights } fr
 import homeStayData from '../../data/__homeStay.json';
 import usersData from '../../data/jsons/__users.json';
 import { useNotifications } from '../../hooks/useNotifications';
+import { bookingApi } from '../../api/booking';
 
 // Booking interface
 interface BookingData {
@@ -81,15 +82,38 @@ const BookingsPage: React.FC = () => {
         const loadData = async () => {
             try {
                 setLoading(true);
-                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
-                const mockBookings = generateMockBookings();
-                setBookings(mockBookings);
+                
+                // Try to load real data from API
+                try {
+                    const response = await bookingApi.getAllBookings({
+                        per_page: 100, // Get more data for admin view
+                        sort_by: 'created_at',
+                        sort_order: 'desc'
+                    });
+                    
+                    if (response.success && response.data?.data) {
+                        setBookings(response.data.data);
+                    } else {
+                        throw new Error('Invalid API response');
+                    }
+                } catch (apiError: unknown) {
+                    console.warn('API failed, using mock data:', apiError);
+                    // Fallback to mock data if API fails
+                    const mockBookings = generateMockBookings();
+                    setBookings(mockBookings);
+                    
+                    addNotification({
+                        type: 'warning',
+                        title: 'Cảnh báo',
+                        message: 'Đang sử dụng dữ liệu mẫu. Vui lòng kiểm tra kết nối API.'
+                    });
+                }
             } catch (error) {
                 console.error('Error loading bookings:', error);
                 addNotification({
                     type: 'error',
                     title: 'Lỗi',
-                    message: 'Failed to load bookings data'
+                    message: 'Không thể tải dữ liệu đặt phòng'
                 });
             } finally {
                 setLoading(false);

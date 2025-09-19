@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ShoppingCart } from 'lucide-react';
 import toast from 'react-hot-toast';
+// Dynamic import will be used instead
+
 
 import {
     Select,
@@ -125,19 +127,31 @@ const PaymentForm: React.FC = () => {
 
         console.log(' FullPaymentData gửi API:', fullData);
 
-        // TODO: gọi API ở đây
+        // Gọi API thực tế
         try {
             // hiển thị "loading"
             const toastId = toast.loading('Đang xử lý thanh toán...');
 
-            // TODO: gọi API thực tế
-            await new Promise((resolve) => setTimeout(resolve, 1500)); // fake API
+            // Gọi API thật
+            const { paymentApi } = await import('../../src/api/payment');
+            const result = await paymentApi.processBooking(fullData);
 
-            toast.success('Thanh toán thành công!', { id: toastId });
-            navigate('/hotels');
-        } catch (error) {
-            toast.error('Thanh toán thất bại, vui lòng thử lại!');
-            console.error(error);
+            console.log('Payment result:', result);
+            
+            // Clear cart sau khi thanh toán thành công
+            const { clearCart } = useCartStore.getState();
+            clearCart();
+
+            toast.success('Thanh toán thành công! Redirecting...', { id: toastId });
+            
+            // Delay để user thấy thông báo thành công
+            setTimeout(() => {
+                navigate('/hotels');
+            }, 1500);
+        } catch (error: unknown) {
+            console.error('Payment error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Thanh toán thất bại, vui lòng thử lại!';
+            toast.error(errorMessage);
         }
     };
 
