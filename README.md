@@ -61,6 +61,19 @@ Hệ thống quản lý khách sạn toàn diện với React frontend và Larav
 - **Composer** - PHP dependency manager
 - **MySQL** v8.0+
 - **Git** for version control
+### SET-UP CHO DỰ ÁN
+### 🚀 Xampp Setup (Database)
+- Đảm bảo file `.env.example` đã có DB_CONNECTION và  DB_DATABASE
+```bash
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=luxe_hotel
+DB_USERNAME=root
+DB_PASSWORD=
+```
+- Mở XAMPP control panel, kích hoạt Apache và Mysql
+- Mở trang **phpMyAdmin** tại địa chỉ: [http://localhost/phpmyadmin/](http://localhost/phpmyadmin/) và thêm database mới tên `luxe_hotel`
 
 ### 🔧 Backend Setup (Laravel)
 ```bash
@@ -69,9 +82,11 @@ cd be-app
 composer install
 cp .env.example .env
 php artisan key:generate
+php artisan jwt:secret
 php artisan migrate:fresh --seed
 php artisan serve
 ```
+
 
 ### 🎨 Frontend Setup (React)
 ```bash
