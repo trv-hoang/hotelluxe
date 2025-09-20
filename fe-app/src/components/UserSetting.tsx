@@ -8,7 +8,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Link } from 'react-router-dom';
-import { LogOut, Settings, User } from 'lucide-react';
+import { LogOut, Settings, User, Calendar } from 'lucide-react';
 import userImg from '@/assets/user2.avif';
 import { useAuthStore } from '@/store/useAuthStore';
 const BASE_URL = 'http://localhost:8000';
@@ -37,6 +37,11 @@ export default function UserSetting() {
                 <DropdownMenuItem asChild>
                     <Link to='/profile' className='flex items-center gap-2'>
                         <User className='h-4 w-4' /> Profile
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link to='/my-bookings' className='flex items-center gap-2'>
+                        <Calendar className='h-4 w-4' /> Đặt phòng
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>

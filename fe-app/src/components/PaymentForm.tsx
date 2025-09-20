@@ -142,11 +142,14 @@ const PaymentForm: React.FC = () => {
             const { clearCart } = useCartStore.getState();
             clearCart();
 
-            toast.success('Thanh toán thành công! Redirecting...', { id: toastId });
-            
-            // Delay để user thấy thông báo thành công
+            toast.success(
+                'Thanh toán thành công! Đang chuyển đến lịch sử đặt phòng...',
+                { id: toastId },
+            );
+
+            // Delay để user thấy thông báo thành công, sau đó redirect đến booking history
             setTimeout(() => {
-                navigate('/hotels');
+                navigate('/my-bookings');
             }, 1500);
         } catch (error: unknown) {
             console.error('Payment error:', error);

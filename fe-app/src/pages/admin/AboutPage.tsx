@@ -66,7 +66,7 @@ const teamMembers = [
         role: 'CTO & Tech Lead',
         description:
             'Kỹ sư phần mềm senior với chuyên môn về hệ thống quản lý khách sạn và công nghệ số.',
-        avatar: '/public/avatar.png',
+        avatar: '/public/hoang.jpg',
         email: 'hoang.tran@hotelluxe.com',
         phone: '+84 902 345 678',
         github: 'github.com/tranviethoang',
@@ -84,7 +84,7 @@ const teamMembers = [
         linkedin: 'linkedin.com/in/nguyendinhdongkha',
         skills: [
             'Operations Management',
-            'Customer Service',
+            'Full-stack Development',
             'Process Optimization',
         ],
     },
@@ -98,7 +98,7 @@ const teamMembers = [
         email: 'linh.pham@hotelluxe.com',
         phone: '+84 904 567 890',
         linkedin: 'linkedin.com/in/phammylinh',
-        skills: ['Digital Marketing', 'Brand Management', 'Content Strategy'],
+        skills: ['Backend Developer', ' Tech Writer', 'Content Strategy'],
     },
     {
         id: 5,
@@ -110,7 +110,7 @@ const teamMembers = [
         email: 'uyen.nguyen@hotelluxe.com',
         phone: '+84 905 678 901',
         linkedin: 'linkedin.com/in/nguyennhuuyen',
-        skills: ['Customer Experience', 'Service Design', 'Quality Assurance'],
+        skills: ['Backend Developer', ' Tech Writer', 'Customer Experience'],
     },
 ];
 

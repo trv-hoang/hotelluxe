@@ -24,7 +24,8 @@ class BookingController extends Controller
         $query = Booking::with([
             'hotel:id,title,slug,featured_image,address,price_per_night',
             'hotel.category:id,name,icon',
-            'guests'
+            'guests',
+            'payments'
         ])->where('user_id', $user->id);
 
         // Filter by status
@@ -37,12 +38,41 @@ class BookingController extends Controller
         $sortOrder = $request->get('sort_order', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
+        // For debugging - temporarily return all bookings without pagination
+        if ($request->get('debug') === 'true') {
+            $allBookings = $query->get();
+            return response()->json([
+                'success' => true,
+                'data' => $allBookings,
+                'message' => 'Debug mode: All bookings returned',
+                'total' => $allBookings->count(),
+                'user_debug' => [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email
+                ]
+            ]);
+        }
+        
         $perPage = $request->get('per_page', 10);
+        
+        if ($perPage > 100) {
+            $perPage = 100; // Limit max per page
+        }
+        
         $bookings = $query->paginate($perPage);
 
         return response()->json([
             'success' => true,
-            'data' => $bookings
+            'data' => [
+                'data' => $bookings->items(),
+                'current_page' => $bookings->currentPage(),
+                'last_page' => $bookings->lastPage(),
+                'per_page' => $bookings->perPage(),
+                'total' => $bookings->total(),
+                'from' => $bookings->firstItem(),
+                'to' => $bookings->lastItem()
+            ],
+            'message' => 'Bookings retrieved successfully'
         ]);
     }
 

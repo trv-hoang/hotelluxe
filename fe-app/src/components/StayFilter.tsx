@@ -162,6 +162,34 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                 <h2 className='text-2xl font-semibold'>
                     Bộ lọc khách sạn ({sortedData.length})
                 </h2>
+            </div>
+
+            {/* Nút sắp xếp */}
+            <div className='flex items-center gap-3'>
+                <Button
+                    variant={sortBy === 'saleOff' ? 'default' : 'outline'}
+                    size='sm'
+                    onClick={() => handleSort('saleOff')}
+                    className='flex items-center gap-1'
+                >
+                    Giảm giá {renderSortIcon('saleOff')}
+                </Button>
+                <Button
+                    variant={sortBy === 'viewCount' ? 'default' : 'outline'}
+                    size='sm'
+                    onClick={() => handleSort('viewCount')}
+                    className='flex items-center gap-1'
+                >
+                    Lượt xem {renderSortIcon('viewCount')}
+                </Button>
+                <Button
+                    variant={sortBy === 'reviewCount' ? 'default' : 'outline'}
+                    size='sm'
+                    onClick={() => handleSort('reviewCount')}
+                    className='flex items-center gap-1'
+                >
+                    Đánh giá {renderSortIcon('reviewCount')}
+                </Button>
                 <Popover>
                     <PopoverTrigger asChild>
                         <Button
@@ -280,34 +308,6 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                         </Button>
                     </PopoverContent>
                 </Popover>
-            </div>
-
-            {/* Nút sắp xếp */}
-            <div className='flex items-center gap-3'>
-                <Button
-                    variant={sortBy === 'saleOff' ? 'default' : 'outline'}
-                    size='sm'
-                    onClick={() => handleSort('saleOff')}
-                    className='flex items-center gap-1'
-                >
-                    Giảm giá {renderSortIcon('saleOff')}
-                </Button>
-                <Button
-                    variant={sortBy === 'viewCount' ? 'default' : 'outline'}
-                    size='sm'
-                    onClick={() => handleSort('viewCount')}
-                    className='flex items-center gap-1'
-                >
-                    Lượt xem {renderSortIcon('viewCount')}
-                </Button>
-                <Button
-                    variant={sortBy === 'reviewCount' ? 'default' : 'outline'}
-                    size='sm'
-                    onClick={() => handleSort('reviewCount')}
-                    className='flex items-center gap-1'
-                >
-                    Đánh giá {renderSortIcon('reviewCount')}
-                </Button>
             </div>
         </div>
     );
