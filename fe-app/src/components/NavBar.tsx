@@ -39,7 +39,7 @@ const Navbar = () => {
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Link
-                                to='/locations'
+                                to='/about'
                                 className='hover:bg-accent rounded-md p-2 transition-colors'
                             >
                                 <BadgeInfo className='w-5 h-5 text-gray-600' />
@@ -57,9 +57,11 @@ const Navbar = () => {
                                 <Bell className='!w-5 !h-5 text-gray-600' />
                             </NotificationDropdown>
                         </TooltipTrigger>
-                        {/* <TooltipContent side='bottom'>
-                            <p>Thông báo</p>
-                        </TooltipContent> */}
+                        {/* {!authUser && (
+                            <TooltipContent side='bottom'>
+                                <p>Thông báo</p>
+                            </TooltipContent>
+                        )} */}
                     </Tooltip>
 
                     {/* plane */}
