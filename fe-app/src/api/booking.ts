@@ -14,16 +14,29 @@ const apiClient = axios.create({
 
 // Add auth token to requests
 apiClient.interceptors.request.use((config) => {
-    // Use regular token for user operations, admin token only for admin operations
     const token = localStorage.getItem('token');
     const adminToken = localStorage.getItem('admin-token');
 
-    // For regular user operations, prioritize user token
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    } else if (adminToken) {
-        // Fallback to admin token only if no user token
-        config.headers.Authorization = `Bearer ${adminToken}`;
+    // Check if this is an admin endpoint
+    const isAdminEndpoint =
+        config.url?.includes('/admin/') || config.url?.includes('admin/all');
+
+    if (isAdminEndpoint) {
+        // For admin endpoints, prioritize admin token
+        if (adminToken) {
+            config.headers.Authorization = `Bearer ${adminToken}`;
+        } else if (token) {
+            // Fallback to user token if user has admin role
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+    } else {
+        // For user endpoints, prioritize user token
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        } else if (adminToken) {
+            // Fallback to admin token only if no user token
+            config.headers.Authorization = `Bearer ${adminToken}`;
+        }
     }
     return config;
 });
