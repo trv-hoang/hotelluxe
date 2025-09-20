@@ -1,13 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { forgotPassword } from '@/api/auth';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // Pre-fill email if coming from resend OTP
+    useEffect(() => {
+        if (location.state?.email) {
+            setEmail(location.state.email);
+        }
+    }, [location.state]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -15,8 +24,9 @@ export default function ForgotPasswordPage() {
 
         try {
             await forgotPassword(email);
-            toast.success('Kiểm tra email để tạo mới mật khẩu');
-            setEmail(''); // reset input sau khi gửi thành công
+            toast.success('OTP đã được gửi đến email của bạn');
+            // Chuyển hướng đến trang verify OTP và truyền email
+            navigate('/verify-otp', { state: { email } });
         } catch (err: unknown) {
             let errorMessage = 'Request failed';
 

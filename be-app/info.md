@@ -45,4 +45,7 @@ php artisan db:seed --class=AuthorSeeder
 
 composer dump-autoload
 php artisan cache:clear
-php artisan config:clear
+php artisan config:clears
+
+nguoidirung: saazj noew bamy pnra 
+jgan cunc mpvs jojq 

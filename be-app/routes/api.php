@@ -29,6 +29,9 @@ use App\Http\Controllers\Api\Admin\ReviewModerationController;
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
+    Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('verify-otp', [AuthController::class, 'verifyOTP']);
+    Route::post('reset-password', [AuthController::class, 'resetPassword']);
 });
 
 // Public hotel routes (no auth required for viewing)
@@ -189,13 +192,12 @@ Route::get('health', function () {
 });
 
 
-// kha test - guest và author routes
-
-use App\Http\Controllers\Api\GuestController;
-use App\Http\Controllers\Api\AuthorController;
-Route::get('/guests', [GuestController::class, 'index']);
-Route::get('/guests/{id}', [GuestController::class, 'show']);
-Route::get('/authors', [AuthorController::class, 'index']);
-Route::get('/authors/{id}', [AuthorController::class, 'show']);
+// kha test - guest và author routes (commented out until controllers exist)
+// use App\Http\Controllers\Api\GuestController;
+// use App\Http\Controllers\Api\AuthorController;
+// Route::get('/guests', [GuestController::class, 'index']);
+// Route::get('/guests/{id}', [GuestController::class, 'show']);
+// Route::get('/authors', [AuthorController::class, 'index']);
+// Route::get('/authors/{id}', [AuthorController::class, 'show']);
 // REMOVED: Duplicate GuestAuthController routes
 // Use /auth/* endpoints instead for consistency

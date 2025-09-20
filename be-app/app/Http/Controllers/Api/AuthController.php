@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
@@ -229,6 +233,191 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Logout successful'
+        ]);
+    }
+
+    /**
+     * Send password reset email with OTP
+     */
+    public function forgotPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $email = $request->email;
+        
+        // Tạo OTP 6 chữ số
+        $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $token = Str::random(64); // Vẫn tạo token để bảo mật
+
+        // Xóa OTP cũ nếu có
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+
+        // Lưu OTP mới
+        DB::table('password_reset_tokens')->insert([
+            'email' => $email,
+            'token' => $token,
+            'otp_code' => $otpCode,
+            'is_verified' => false,
+            'created_at' => Carbon::now()
+        ]);
+
+        // Gửi email với OTP
+        try {
+            Mail::send('emails.password-reset-otp', [
+                'otpCode' => $otpCode,
+                'email' => $email
+            ], function ($message) use ($email) {
+                $message->to($email)
+                        ->subject('Mã xác thực reset password - Hotel Luxe');
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mã xác thực đã được gửi đến email của bạn'
+            ]);
+
+        } catch (\Exception $e) {
+            // Xóa OTP nếu gửi email thất bại
+            DB::table('password_reset_tokens')->where('email', $email)->delete();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể gửi email: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Verify OTP code
+     */
+    public function verifyOTP(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'otp_code' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Tìm OTP trong database
+        $resetRecord = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('otp_code', $request->otp_code)
+            ->where('is_verified', false)
+            ->first();
+
+        if (!$resetRecord) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mã OTP không hợp lệ hoặc đã được sử dụng'
+            ], 400);
+        }
+
+        // Kiểm tra OTP có hết hạn không (10 phút)
+        if (Carbon::parse($resetRecord->created_at)->addMinutes(10)->isPast()) {
+            // Xóa OTP hết hạn
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Mã OTP đã hết hạn'
+            ], 400);
+        }
+
+        // Đánh dấu OTP đã được verify
+        DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('otp_code', $request->otp_code)
+            ->update(['is_verified' => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Xác thực thành công. Bạn có thể đặt mật khẩu mới.',
+            'data' => [
+                'reset_token' => $resetRecord->token
+            ]
+        ]);
+    }
+
+    /**
+     * Reset password with verified token
+     */
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'token' => 'required',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Tìm token đã được verify trong database
+        $resetRecord = DB::table('password_reset_tokens')
+            ->where('token', $request->token)
+            ->where('is_verified', true)
+            ->first();
+
+        if (!$resetRecord) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token không hợp lệ hoặc chưa được xác thực'
+            ], 400);
+        }
+
+        // Kiểm tra token có hết hạn không (24 giờ từ khi tạo)
+        if (Carbon::parse($resetRecord->created_at)->addHours(24)->isPast()) {
+            // Xóa token hết hạn
+            DB::table('password_reset_tokens')->where('token', $request->token)->delete();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Token đã hết hạn'
+            ], 400);
+        }
+
+        // Tìm user và cập nhật password
+        $user = User::where('email', $resetRecord->email)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy user'
+            ], 404);
+        }
+
+        // Cập nhật password
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        // Xóa token sau khi sử dụng
+        DB::table('password_reset_tokens')->where('token', $request->token)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mật khẩu đã được cập nhật thành công'
         ]);
     }
 }
