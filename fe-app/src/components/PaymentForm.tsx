@@ -226,7 +226,7 @@ const PaymentForm: React.FC = () => {
 
             <button
                 type='submit'
-                className='w-full bg-gray-800 hover:bg-gray-900 transition-all duration-300 text-white p-3 rounded-lg flex items-center justify-center gap-2 font-medium'
+                className='w-full bg-green-600 hover:bg-green-700 transition-all duration-300 text-white p-3 rounded-lg flex items-center justify-center gap-2 font-medium'
             >
                 Thanh toán
                 <ShoppingCart className='w-4 h-4' />
