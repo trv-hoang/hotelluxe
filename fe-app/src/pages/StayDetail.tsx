@@ -80,97 +80,40 @@ const StayDetailPage = () => {
 
     const [stayData, setStayData] = useState<ExtendedStayDataType | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [author, setAuthor] = useState<AuthorType>();
     console.log('stayData', stayData);
     console.log('author', author);
     useEffect(() => {
         const fetchStay = async () => {
             console.log('🏨 Fetching stay with ID:', id);
+            setLoading(true);
+            setError(null);
 
             try {
                 const res = await api.get(`/hotels/${id}`);
                 console.log('✅ Stay API Response:', res.data);
                 setStayData(res.data.data);
+
                 if (res.data.data.authorId) {
-                    const authorRes = await api.get(
-                        `/authors/${res.data.data.authorId}`,
-                    );
-                    console.log('✅ Author API Response:', authorRes.data);
-                    setAuthor(authorRes.data.data);
-                }
-            } catch (error) {
-                console.error('❌ Lỗi khi fetch stay:', error);
-                console.log('🔄 Using fallback stay data for ID:', id);
-
-                // Fallback to static data
-                import('@/data/__homeStay.json').then((module) => {
-                    const homeStayData = module.default;
-                    const fallbackStay = homeStayData.find(
-                        (hotel) => hotel.id.toString() === id?.toString(),
-                    );
-
-                    if (fallbackStay) {
-                        const mappedStay: ExtendedStayDataType = {
-                            id: fallbackStay.id,
-                            authorId: fallbackStay.authorId || 1,
-                            date: fallbackStay.date || new Date().toISOString(),
-                            href: `/hotels/${fallbackStay.id}`,
-                            title: fallbackStay.title,
-                            featuredImage: fallbackStay.featuredImage,
-                            galleryImgs: fallbackStay.galleryImgs || [
-                                fallbackStay.featuredImage,
-                            ],
-                            description:
-                                fallbackStay.description ||
-                                getRandomDescription(),
-                            price: fallbackStay.price || 500000,
-                            address:
-                                fallbackStay.address ||
-                                'Địa chỉ không xác định',
-                            category: {
-                                id: 1,
-                                name: 'Khách sạn',
-                                href: '/categories/hotel',
-                                color: 'blue',
-                            },
-                            reviewStart: fallbackStay.reviewStart || 4.5,
-                            reviewCount: fallbackStay.reviewCount || 10,
-                            commentCount: fallbackStay.commentCount || 5,
-                            viewCount: fallbackStay.viewCount || 100,
-                            like: false,
-                            maxGuests: fallbackStay.maxGuests || 4,
-                            bedrooms: fallbackStay.bedrooms || 2,
-                            bathrooms: fallbackStay.bathrooms || 1,
-                            saleOff: fallbackStay.saleOff || null,
-                            isAds: fallbackStay.isAds || false,
-                            map: fallbackStay.map || {
-                                lat: 21.0285,
-                                lng: 105.8542,
-                            },
-                            // Extended fields
-                            displayName: `Host ${fallbackStay.id}`,
-                            avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg',
-                            joinDate: 'May 2020',
-                            responseRate: '95%',
-                            checkInTime: '15:00',
-                            checkOutTime: '11:00',
-                            cancellationPolicy:
-                                'Free cancellation before 24 hours',
-                            specialNotes: [
-                                'Không hút thuốc',
-                                'Không nuôi thú cưng',
-                            ],
-                            amenities: 'Wifi, TV, Điều hòa',
-                        };
-                        setStayData(mappedStay);
-
-                        // Set fallback author
+                    try {
+                        const authorRes = await api.get(
+                            `/authors/${res.data.data.authorId}`,
+                        );
+                        console.log('✅ Author API Response:', authorRes.data);
+                        setAuthor(authorRes.data.data);
+                    } catch (authorError) {
+                        console.warn(
+                            '⚠️ Không thể tải thông tin tác giả:',
+                            authorError,
+                        );
+                        // Fallback author nếu không tải được
                         setAuthor({
-                            id: fallbackStay.authorId || 1,
-                            firstName: `Host`,
-                            lastName: `${fallbackStay.id}`,
-                            displayName: `Host ${fallbackStay.id}`,
-                            email: `host${fallbackStay.id}@hotel.com`,
+                            id: res.data.data.authorId,
+                            firstName: 'Host',
+                            lastName: `${res.data.data.authorId}`,
+                            displayName: `Host ${res.data.data.authorId}`,
+                            email: `host${res.data.data.authorId}@hotel.com`,
                             avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg',
                             bgImage: '',
                             count: 10,
@@ -178,13 +121,40 @@ const StayDetailPage = () => {
                             jobName: 'Hotel Manager',
                             desc: 'Experienced hospitality professional',
                         });
-                        console.log('✅ Fallback stay data set:', mappedStay);
                     }
-                });
+                }
+            } catch (error) {
+                console.error('❌ Lỗi khi fetch stay:', error);
+                setError(
+                    'Không thể tải thông tin khách sạn. Vui lòng thử lại sau.',
+                );
+
+                // Fallback: thử tải danh sách hotels và tìm theo ID
+                try {
+                    console.log('🔄 Đang thử fallback từ danh sách hotels...');
+                    const fallbackRes = await api.get('/hotels');
+                    const hotels = fallbackRes.data.data || fallbackRes.data;
+                    const fallbackHotel = hotels.find(
+                        (hotel: StayDataType) =>
+                            hotel.id.toString() === id?.toString(),
+                    );
+
+                    if (fallbackHotel) {
+                        console.log(
+                            '✅ Tìm thấy hotel từ fallback:',
+                            fallbackHotel,
+                        );
+                        setStayData(fallbackHotel);
+                        setError(null); // Clear error nếu tìm thấy
+                    }
+                } catch (fallbackError) {
+                    console.error('❌ Fallback cũng thất bại:', fallbackError);
+                }
             } finally {
                 setLoading(false);
             }
         };
+
         if (id) {
             fetchStay();
         }
@@ -192,11 +162,10 @@ const StayDetailPage = () => {
 
     if (loading) {
         return (
-            <div className='flex items-center justify-center h-screen text-lg'>
-                <div className='text-center flex flex-col items-center'>
-                    <p>Đang tải dữ liệu...</p>
+            <div className='flex items-center justify-center h-screen'>
+                <div className='text-center flex flex-col items-center space-y-4'>
                     <motion.div
-                        className='w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full'
+                        className='w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full'
                         animate={{ rotate: 360 }}
                         transition={{
                             repeat: Infinity,
@@ -204,22 +173,117 @@ const StayDetailPage = () => {
                             ease: 'linear',
                         }}
                     />
+                    <div className='space-y-2'>
+                        <p className='text-lg font-medium text-gray-700'>
+                            Đang tải thông tin khách sạn...
+                        </p>
+                        <p className='text-sm text-gray-500'>
+                            Vui lòng chờ trong giây lát
+                        </p>
+                    </div>
                 </div>
             </div>
         );
     }
 
-    if (!stayData) {
+    if (error && !stayData) {
         return (
-            <div className='flex items-center justify-center h-screen text-lg text-red-500'>
-                <div className='text-center'>
-                    <p>Không tìm thấy chỗ ở!</p>
-                    <p className='text-sm text-gray-500 mt-2'>
-                        ID được tìm: {id}
+            <div className='flex items-center justify-center h-screen'>
+                <div className='text-center max-w-md mx-auto p-6'>
+                    <div className='w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4'>
+                        <svg
+                            className='w-8 h-8 text-red-500'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                        >
+                            <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z'
+                            />
+                        </svg>
+                    </div>
+                    <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+                        Có lỗi xảy ra
+                    </h3>
+                    <p className='text-gray-600 mb-4'>{error}</p>
+                    <div className='space-y-2 text-sm text-gray-500'>
+                        <p>
+                            ID được tìm: <span className='font-mono'>{id}</span>
+                        </p>
+                        <p>
+                            URL:{' '}
+                            <span className='font-mono text-xs'>
+                                {window.location.href}
+                            </span>
+                        </p>
+                    </div>
+                    <div className='mt-6 space-x-3'>
+                        <Button
+                            variant='outline'
+                            onClick={() => window.location.reload()}
+                        >
+                            Thử lại
+                        </Button>
+                        <Button variant='default' onClick={() => navigate('/')}>
+                            Về trang chủ
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!stayData && !loading) {
+        return (
+            <div className='flex items-center justify-center h-screen'>
+                <div className='text-center max-w-md mx-auto p-6'>
+                    <div className='w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4'>
+                        <svg
+                            className='w-8 h-8 text-orange-500'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                        >
+                            <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2z'
+                            />
+                        </svg>
+                    </div>
+                    <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+                        Không tìm thấy khách sạn
+                    </h3>
+                    <p className='text-gray-600 mb-4'>
+                        Khách sạn bạn đang tìm kiếm không tồn tại hoặc đã bị
+                        xóa.
                     </p>
-                    <p className='text-xs text-gray-400 mt-1'>
-                        URL: {window.location.href}
-                    </p>
+                    <div className='space-y-2 text-sm text-gray-500'>
+                        <p>
+                            ID được tìm: <span className='font-mono'>{id}</span>
+                        </p>
+                        <p>
+                            URL:{' '}
+                            <span className='font-mono text-xs'>
+                                {window.location.href}
+                            </span>
+                        </p>
+                    </div>
+                    <div className='mt-6 space-x-3'>
+                        <Button
+                            variant='outline'
+                            onClick={() => window.history.back()}
+                        >
+                            Quay lại
+                        </Button>
+                        <Button variant='default' onClick={() => navigate('/')}>
+                            Về trang chủ
+                        </Button>
+                    </div>
                 </div>
             </div>
         );
@@ -250,7 +314,7 @@ const StayDetailPage = () => {
         cancellationPolicy = 'Bạn có thể hủy miễn phí trong vòng 48 giờ sau khi đặt phòng. Nếu hủy trước 14 ngày so với ngày nhận phòng, bạn sẽ được hoàn lại 50% tổng số tiền. Sau thời hạn này, không được hoàn tiền.',
         specialNotes = ['Vui lòng giữ yên tĩnh sau 23h'],
         description = getRandomDescription(),
-    } = stayData;
+    } = stayData || {};
 
     // function closeModalAmenities() {
     //     setIsOpenModalAmenities(false);
@@ -301,25 +365,27 @@ const StayDetailPage = () => {
 
                     {/* Right side: inner 2x2 grid of thumbnails, fills the same height as left */}
                     <div className='grid grid-cols-2 grid-rows-2 gap-2 h-full'>
-                        {thumbs.slice(0, 4).map((img, index) => (
-                            <div
-                                key={index}
-                                className={`relative rounded-md overflow-hidden ${
-                                    !img ? 'bg-neutral-100' : ''
-                                }`}
-                                onClick={() =>
-                                    handleOpenModalImageGallery(index + 1)
-                                }
-                            >
-                                <img
-                                    src={img || '/placeholder-image.jpg'}
-                                    alt={`Hình ảnh ${index + 1}`}
-                                    className='w-full h-full object-cover rounded-md sm:rounded-xl'
-                                    loading='lazy'
-                                />
-                                <div className='absolute inset-0 bg-black bg-opacity-20 opacity-0 hover:opacity-100 transition-opacity' />
-                            </div>
-                        ))}
+                        {thumbs
+                            .slice(0, 4)
+                            .map((img: string, index: number) => (
+                                <div
+                                    key={index}
+                                    className={`relative rounded-md overflow-hidden ${
+                                        !img ? 'bg-neutral-100' : ''
+                                    }`}
+                                    onClick={() =>
+                                        handleOpenModalImageGallery(index + 1)
+                                    }
+                                >
+                                    <img
+                                        src={img || '/placeholder-image.jpg'}
+                                        alt={`Hình ảnh ${index + 1}`}
+                                        className='w-full h-full object-cover rounded-md sm:rounded-xl'
+                                        loading='lazy'
+                                    />
+                                    <div className='absolute inset-0 bg-black bg-opacity-20 opacity-0 hover:opacity-100 transition-opacity' />
+                                </div>
+                            ))}
                     </div>
 
                     {/* Show all photos button - đặt ở trên left image (absolute) */}
@@ -722,7 +788,7 @@ const StayDetailPage = () => {
                             Lưu ý đặc biệt
                         </h4>
                         <ul className='mt-3 text-neutral-500 dark:text-neutral-400 space-y-2 list-disc pl-5'>
-                            {specialNotes?.map((note, idx) => (
+                            {specialNotes?.map((note: string, idx: number) => (
                                 <li key={idx}>{note}</li>
                             )) || <li>Không gây ồn sau 23h.</li>}
                         </ul>
@@ -733,6 +799,8 @@ const StayDetailPage = () => {
     };
 
     const renderSidebar = () => {
+        if (!stayData) return null; // Guard clause để tránh null
+
         const handleAddToCart = () => {
             if (!authUser) {
                 alert('Vui lòng đăng nhập để đặt phòng.');
@@ -740,7 +808,6 @@ const StayDetailPage = () => {
                 return;
             }
             if (!stayData || isDisabled) return;
-            if (!stayData) return;
 
             addItem({
                 ...stayData, // toàn bộ thông tin từ StayDataType

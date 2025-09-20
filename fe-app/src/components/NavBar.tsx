@@ -51,18 +51,6 @@ const Navbar = () => {
                     </Tooltip>
 
                     {/* Notifications */}
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <NotificationDropdown>
-                                <Bell className='!w-5 !h-5 text-gray-600' />
-                            </NotificationDropdown>
-                        </TooltipTrigger>
-                        {/* {!authUser && (
-                            <TooltipContent side='bottom'>
-                                <p>Thông báo</p>
-                            </TooltipContent>
-                        )} */}
-                    </Tooltip>
 
                     {/* plane */}
                     <Tooltip>
@@ -78,6 +66,18 @@ const Navbar = () => {
                         <TooltipContent side='bottom'>
                             <p>Khám phá</p>
                         </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <NotificationDropdown>
+                                <Bell className='!w-5 !h-5 text-gray-600' />
+                            </NotificationDropdown>
+                        </TooltipTrigger>
+                        {/* {!authUser && (
+                            <TooltipContent side='bottom'>
+                                <p>Thông báo</p>
+                            </TooltipContent>
+                        )} */}
                     </Tooltip>
 
                     {/* Login */}
