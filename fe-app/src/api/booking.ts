@@ -14,14 +14,16 @@ const apiClient = axios.create({
 
 // Add auth token to requests
 apiClient.interceptors.request.use((config) => {
-    // Try admin token first, then regular token
-    const adminToken = localStorage.getItem('admin-token');
+    // Use regular token for user operations, admin token only for admin operations
     const token = localStorage.getItem('token');
-    
-    if (adminToken) {
-        config.headers.Authorization = `Bearer ${adminToken}`;
-    } else if (token) {
+    const adminToken = localStorage.getItem('admin-token');
+
+    // For regular user operations, prioritize user token
+    if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+    } else if (adminToken) {
+        // Fallback to admin token only if no user token
+        config.headers.Authorization = `Bearer ${adminToken}`;
     }
     return config;
 });
@@ -30,9 +32,12 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
-        console.error('Booking API Error:', error.response?.data || error.message);
+        console.error(
+            'Booking API Error:',
+            error.response?.data || error.message,
+        );
         return Promise.reject(error);
-    }
+    },
 );
 
 // Booking API endpoints
@@ -50,12 +55,17 @@ export const bookingApi = {
         sort_order?: 'asc' | 'desc';
     }) {
         try {
-            const response = await apiClient.get('/bookings/admin/all', { params });
+            const response = await apiClient.get('/bookings/admin/all', {
+                params,
+            });
             return response.data;
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 
-                (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 
-                'Không thể tải danh sách đặt phòng';
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : (error as { response?: { data?: { message?: string } } })
+                          ?.response?.data?.message ||
+                      'Không thể tải danh sách đặt phòng';
             throw new Error(errorMessage);
         }
     },
@@ -69,14 +79,18 @@ export const bookingApi = {
         status?: string;
         sort_by?: string;
         sort_order?: 'asc' | 'desc';
+        debug?: string;
     }) {
         try {
             const response = await apiClient.get('/bookings', { params });
             return response.data;
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 
-                (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 
-                'Không thể tải lịch sử đặt phòng';
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : (error as { response?: { data?: { message?: string } } })
+                          ?.response?.data?.message ||
+                      'Không thể tải lịch sử đặt phòng';
             throw new Error(errorMessage);
         }
     },
@@ -89,9 +103,12 @@ export const bookingApi = {
             const response = await apiClient.get(`/bookings/${id}`);
             return response.data;
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 
-                (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 
-                'Không thể tải thông tin đặt phòng';
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : (error as { response?: { data?: { message?: string } } })
+                          ?.response?.data?.message ||
+                      'Không thể tải thông tin đặt phòng';
             throw new Error(errorMessage);
         }
     },
@@ -104,9 +121,12 @@ export const bookingApi = {
             const response = await apiClient.post('/bookings', bookingData);
             return response.data;
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 
-                (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 
-                'Không thể tạo đặt phòng';
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : (error as { response?: { data?: { message?: string } } })
+                          ?.response?.data?.message ||
+                      'Không thể tạo đặt phòng';
             throw new Error(errorMessage);
         }
     },
@@ -116,12 +136,18 @@ export const bookingApi = {
      */
     async updateBooking(id: string, bookingData: Record<string, unknown>) {
         try {
-            const response = await apiClient.put(`/bookings/${id}`, bookingData);
+            const response = await apiClient.put(
+                `/bookings/${id}`,
+                bookingData,
+            );
             return response.data;
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 
-                (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 
-                'Không thể cập nhật đặt phòng';
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : (error as { response?: { data?: { message?: string } } })
+                          ?.response?.data?.message ||
+                      'Không thể cập nhật đặt phòng';
             throw new Error(errorMessage);
         }
     },
@@ -134,12 +160,15 @@ export const bookingApi = {
             const response = await apiClient.delete(`/bookings/${id}`);
             return response.data;
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 
-                (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 
-                'Không thể hủy đặt phòng';
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : (error as { response?: { data?: { message?: string } } })
+                          ?.response?.data?.message ||
+                      'Không thể hủy đặt phòng';
             throw new Error(errorMessage);
         }
-    }
+    },
 };
 
 // Export default

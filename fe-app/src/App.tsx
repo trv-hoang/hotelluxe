@@ -17,6 +17,7 @@ import StayDetailPage from '@/pages/StayDetail.tsx';
 import CartPage from '@/pages/CartPage.tsx';
 import ErrorPage from '@/pages/ErrorPage.tsx';
 import AboutPage from '@/pages/admin/AboutPage.tsx';
+import MyBookingPage from '@/pages/MyBookingPage.tsx';
 
 function App() {
     return (
@@ -50,16 +51,30 @@ function ClientApp() {
                     <Route path='/login' element={<LoginPage />} />
                     <Route path='/register' element={<RegisterPage />} />
                     <Route path='/profile' element={<ProfileUserPage />} />
+                    <Route path='/my-bookings' element={<MyBookingPage />} />
                     <Route
                         path='/forgot-password'
                         element={<ForgotPasswordPage />}
                     />
                     <Route path='/hotels' element={<StayPage />} />
                     <Route path='/hotels/:id' element={<StayDetailPage />} />
-                    <Route path='/test/:id' element={<div style={{padding: '50px', textAlign: 'center'}}><h1>Test Route Works!</h1><p>ID: {window.location.pathname.split('/').pop()}</p></div>} />
+                    <Route
+                        path='/test/:id'
+                        element={
+                            <div
+                                style={{ padding: '50px', textAlign: 'center' }}
+                            >
+                                <h1>Test Route Works!</h1>
+                                <p>
+                                    ID:{' '}
+                                    {window.location.pathname.split('/').pop()}
+                                </p>
+                            </div>
+                        }
+                    />
                     <Route path='/cart' element={<CartPage />} />
                     <Route path='/error' element={<ErrorPage />} />
-                    <Route path= "/about" element = {<AboutPage />} />
+                    <Route path='/about' element={<AboutPage />} />
                 </Routes>
             </main>
             <footer className='mx-auto sx:px-0 p-4 sm:max-x-xl md:max-w-7xl lg:max-w-7xl xl:min-w-[1480px]'>
