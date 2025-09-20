@@ -11,7 +11,7 @@ import {
     CardDescription,
     CardContent,
 } from '@/components/ui/card';
-import { EyeIcon, EyeOffIcon } from 'lucide-react'; // 👈 THÊM DÒNG NÀY
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
@@ -21,8 +21,8 @@ export default function RegisterPage() {
         password: '',
         password_confirmation: '',
     });
-    const [showPassword, setShowPassword] = useState(false); // 👈 THÊM
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false); // 👈 THÊM
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -44,7 +44,7 @@ export default function RegisterPage() {
                 form.password_confirmation,
             );
             localStorage.setItem('token', res.token);
-            navigate('/profile');
+            navigate('/login');
         } catch (err: unknown) {
             let errorMessage = 'Đăng ký thất bại';
             if (err && typeof err === 'object' && 'response' in err) {

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import NotificationItem from './NotificationItem';
 import { useAuthStore } from '@/store/useAuthStore';
 import notificationApi, { type PaymentNotification } from '@/api/notification';
+import { Link } from 'react-router-dom';
 
 export default function NotificationDropdown({
     children,
@@ -81,9 +82,11 @@ export default function NotificationDropdown({
                 <Button variant='ghost' className='relative p-2 mr-2'>
                     {children}
                     {unreadCount > 0 && (
-                        <span className='absolute top-1 right-1 bg-red-500 text-white rounded-full text-xs px-1 min-w-[20px] h-5 flex items-center justify-center'>
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
+                        <Link to='/my-bookings'>
+                            <span className='absolute top-1 right-1 bg-red-500 text-white rounded-full text-xs px-1 min-w-[20px] h-5 flex items-center justify-center'>
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                        </Link>
                     )}
                 </Button>
             </DropdownMenuTrigger>
