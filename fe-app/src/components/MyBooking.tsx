@@ -76,51 +76,51 @@ const PaymentStatusBadge: React.FC<{ status: string }> = ({ status }) => {
     );
 };
 
-const BookingStatusBadge: React.FC<{ status: string }> = ({ status }) => {
-    const getBadgeColor = (status: string) => {
-        switch (status) {
-            case 'confirmed':
-                return 'bg-green-100 text-green-800';
-            case 'pending':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'cancelled':
-                return 'bg-red-100 text-red-800';
-            case 'checked_in':
-                return 'bg-blue-100 text-blue-800';
-            case 'checked_out':
-                return 'bg-gray-100 text-gray-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
+// const BookingStatusBadge: React.FC<{ status: string }> = ({ status }) => {
+//     const getBadgeColor = (status: string) => {
+//         switch (status) {
+//             case 'confirmed':
+//                 return 'bg-green-100 text-green-800';
+//             case 'pending':
+//                 return 'bg-yellow-100 text-yellow-800';
+//             case 'cancelled':
+//                 return 'bg-red-100 text-red-800';
+//             case 'checked_in':
+//                 return 'bg-blue-100 text-blue-800';
+//             case 'checked_out':
+//                 return 'bg-gray-100 text-gray-800';
+//             default:
+//                 return 'bg-gray-100 text-gray-800';
+//         }
+//     };
 
-    const getStatusText = (status: string) => {
-        switch (status) {
-            case 'confirmed':
-                return 'Đã xác nhận';
-            case 'pending':
-                return 'Chờ xác nhận';
-            case 'cancelled':
-                return 'Đã hủy';
-            case 'checked_in':
-                return 'Đã check-in';
-            case 'checked_out':
-                return 'Đã check-out';
-            default:
-                return status;
-        }
-    };
+//     const getStatusText = (status: string) => {
+//         switch (status) {
+//             case 'confirmed':
+//                 return 'Đã xác nhận';
+//             case 'pending':
+//                 return 'Chờ xác nhận';
+//             case 'cancelled':
+//                 return 'Đã hủy';
+//             case 'checked_in':
+//                 return 'Đã check-in';
+//             case 'checked_out':
+//                 return 'Đã check-out';
+//             default:
+//                 return status;
+//         }
+//     };
 
-    return (
-        <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getBadgeColor(
-                status,
-            )}`}
-        >
-            {getStatusText(status)}
-        </span>
-    );
-};
+//     return (
+//         <span
+//             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getBadgeColor(
+//                 status,
+//             )}`}
+//         >
+//             {getStatusText(status)}
+//         </span>
+//     );
+// };
 
 const MyBooking: React.FC = () => {
     const navigate = useNavigate();
@@ -473,15 +473,13 @@ const MyBooking: React.FC = () => {
                                         <td className='px-6 py-4 whitespace-nowrap'>
                                             <div className='space-y-1'>
                                                 {booking.status && (
-                                                    <BookingStatusBadge
-                                                        status={booking.status}
-                                                    />
-                                                )}
-                                                <PaymentStatusBadge
+                                                   <PaymentStatusBadge
                                                     status={getPaymentStatus(
                                                         booking,
                                                     )}
                                                 />
+                                                )}
+                                               
                                             </div>
                                         </td>
                                         <td className='px-6 py-4 whitespace-nowrap'>

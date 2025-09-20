@@ -82,31 +82,181 @@ const BookingsPage: React.FC = () => {
         const loadData = async () => {
             try {
                 setLoading(true);
-                
+
+                // Check if user has admin access
+                const adminToken = localStorage.getItem('admin-token');
+                const userToken = localStorage.getItem('token');
+
+                if (!adminToken && !userToken) {
+                    addNotification({
+                        type: 'error',
+                        title: 'Lỗi xác thực',
+                        message:
+                            'Vui lòng đăng nhập với quyền admin để xem dữ liệu',
+                    });
+                    setLoading(false);
+                    return;
+                }
+
                 // Try to load real data from API
                 try {
                     const response = await bookingApi.getAllBookings({
                         per_page: 100, // Get more data for admin view
                         sort_by: 'created_at',
-                        sort_order: 'desc'
+                        sort_order: 'desc',
                     });
-                    
+
+                    console.log('Admin bookings API response:', response);
+
                     if (response.success && response.data?.data) {
-                        setBookings(response.data.data);
+                        // Transform API data to match frontend expectations
+                        const transformedBookings = response.data.data.map(
+                            (booking: unknown) => {
+                                const b = booking as Record<string, unknown>;
+                                return {
+                                    id: b.id as number,
+                                    bookingNumber: (b.bookingNumber ||
+                                        b.booking_number ||
+                                        `#${b.id}`) as string,
+                                    hotelId: (b.hotelId ||
+                                        b.hotel_id) as number,
+                                    customerId: (b.customerId ||
+                                        b.user_id) as number,
+                                    customerName: (b.customerName ||
+                                        (b.user as Record<string, unknown>)
+                                            ?.name ||
+                                        'Unknown') as string,
+                                    customerEmail: (b.customerEmail ||
+                                        (b.user as Record<string, unknown>)
+                                            ?.email ||
+                                        '') as string,
+                                    customerPhone: (b.customerPhone ||
+                                        (b.user as Record<string, unknown>)
+                                            ?.phone ||
+                                        '') as string,
+                                    checkIn: (b.checkIn ||
+                                        b.check_in_date) as string,
+                                    checkOut: (b.checkOut ||
+                                        b.check_out_date) as string,
+                                    nights: b.nights as number,
+                                    paymentStatus: (b.paymentStatus ||
+                                        'pending') as BookingData['paymentStatus'],
+                                    totalAmount: (b.totalAmount ||
+                                        b.total_amount) as number,
+                                    pricePerNight: (b.pricePerNight ||
+                                        b.price_per_night) as number,
+                                    createdAt: (b.createdAt ||
+                                        b.created_at) as string,
+                                    updatedAt: (b.updatedAt ||
+                                        b.updated_at) as string,
+                                };
+                            },
+                        );
+
+                        setBookings(transformedBookings);
+                        console.log(
+                            'Loaded',
+                            transformedBookings.length,
+                            'admin bookings from API',
+                        );
                     } else {
                         throw new Error('Invalid API response');
                     }
                 } catch (apiError: unknown) {
-                    console.warn('API failed, using mock data:', apiError);
-                    // Fallback to mock data if API fails
-                    const mockBookings = generateMockBookings();
-                    setBookings(mockBookings);
-                    
-                    addNotification({
-                        type: 'warning',
-                        title: 'Cảnh báo',
-                        message: 'Đang sử dụng dữ liệu mẫu. Vui lòng kiểm tra kết nối API.'
-                    });
+                    console.warn(
+                        'Admin API failed, trying user API:',
+                        apiError,
+                    );
+
+                    // Fallback: Try user bookings API if admin API fails
+                    try {
+                        const userResponse = await bookingApi.getUserBookings({
+                            per_page: 100,
+                            sort_by: 'created_at',
+                            sort_order: 'desc',
+                        });
+
+                        if (userResponse.success && userResponse.data) {
+                            const bookingData = Array.isArray(userResponse.data)
+                                ? userResponse.data
+                                : userResponse.data.data || [];
+
+                            // Transform user bookings to admin format
+                            const transformedUserBookings = bookingData.map(
+                                (booking: unknown) => {
+                                    const b = booking as Record<
+                                        string,
+                                        unknown
+                                    >;
+                                    const user = b.user as
+                                        | Record<string, unknown>
+                                        | undefined;
+                                    const payments = b.payments as
+                                        | Array<Record<string, unknown>>
+                                        | undefined;
+
+                                    return {
+                                        id: b.id as number,
+                                        bookingNumber: (b.booking_number ||
+                                            `#${b.id}`) as string,
+                                        hotelId: b.hotel_id as number,
+                                        customerId: (b.user_id || 1) as number,
+                                        customerName: (user?.name ||
+                                            'Current User') as string,
+                                        customerEmail: (user?.email ||
+                                            '') as string,
+                                        customerPhone: (user?.phone ||
+                                            '') as string,
+                                        checkIn: b.check_in_date as string,
+                                        checkOut: b.check_out_date as string,
+                                        nights: b.nights as number,
+                                        paymentStatus: (payments &&
+                                        payments.length > 0
+                                            ? payments[0].status === 'completed'
+                                                ? 'paid'
+                                                : 'pending'
+                                            : 'pending') as BookingData['paymentStatus'],
+                                        totalAmount: b.total_amount as number,
+                                        pricePerNight:
+                                            b.price_per_night as number,
+                                        createdAt: b.created_at as string,
+                                        updatedAt: b.updated_at as string,
+                                    };
+                                },
+                            );
+
+                            setBookings(transformedUserBookings);
+                            console.log(
+                                'Loaded',
+                                transformedUserBookings.length,
+                                'bookings from user API',
+                            );
+
+                            addNotification({
+                                type: 'info',
+                                title: 'Thông báo',
+                                message:
+                                    'Đang hiển thị dữ liệu từ API người dùng do không có quyền admin',
+                            });
+                        } else {
+                            throw new Error('User API also failed');
+                        }
+                    } catch (userApiError: unknown) {
+                        console.warn(
+                            'Both admin and user APIs failed, using mock data:',
+                            userApiError,
+                        );
+                        // Final fallback to mock data
+                        const mockBookings = generateMockBookings();
+                        setBookings(mockBookings);
+
+                        addNotification({
+                            type: 'warning',
+                            title: 'Cảnh báo',
+                            message:
+                                'Đang sử dụng dữ liệu mẫu. Vui lòng kiểm tra kết nối API.',
+                        });
+                    }
                 }
             } catch (error) {
                 console.error('Error loading bookings:', error);
