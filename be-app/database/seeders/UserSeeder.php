@@ -11,6 +11,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        User::truncate();
         $json = File::get(database_path('data/__users.json'));
         $users = json_decode($json, true);
 

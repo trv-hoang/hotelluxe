@@ -57,6 +57,25 @@ export const forgotPassword = (email: string) => {
     return api.post('/auth/forgot-password', { email });
 };
 
+export const resetPassword = (
+    token: string,
+    password: string,
+    password_confirmation: string,
+) => {
+    return api.post('/auth/reset-password', {
+        token,
+        password,
+        password_confirmation,
+    });
+};
+
+export const verifyOTP = (email: string, otp_code: string) => {
+    return api.post('/auth/verify-otp', {
+        email,
+        otp_code,
+    });
+};
+
 // Admin password reset
 export const adminForgotPassword = (email: string) => {
     return api.post('/admin/forgot-password', { email });

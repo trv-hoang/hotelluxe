@@ -9,6 +9,8 @@ import AdminApp from './AdminApp.tsx';
 import AdminAuthProvider from '@/contexts/AdminAuthContext.tsx';
 import ProfileUserPage from '@/pages/ProfileUserPage.tsx';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage.tsx';
+import VerifyOTPPage from '@/pages/VerifyOTPPage.tsx';
+import ResetPasswordPage from '@/pages/ResetPasswordPage.tsx';
 import { Toaster } from 'react-hot-toast';
 import StayPage from '@/pages/StayPage.tsx';
 import Footer from '@/components/Footer.tsx';
@@ -39,7 +41,17 @@ function App() {
 // Component cho client routes
 function ClientApp() {
     const location = useLocation();
-    const hideNavbar = ['/login', '/register'].includes(location.pathname);
+    const hideNavbar = [
+        '/login',
+        '/register',
+        '/reset-password',
+        '/verify-otp',
+    ].some(
+        (path) =>
+            location.pathname === path ||
+            location.pathname.startsWith('/reset-password/') ||
+            location.pathname.startsWith('/verify-otp'),
+    );
 
     return (
         <div className='min-h-screen mx-auto'>
@@ -55,6 +67,15 @@ function ClientApp() {
                     <Route
                         path='/forgot-password'
                         element={<ForgotPasswordPage />}
+                    />
+                    <Route path='/verify-otp' element={<VerifyOTPPage />} />
+                    <Route
+                        path='/reset-password/:token'
+                        element={<ResetPasswordPage />}
+                    />
+                    <Route
+                        path='/reset-password'
+                        element={<ResetPasswordPage />}
                     />
                     <Route path='/hotels' element={<StayPage />} />
                     <Route path='/hotels/:id' element={<StayDetailPage />} />
