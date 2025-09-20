@@ -51,31 +51,31 @@ const teamMembers = [
     {
         id: 1,
         name: 'Ngô Đăng Tân',
-        role: 'CEO & Founder',
+        role: 'MSSV: 24210173',
         description:
             'Chuyên gia trong lĩnh vực khách sạn với hơn 15 năm kinh nghiệm quản lý và phát triển thương hiệu.',
-        avatar: '/public/avatar.png',
+        avatar: '/public/tan.jpg',
         email: 'tan.ngo@hotelluxe.com',
         phone: '+84 901 234 567',
         linkedin: 'linkedin.com/in/ngodangtanh',
-        skills: ['Leadership', 'Strategy', 'Hospitality Management'],
+        skills: ['Leadership', 'Backend Development', 'Project Management'],
     },
     {
         id: 2,
         name: 'Trần Việt Hoàng',
-        role: 'CTO & Tech Lead',
+        role: 'MSSV: 24210127',
         description:
             'Kỹ sư phần mềm senior với chuyên môn về hệ thống quản lý khách sạn và công nghệ số.',
         avatar: '/public/hoang.jpg',
         email: 'hoang.tran@hotelluxe.com',
         phone: '+84 902 345 678',
         github: 'github.com/tranviethoang',
-        skills: ['Full-stack Development', 'System Architecture', 'DevOps'],
+        skills: ['Full-stack Development', 'Backend Development', 'DevOps'],
     },
     {
         id: 3,
         name: 'Nguyễn Đình Đông Kha',
-        role: 'Head of Operations',
+        role: 'MSSV: 24210137',
         description:
             'Chuyên gia vận hành với kinh nghiệm sâu rộng trong việc tối ưu hóa quy trình và dịch vụ khách hàng.',
         avatar: '/public/kha.png',
@@ -83,7 +83,7 @@ const teamMembers = [
         phone: '+84 903 456 789',
         linkedin: 'linkedin.com/in/nguyendinhdongkha',
         skills: [
-            'Operations Management',
+            'Frontend Dev',
             'Full-stack Development',
             'Process Optimization',
         ],
@@ -91,22 +91,22 @@ const teamMembers = [
     {
         id: 4,
         name: 'Phạm Mỹ Linh',
-        role: 'Head of Marketing',
+        role: 'MSSV: 24210043',
         description:
             'Chuyên gia marketing số với niềm đam mê tạo ra những chiến dịch sáng tạo và hiệu quả.',
-        avatar: '/public/avatar.png',
+        avatar: '/public/linh.jpg',
         email: 'linh.pham@hotelluxe.com',
         phone: '+84 904 567 890',
         linkedin: 'linkedin.com/in/phammylinh',
-        skills: ['Backend Developer', ' Tech Writer', 'Content Strategy'],
+        skills: ['Backend Developer', ' Document Writer', 'Report Writer'],
     },
     {
         id: 5,
         name: 'Nguyễn Như Uyên',
-        role: 'Head of Customer Experience',
+        role: 'MSSV: 24210187',
         description:
             'Chuyên gia trải nghiệm khách hàng với sứ mệnh mang lại sự hài lòng tuyệt đối cho mọi khách hàng.',
-        avatar: '/public/avatar.png',
+        avatar: '/public/uyen.jpg',
         email: 'uyen.nguyen@hotelluxe.com',
         phone: '+84 905 678 901',
         linkedin: 'linkedin.com/in/nguyennhuuyen',
@@ -259,10 +259,11 @@ const AboutPage: React.FC = () => {
                 </motion.section>
 
                 {/* Team Section */}
+
                 <motion.section className='mb-20' variants={itemVariants}>
                     <div className='text-center mb-12'>
                         <h2 className='text-4xl font-bold text-gray-800 dark:text-white mb-4'>
-                            Đội Ngũ Của Chúng Tôi
+                            Đội Ngũ Của Chúng Tôi - IE104.E32.CN2.CNTT
                         </h2>
                         <p className='text-lg text-gray-600 dark:text-gray-300'>
                             Những con người tài năng và đam mê tạo nên Hotel
@@ -271,16 +272,12 @@ const AboutPage: React.FC = () => {
                     </div>
 
                     <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8'>
-                        {teamMembers.map((member, index) => (
+                        {teamMembers.map((member) => (
                             <motion.div
                                 key={member.id}
-                                initial={{ scale: 0.8, opacity: 0 }}
+                                initial={{ scale: 0.9, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                whileHover={{ scale: 1.05 }}
-                                transition={{
-                                    duration: 0.2,
-                                    delay: index * 0.1,
-                                }}
+                                whileHover={{ scale: 1.02 }}
                                 className='group'
                             >
                                 <Card className='h-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl group-hover:shadow-2xl transition-all duration-300'>
@@ -328,18 +325,12 @@ const AboutPage: React.FC = () => {
                                             <div className='flex flex-wrap gap-2'>
                                                 {member.skills.map(
                                                     (skill, skillIndex) => (
-                                                        <motion.span
+                                                        <span
                                                             key={skillIndex}
                                                             className='px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm'
-                                                            whileHover={{
-                                                                scale: 1.05,
-                                                            }}
-                                                            transition={{
-                                                                duration: 0.2,
-                                                            }}
                                                         >
                                                             {skill}
-                                                        </motion.span>
+                                                        </span>
                                                     ),
                                                 )}
                                             </div>
@@ -350,40 +341,31 @@ const AboutPage: React.FC = () => {
                                         <div className='space-y-2'>
                                             <div className='flex items-center text-sm text-gray-600 dark:text-gray-300'>
                                                 <Mail className='w-4 h-4 mr-2' />
-                                                <a
-                                                    href={`mailto:${member.email}`}
-                                                    className='hover:text-blue-600 transition-colors'
-                                                >
+                                                <span className='hover:text-blue-600 transition-colors'>
                                                     {member.email}
-                                                </a>
+                                                </span>
                                             </div>
                                             <div className='flex items-center text-sm text-gray-600 dark:text-gray-300'>
                                                 <Phone className='w-4 h-4 mr-2' />
-                                                <a
-                                                    href={`tel:${member.phone}`}
-                                                    className='hover:text-blue-600 transition-colors'
-                                                >
+                                                <span className='hover:text-blue-600 transition-colors'>
                                                     {member.phone}
-                                                </a>
+                                                </span>
                                             </div>
                                             {member.linkedin && (
                                                 <div className='flex items-center text-sm text-gray-600 dark:text-gray-300'>
                                                     <Linkedin className='w-4 h-4 mr-2' />
-                                                    <a
-                                                        href={`https://${member.linkedin}`}
-                                                        target='_blank'
+                                                    <span
                                                         rel='noopener noreferrer'
                                                         className='hover:text-blue-600 transition-colors'
                                                     >
                                                         LinkedIn
-                                                    </a>
+                                                    </span>
                                                 </div>
                                             )}
                                             {member.github && (
                                                 <div className='flex items-center text-sm text-gray-600 dark:text-gray-300'>
                                                     <Github className='w-4 h-4 mr-2' />
                                                     <a
-                                                        href={`https://${member.github}`}
                                                         target='_blank'
                                                         rel='noopener noreferrer'
                                                         className='hover:text-blue-600 transition-colors'
