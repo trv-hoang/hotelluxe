@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminAuthStore } from '@/store/useAdminAuthStore';
 import AdminInput from '@/components/admin/AdminInput';
 import AdminPasswordInput from '@/components/admin/AdminPasswordInput';
 import AdminButton from '@/components/admin/AdminButton';
@@ -11,12 +11,38 @@ import '../../styles/_admin_theme.css';
 const AdminLoginPage: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { adminLogin, isLoading, isAdminAuthenticated } = useAdminAuth();
+    const { adminLogin, isLoading, isAdminAuthenticated } = useAdminAuthStore();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [isRedirecting, setIsRedirecting] = useState(false);
+
+    // Debug logging
+    React.useEffect(() => {
+        console.log('AdminLoginPage: Component mounted');
+        console.log('AdminLoginPage: Auth state:', {
+            isAdminAuthenticated,
+            isLoading,
+            adminToken: localStorage.getItem('admin-token') ? 'present' : 'missing'
+        });
+    }, [isAdminAuthenticated, isLoading]);
+
+    // Debug auth state changes - KHÔNG REDIRECT
+    React.useEffect(() => {
+        console.log('AdminLoginPage: Auth state changed:', {
+            isAdminAuthenticated,
+            isLoading
+        });
+        
+        // TEMPORARILY DISABLE REDIRECT để debug
+        if (isAdminAuthenticated && !isLoading) {
+            console.log('AdminLoginPage: LOGIN THÀNH CÔNG! (không redirect)');
+            setIsRedirecting(false);
+            setSuccessMessage('Login successful! Debug mode - no redirect');
+        }
+    }, [isAdminAuthenticated, isLoading, navigate]);
 
     useEffect(() => {
         const message = searchParams.get('message');
@@ -27,28 +53,25 @@ const AdminLoginPage: React.FC = () => {
         }
     }, [searchParams]);
 
-    // Redirect if already authenticated
-    useEffect(() => {
-        if (isAdminAuthenticated) {
-            navigate('/admin/dashboard', { replace: true });
-        }
-    }, [isAdminAuthenticated, navigate]);
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setSuccessMessage('');
 
         if (!email || !password) {
             setError('Please fill in all fields');
             return;
         }
 
+        console.log('AdminLogin: Attempting login with email:', email);
+        
         try {
             await adminLogin(email, password);
-            // Navigate sẽ được xử lý bởi useEffect khi isAdminAuthenticated thay đổi
+            console.log('AdminLogin: Login successful, navigating to dashboard');
+            navigate('/admin/dashboard');
         } catch (error: unknown) {
-            const errorMessage =
-                error instanceof Error ? error.message : 'Login failed';
+            const errorMessage = error instanceof Error ? error.message : 'Login failed';
+            console.error('AdminLogin: Login failed:', errorMessage);
             setError(errorMessage);
         }
     };
@@ -78,7 +101,7 @@ const AdminLoginPage: React.FC = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
+                    disabled={isLoading || isRedirecting}
                     required
                     style={{ marginBottom: '1rem' }}
                 />
@@ -87,7 +110,7 @@ const AdminLoginPage: React.FC = () => {
                     label="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
+                    disabled={isLoading || isRedirecting}
                     required
                     style={{ marginBottom: '1.5rem' }}
                 />
@@ -95,10 +118,10 @@ const AdminLoginPage: React.FC = () => {
                 <AdminButton
                     type="submit"
                     variant="primary"
-                    disabled={isLoading}
+                    disabled={isLoading || isRedirecting || isAdminAuthenticated}
                     style={{ width: '100%', marginBottom: '1rem' }}
                 >
-                    {isLoading ? 'Signing in...' : 'Sign In'}
+                    {isAdminAuthenticated ? 'Logged In' : isRedirecting ? 'Redirecting...' : isLoading ? 'Signing in...' : 'Sign In'}
                 </AdminButton>
             </form>
 

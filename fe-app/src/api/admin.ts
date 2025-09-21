@@ -1,4 +1,5 @@
 import api from './axios';
+import { adminApiCall } from '@/utils/adminApi';
 
 // Types for admin API responses
 export interface AdminDashboardStats {
@@ -88,19 +89,20 @@ export const adminApi = {
     getDashboardOverview: async (): Promise<AdminDashboardStats> => {
         // Get real data from API endpoints where possible, fallback to mock
         try {
-            // Try to get real data from existing endpoints
+            // Use regular user endpoints but with admin token for now
+            // Backend will validate admin role through token
             const [usersResponse, hotelsResponse, bookingsResponse] = await Promise.allSettled([
-                api.get('/admin/users').catch(() => ({ data: { data: [] } })),
-                api.get('/hotels').catch(() => ({ data: { data: [] } })),
-                api.get('/bookings/admin/all').catch(() => ({ data: { data: [] } }))
+                adminApiCall('http://localhost:8000/api/admin/users').then(res => res.json()).catch(() => ({ data: [] })),
+                api.get('/hotels').catch(() => ({ data: { data: [] } })), // Use regular hotels endpoint
+                adminApiCall('http://localhost:8000/api/bookings').then(res => res.json()).catch(() => ({ data: [] })) // Use regular bookings endpoint first
             ]);
 
             const realUserCount = usersResponse.status === 'fulfilled' ? 
-                (usersResponse.value.data.data?.length || 0) : 48; // Fallback to known count
+                (usersResponse.value.data?.length || 0) : 48; // Fallback to known count
             const realHotelCount = hotelsResponse.status === 'fulfilled' ? 
                 (hotelsResponse.value.data.data?.length || 0) : 25;
             const realBookingCount = bookingsResponse.status === 'fulfilled' ? 
-                (bookingsResponse.value.data.data?.length || 0) : 75;
+                (bookingsResponse.value.data?.length || 0) : 75;
             const realRevenue = realBookingCount > 0 ? realBookingCount * 1500000 : 125000000; // Estimate: 1.5M per booking
 
             return {

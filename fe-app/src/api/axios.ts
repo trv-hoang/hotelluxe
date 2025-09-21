@@ -10,7 +10,7 @@ const api = axios.create({
 
 // Thêm interceptor cho request
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("user-token");
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -22,9 +22,18 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            // Ví dụ: logout user, redirect login
-            localStorage.removeItem("token");
-            window.location.href = "/";
+            // Chỉ xử lý 401 cho user auth, không ảnh hưởng admin
+            localStorage.removeItem("user-token");
+            // Chỉ redirect nếu đang ở protected routes và không phải admin route
+            const currentPath = window.location.pathname;
+            const isAdminRoute = currentPath.startsWith('/admin');
+            const isProtectedRoute = ['/profile', '/my-bookings', '/cart'].some(route => 
+                currentPath.startsWith(route)
+            );
+            
+            if (!isAdminRoute && isProtectedRoute) {
+                window.location.href = "/login";
+            }
         }
         return Promise.reject(error);
     }

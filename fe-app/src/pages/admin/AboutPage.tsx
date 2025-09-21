@@ -25,7 +25,7 @@ import {
     RotateCcw,
 } from 'lucide-react';
 import { useAbout } from '@/hooks/useAbout';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminAuthStore } from '@/store/useAdminAuthStore';
 import {
     EditModal,
     BasicSectionEdit,
@@ -65,7 +65,7 @@ const AboutPage: React.FC = () => {
         deleteTeamMember,
         resetToDefault,
     } = useAbout();
-    const { adminUser } = useAdminAuth();
+    const { adminUser } = useAdminAuthStore();
     const [editModalOpen, setEditModalOpen] = useState<string | null>(null);
 
     const isAdmin = adminUser?.role === 'admin';

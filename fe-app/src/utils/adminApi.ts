@@ -1,49 +1,16 @@
-// Admin API utility with automatic token handling and refresh
+// Admin API utility with automatic token handling and refresh using Zustand
 
-let isRefreshing = false;
-let refreshPromise: Promise<boolean> | null = null;
+import { create } from 'zustand';
 
-const refreshAdminToken = async (): Promise<boolean> => {
-    if (isRefreshing && refreshPromise) {
-        return refreshPromise;
-    }
+interface AdminAPIState {
+    isRefreshing: boolean;
+    refreshPromise: Promise<boolean> | null;
+}
 
-    isRefreshing = true;
-    refreshPromise = (async () => {
-        try {
-            const adminToken = localStorage.getItem('admin-token');
-            if (!adminToken) {
-                return false;
-            }
-
-            const response = await fetch('http://localhost:8000/api/auth/refresh', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${adminToken}`,
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    localStorage.setItem('admin-token', data.data.token);
-                    return true;
-                }
-            }
-            
-            return false;
-        } catch (error) {
-            console.error('Token refresh failed:', error);
-            return false;
-        } finally {
-            isRefreshing = false;
-            refreshPromise = null;
-        }
-    })();
-
-    return refreshPromise;
-};
+export const useAdminAPIStore = create<AdminAPIState>(() => ({
+    isRefreshing: false,
+    refreshPromise: null,
+}));
 
 export const adminApiCall = async (url: string, options: RequestInit = {}) => {
     const adminToken = localStorage.getItem('admin-token');
@@ -71,6 +38,9 @@ export const adminApiCall = async (url: string, options: RequestInit = {}) => {
 
         // If token is expired (401), try to refresh and retry
         if (response.status === 401) {
+            // Import here to avoid circular dependency
+            const { refreshAdminToken } = await import('../store/useAdminAuthStore');
+            
             const refreshSuccess = await refreshAdminToken();
             
             if (refreshSuccess) {
@@ -85,10 +55,14 @@ export const adminApiCall = async (url: string, options: RequestInit = {}) => {
                 };
                 response = await fetch(url, retryOptions);
             } else {
-                // Refresh failed, redirect to login
+                // Refresh failed, clear session but don't redirect
                 localStorage.removeItem('admin-token');
                 localStorage.removeItem('admin-user');
-                window.location.href = '/admin/login';
+                // Only redirect if we're NOT on login page and we're on admin pages
+                if (window.location.pathname.startsWith('/admin') && 
+                    window.location.pathname !== '/admin/login') {
+                    window.location.href = '/admin/login';
+                }
                 throw new Error('Session expired. Please login again.');
             }
         }

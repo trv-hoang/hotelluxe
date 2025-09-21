@@ -232,12 +232,12 @@ const BookingsPage: React.FC = () => {
                                 'bookings from user API',
                             );
 
-                            addNotification({
-                                type: 'info',
-                                title: 'Thông báo',
-                                message:
-                                    'Đang hiển thị dữ liệu từ API người dùng do không có quyền admin',
-                            });
+                            // addNotification({
+                            //     type: 'info',
+                            //     title: 'Thông báo',
+                            //     message:
+                            //         'Đang hiển thị dữ liệu từ API người dùng do không có quyền admin',
+                            // });
                         } else {
                             throw new Error('User API also failed');
                         }

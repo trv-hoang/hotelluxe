@@ -1,51 +1,31 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminAuthStore } from '@/store/useAdminAuthStore';
 
 interface AdminProtectedRouteProps {
     children: React.ReactNode;
 }
 
 const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({ children }) => {
-    const { isAdminAuthenticated, isLoading } = useAdminAuth();
+    const { isAdminAuthenticated, isLoading } = useAdminAuthStore();
     const location = useLocation();
 
-    // Show loading while checking authentication
+    console.log('AdminProtectedRoute: Checking auth for:', location.pathname, {
+        isAdminAuthenticated,
+        isLoading
+    });
+
     if (isLoading) {
-        return (
-            <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'var(--admin-bg-primary)',
-                color: 'var(--admin-text-primary)'
-            }}>
-                <div style={{
-                    textAlign: 'center',
-                    padding: '2rem'
-                }}>
-                    <div style={{
-                        width: '40px',
-                        height: '40px',
-                        border: '4px solid var(--admin-border)',
-                        borderTop: '4px solid var(--admin-primary)',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite',
-                        margin: '0 auto 1rem'
-                    }}></div>
-                    <p>Loading...</p>
-                </div>
-            </div>
-        );
+        console.log('AdminProtectedRoute: Loading...');
+        return <div>Loading...</div>;
     }
 
-    // If not authenticated, redirect to admin login
     if (!isAdminAuthenticated) {
-        return <Navigate to="/admin/login" state={{ from: location }} replace />;
+        console.log('AdminProtectedRoute: Not authenticated, redirecting to login');
+        return <Navigate to="/admin/login" replace />;
     }
 
-    // If authenticated, render the protected content
+    console.log('AdminProtectedRoute: Authenticated, rendering content');
     return <>{children}</>;
 };
 
