@@ -19,6 +19,13 @@ import {
     DialogFooter,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -247,11 +254,21 @@ const ProfileUserPage = () => {
                                                 <Label htmlFor='gender'>
                                                     Giới tính
                                                 </Label>
-                                                <Input
-                                                    name='gender'
-                                                    value={profile.gender || ''}
-                                                    onChange={handleChange}
-                                                />
+                                                <Select
+                                                    value={profile.gender && ['male', 'female', 'other'].includes(profile.gender) ? profile.gender : ''}
+                                                    onValueChange={(value) => 
+                                                        setProfile({ ...profile, gender: value })
+                                                    }
+                                                >
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Chọn giới tính" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="male">Nam</SelectItem>
+                                                        <SelectItem value="female">Nữ</SelectItem>
+                                                        <SelectItem value="other">Khác</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
                                             <div>
                                                 <Label htmlFor='address'>

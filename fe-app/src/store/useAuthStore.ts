@@ -115,10 +115,16 @@ export const useAuthStore = create<AuthState>()(
                     if (data.dob) formData.append('dob', data.dob);
                     if (data.phone) formData.append('phone', data.phone);
                     if (data.address) formData.append('address', data.address);
-                    if (data.gender) formData.append('gender', data.gender);
+                    if (data.gender && data.gender !== '') formData.append('gender', data.gender);
 
                     // Laravel cần _method=PUT cho multipart form data
                     formData.append('_method', 'PUT');
+                    
+                    // Debug: Log formData contents
+                    console.log('Sending profile update data:');
+                    for (const [key, value] of formData.entries()) {
+                        console.log(key, value);
+                    }
                     
                     const response = await api.post('/auth/profile', formData, {
                         headers: { 
@@ -130,8 +136,35 @@ export const useAuthStore = create<AuthState>()(
                     const apiData = response.data.data;
                     set({ authUser: apiData.user });
                     toast.success('Cập nhật hồ sơ thành công');
-                } catch (error) {
-                    toast.error('Không thể cập nhật hồ sơ');
+                } catch (error: unknown) {
+                    const axiosError = error as {
+                        response?: {
+                            status?: number;
+                            data?: {
+                                errors?: Record<string, string[]>;
+                            };
+                        };
+                        message?: string;
+                    };
+                    
+                    console.error('Update profile error details:', {
+                        status: axiosError.response?.status,
+                        data: axiosError.response?.data,
+                        message: axiosError.message
+                    });
+                    
+                    // More specific error messages
+                    if (axiosError.response?.status === 422) {
+                        const validationErrors = axiosError.response.data?.errors;
+                        if (validationErrors) {
+                            const firstError = Object.values(validationErrors)[0];
+                            toast.error(`Validation error: ${firstError}`);
+                        } else {
+                            toast.error('Dữ liệu không hợp lệ');
+                        }
+                    } else {
+                        toast.error('Không thể cập nhật hồ sơ');
+                    }
                     console.error('Update profile error:', error);
                     throw error;
                 } finally {

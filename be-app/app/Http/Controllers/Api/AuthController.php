@@ -145,10 +145,11 @@ class AuthController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|between:2,100',
+            'email' => 'sometimes|string|email|max:100|unique:users,email,' . $user->id,
             'phone' => 'sometimes|string|max:15',
             'address' => 'sometimes|string|max:255',
             'dob' => 'sometimes|date|before:today',
-            'gender' => 'sometimes|in:male,female,other',
+            'gender' => 'sometimes|nullable|in:male,female,other',
             'nickname' => 'sometimes|string|max:50',
             'profile_pic' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048', // Hỗ trợ file upload
         ]);
@@ -163,7 +164,7 @@ class AuthController extends Controller
 
         // Xử lý upload ảnh profile
         $updateData = $request->only([
-            'name', 'phone', 'address', 'dob', 'gender', 'nickname'
+            'name', 'email', 'phone', 'address', 'dob', 'gender', 'nickname'
         ]);
 
         if ($request->hasFile('profile_pic')) {

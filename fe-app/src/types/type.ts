@@ -25,7 +25,7 @@ export interface User {
     nickname?: string;
     dob?: string; // yyyy-mm-dd
     phone?: string;
-    gender?: string;
+    gender?: string; // Keep as string to handle any backend data, validation happens at form level
     address?: string;
 }
 
