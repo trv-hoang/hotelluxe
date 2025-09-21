@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import AdminInput from '@/components/admin/AdminInput';
+import AdminPasswordInput from '@/components/admin/AdminPasswordInput';
 import AdminButton from '@/components/admin/AdminButton';
 import AdminFormCard from '@/components/admin/AdminFormCard';
 import AdminAlert from '@/components/admin/AdminAlert';
@@ -82,9 +83,8 @@ const AdminLoginPage: React.FC = () => {
                     style={{ marginBottom: '1rem' }}
                 />
                 
-                <AdminInput
+                <AdminPasswordInput
                     label="Password"
-                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}

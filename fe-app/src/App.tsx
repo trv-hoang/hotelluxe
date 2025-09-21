@@ -49,6 +49,7 @@ function ClientApp() {
         '/register',
         '/reset-password',
         '/verify-otp',
+        '/forgot-password',
     ].some(
         (path) =>
             location.pathname === path ||
@@ -102,7 +103,7 @@ function ClientApp() {
                 </Routes>
             </main>
             <footer className='mx-auto sx:px-0 p-4 sm:max-x-xl md:max-w-7xl lg:max-w-7xl xl:min-w-[1480px]'>
-                <Footer />
+                {!hideNavbar && <Footer />}
             </footer>
             <BackToTop />
             <Toaster position='top-center' />

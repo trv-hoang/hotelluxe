@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 
 interface AdminUser {
     id: number;
@@ -13,6 +13,7 @@ interface AdminAuthContextType {
     isLoading: boolean;
     adminLogin: (email: string, password: string) => Promise<void>;
     adminLogout: () => void;
+    refreshAdminToken: () => Promise<boolean>;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
@@ -29,8 +30,48 @@ const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }) => {
 
     const isAdminAuthenticated = !!adminUser;
 
+    const adminLogout = useCallback(() => {
+        localStorage.removeItem('admin-token');
+        localStorage.removeItem('admin-user');
+        setAdminUser(null);
+    }, []);
+
+    const refreshAdminToken = useCallback(async (): Promise<boolean> => {
+        try {
+            const adminToken = localStorage.getItem('admin-token');
+            if (!adminToken) {
+                return false;
+            }
+
+            const response = await fetch('http://localhost:8000/api/auth/refresh', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Update token in localStorage
+                    localStorage.setItem('admin-token', data.data.token);
+                    return true;
+                }
+            }
+            
+            // If refresh fails, logout
+            adminLogout();
+            return false;
+        } catch (error) {
+            console.error('Token refresh failed:', error);
+            adminLogout();
+            return false;
+        }
+    }, [adminLogout]);
+
     // Check if admin is authenticated on app load
-    const checkAdminAuth = async () => {
+    const checkAdminAuth = useCallback(async () => {
         try {
             const adminToken = localStorage.getItem('admin-token');
             const storedAdminUser = localStorage.getItem('admin-user');
@@ -66,6 +107,13 @@ const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }) => {
                         );
                         return;
                     }
+                } else if (response.status === 401) {
+                    // Token expired, try to refresh
+                    const refreshSuccess = await refreshAdminToken();
+                    if (refreshSuccess) {
+                        // Retry auth check with new token
+                        return await checkAdminAuth();
+                    }
                 }
 
                 // Token is invalid or expired, clear it
@@ -81,9 +129,9 @@ const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [refreshAdminToken]);
 
-    const adminLogin = async (email: string, password: string) => {
+    const adminLogin = useCallback(async (email: string, password: string) => {
         setIsLoading(true);
         try {
             // Real API call to login
@@ -124,24 +172,19 @@ const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const adminLogout = () => {
-        localStorage.removeItem('admin-token');
-        localStorage.removeItem('admin-user');
-        setAdminUser(null);
-    };
+    }, []);
 
     useEffect(() => {
         checkAdminAuth();
-    }, []);
+    }, [checkAdminAuth]);
 
     const value: AdminAuthContextType = {
         adminUser,
         isAdminAuthenticated,
         isLoading,
         adminLogin,
-        adminLogout
+        adminLogout,
+        refreshAdminToken
     };
 
     return (
