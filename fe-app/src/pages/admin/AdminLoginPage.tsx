@@ -10,8 +10,8 @@ import '../../styles/_admin_theme.css';
 const AdminLoginPage: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { adminLogin, isLoading } = useAdminAuth();
-    
+    const { adminLogin, isLoading, isAdminAuthenticated } = useAdminAuth();
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -20,9 +20,18 @@ const AdminLoginPage: React.FC = () => {
     useEffect(() => {
         const message = searchParams.get('message');
         if (message === 'password-reset-success') {
-            setSuccessMessage('Password has been reset successfully! You can now login with your new password.');
+            setSuccessMessage(
+                'Password has been reset successfully! You can now login with your new password.',
+            );
         }
     }, [searchParams]);
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAdminAuthenticated) {
+            navigate('/admin/dashboard', { replace: true });
+        }
+    }, [isAdminAuthenticated, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,9 +44,10 @@ const AdminLoginPage: React.FC = () => {
 
         try {
             await adminLogin(email, password);
-            navigate('/admin/dashboard');
+            // Navigate sẽ được xử lý bởi useEffect khi isAdminAuthenticated thay đổi
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Login failed';
+            const errorMessage =
+                error instanceof Error ? error.message : 'Login failed';
             setError(errorMessage);
         }
     };

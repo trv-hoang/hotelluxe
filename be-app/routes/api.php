@@ -193,11 +193,11 @@ Route::get('health', function () {
 
 
 // kha test - guest và author routes (commented out until controllers exist)
-// use App\Http\Controllers\Api\GuestController;
-// use App\Http\Controllers\Api\AuthorController;
-// Route::get('/guests', [GuestController::class, 'index']);
-// Route::get('/guests/{id}', [GuestController::class, 'show']);
-// Route::get('/authors', [AuthorController::class, 'index']);
-// Route::get('/authors/{id}', [AuthorController::class, 'show']);
+use App\Http\Controllers\Api\GuestController;
+use App\Http\Controllers\Api\AuthorController;
+Route::get('/guests', [GuestController::class, 'index']);
+Route::get('/guests/{id}', [GuestController::class, 'show']);
+Route::get('/authors', [AuthorController::class, 'index']);
+Route::get('/authors/{id}', [AuthorController::class, 'show']);
 // REMOVED: Duplicate GuestAuthController routes
 // Use /auth/* endpoints instead for consistency
