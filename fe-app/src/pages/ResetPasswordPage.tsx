@@ -118,8 +118,13 @@ export default function ResetPasswordPage() {
 
                 <div className='mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg'>
                     <p className='text-sm text-blue-700'>
-                        ✅ Token hợp lệ. Vui lòng nhập mật khẩu mới
-                        {email ? ` cho tài khoản: ${email}` : ''}.
+                        Xác thực thành công. Nhập mật khẩu mới cho tài khoản:{' '}
+                        {email && (
+                            <>
+                                <strong>{email}</strong>
+                            </>
+                        )}
+                        .
                     </p>
                 </div>
 
@@ -181,8 +186,8 @@ export default function ResetPasswordPage() {
 
                 <div className='mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg'>
                     <p className='text-xs text-yellow-700'>
-                        🔒 <strong>Lưu ý:</strong> Sau khi cập nhật thành công,
-                        bạn sẽ được chuyển đến trang đăng nhập.
+                        <strong>Lưu ý:</strong> Sau khi cập nhật thành công, bạn
+                        sẽ được chuyển đến trang đăng nhập.
                     </p>
                 </div>
 

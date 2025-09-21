@@ -7,6 +7,7 @@ import Navbar from '@/components/NavBar.tsx';
 import BackToTop from '@/components/BackToTop.tsx';
 import AdminApp from './AdminApp.tsx';
 import AdminAuthProvider from '@/contexts/AdminAuthContext.tsx';
+import AboutProvider from '@/contexts/AboutContext.tsx';
 import ProfileUserPage from '@/pages/ProfileUserPage.tsx';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage.tsx';
 import VerifyOTPPage from '@/pages/VerifyOTPPage.tsx';
@@ -18,21 +19,23 @@ import ScrollToTop from '@/hooks/ScrollToTop.ts';
 import StayDetailPage from '@/pages/StayDetail.tsx';
 import CartPage from '@/pages/CartPage.tsx';
 import ErrorPage from '@/pages/ErrorPage.tsx';
-import AboutPage from '@/pages/admin/AboutPage.tsx';
+import ClientAboutPage from '@/pages/ClientAboutPage.tsx';
 import MyBookingPage from '@/pages/MyBookingPage.tsx';
 
 function App() {
     return (
         <BrowserRouter>
             <AdminAuthProvider>
-                <ScrollToTop />
-                <Routes>
-                    {/* Admin routes - sử dụng AdminApp độc lập */}
-                    <Route path='/admin/*' element={<AdminApp />} />
+                <AboutProvider>
+                    <ScrollToTop />
+                    <Routes>
+                        {/* Admin routes - sử dụng AdminApp độc lập */}
+                        <Route path='/admin/*' element={<AdminApp />} />
 
-                    {/* Client routes */}
-                    <Route path='/*' element={<ClientApp />} />
-                </Routes>
+                        {/* Client routes */}
+                        <Route path='/*' element={<ClientApp />} />
+                    </Routes>
+                </AboutProvider>
             </AdminAuthProvider>
         </BrowserRouter>
     );
@@ -95,7 +98,7 @@ function ClientApp() {
                     />
                     <Route path='/cart' element={<CartPage />} />
                     <Route path='/error' element={<ErrorPage />} />
-                    <Route path='/about' element={<AboutPage />} />
+                    <Route path='/about' element={<ClientAboutPage />} />
                 </Routes>
             </main>
             <footer className='mx-auto sx:px-0 p-4 sm:max-x-xl md:max-w-7xl lg:max-w-7xl xl:min-w-[1480px]'>
