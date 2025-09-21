@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthState>()(
                     // Lấy data từ response.data.data
                     const apiData = response.data.data;
                     console.log('Login response data:', apiData);
-                    localStorage.setItem('token', apiData.token);
+                    localStorage.setItem('user-token', apiData.token);
                     set({ authUser: apiData.user });
 
                     toast.success('Đăng nhập thành công');
@@ -57,7 +57,7 @@ export const useAuthStore = create<AuthState>()(
 
             logout: async () => {
                 try {
-                    const token = localStorage.getItem('token');
+                    const token = localStorage.getItem('user-token');
                     if (token) {
                         await api.post(
                             '/auth/logout',
@@ -70,7 +70,7 @@ export const useAuthStore = create<AuthState>()(
                 } catch (error) {
                     console.error('Logout error:', error);
                 } finally {
-                    localStorage.removeItem('token');
+                    localStorage.removeItem('user-token');
                     set({ authUser: null });
                     toast.success('Đã đăng xuất');
                     window.location.href = '/login';
@@ -84,7 +84,7 @@ export const useAuthStore = create<AuthState>()(
                     const response = await api.post('/auth/register', data);
                     const apiData = response.data.data; // 👈 giống login
 
-                    localStorage.setItem('token', apiData.token);
+                    localStorage.setItem('user-token', apiData.token);
                     set({ authUser: apiData.user });
 
                     toast.success('Tạo tài khoản thành công');
@@ -100,7 +100,7 @@ export const useAuthStore = create<AuthState>()(
             updateProfile: async (data: UpdateProfilePayload) => {
                 set({ isUpdatingProfile: true });
                 try {
-                    const token = localStorage.getItem('token');
+                    const token = localStorage.getItem('user-token');
                     const formData = new FormData();
 
                     // Nếu data.profilePic là File thì append file với tên đúng backend expects
@@ -142,7 +142,7 @@ export const useAuthStore = create<AuthState>()(
             // Kiểm tra và load thông tin user từ token
             checkAuth: async () => {
                 try {
-                    const token = localStorage.getItem('token');
+                    const token = localStorage.getItem('user-token');
                     if (!token) {
                         set({ authUser: null });
                         return;
@@ -157,7 +157,7 @@ export const useAuthStore = create<AuthState>()(
                     console.log('Auth checked, user loaded:', apiData.user);
                 } catch (error) {
                     console.error('Auth check failed:', error);
-                    localStorage.removeItem('token');
+                    localStorage.removeItem('user-token');
                     set({ authUser: null });
                 }
             },

@@ -2,8 +2,7 @@ import React, { Suspense, useState } from 'react';
 import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import NotificationProvider from './contexts/NotificationContext';
 import AdminNotificationContainer from './components/admin/AdminNotificationContainer';
-import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
-import { useAdminAuth } from './hooks/useAdminAuth';
+import { useAdminAuthStore } from './store/useAdminAuthStore';
 import './styles/_admin_theme.css';
 
 // Lazy load admin pages for better performance
@@ -99,7 +98,7 @@ const AdminSidebarStandalone: React.FC<{
     onToggle: () => void;
 }> = ({ collapsed, onToggle }) => {
     const location = useLocation();
-    const { adminLogout, adminUser } = useAdminAuth();
+    const { adminLogout, adminUser } = useAdminAuthStore();
 
     const handleLogout = () => {
         adminLogout();
@@ -285,6 +284,8 @@ const AdminSidebarStandalone: React.FC<{
 };
 
 const AdminApp: React.FC = () => {
+    console.log('AdminApp: Component mounted for URL:', window.location.href);
+    
     return (
         <NotificationProvider>
             <AdminAppContent />
@@ -296,7 +297,7 @@ const AdminApp: React.FC = () => {
 const AdminAppContent: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
-    const { isAdminAuthenticated, isLoading } = useAdminAuth();
+    const { isAdminAuthenticated, isLoading, checkAdminAuth } = useAdminAuthStore();
 
     // Don't show sidebar on auth pages
     const isAuthPage = [
@@ -305,17 +306,47 @@ const AdminAppContent: React.FC = () => {
         '/admin/reset-password',
     ].includes(location.pathname);
 
-    // Redirect authenticated admin from auth pages to dashboard
+    // Check admin auth on mount và khi location thay đổi
+    React.useEffect(() => {
+        console.log('AdminApp: Checking auth for path:', location.pathname);
+        if (location.pathname.startsWith('/admin')) {
+            console.log('AdminApp: Running checkAdminAuth for location change');
+            checkAdminAuth();
+        }
+    }, [location.pathname, checkAdminAuth]); // Trigger khi path thay đổi
+
+    // Redirect to login if not authenticated and not on auth page
+    React.useEffect(() => {
+        if (!isLoading && !isAdminAuthenticated && !isAuthPage) {
+            console.log('AdminApp: Not authenticated, redirecting to login');
+            window.location.href = '/admin/login';
+        }
+    }, [isAdminAuthenticated, isLoading, isAuthPage]);
+
+    // Debug logging
+    React.useEffect(() => {
+        console.log('AdminApp state:', {
+            isAdminAuthenticated,
+            isLoading,
+            pathname: location.pathname,
+            adminToken: localStorage.getItem('admin-token') ? 'present' : 'missing'
+        });
+    }, [isAdminAuthenticated, isLoading, location.pathname]);
+
+    // DISABLE redirect từ auth pages - để debug
     if (isAuthPage && isAdminAuthenticated && !isLoading) {
-        return <Navigate to='/admin/dashboard' replace />;
+        console.log('AdminApp: User authenticated but STAYING on auth page for debug');
+        // Không redirect, để ở trang hiện tại
     }
 
     // Show loading while checking authentication
     if (isLoading) {
+        console.log('AdminApp: Showing loading state');
         return <AdminLoading />;
     }
 
     if (isAuthPage) {
+        console.log('AdminApp: Rendering auth page:', location.pathname);
         return (
             <div style={{ minHeight: '100vh' }}>
                 <Suspense fallback={<AdminLoading />}>
@@ -363,73 +394,41 @@ const AdminAppContent: React.FC = () => {
             >
                 <Suspense fallback={<AdminLoading />}>
                     <Routes>
-                        {/* Protected admin routes */}
+                        {/* Admin routes - no protection for now */}
                         <Route
                             path='/dashboard'
-                            element={
-                                <AdminProtectedRoute>
-                                    <AdminDashboardPage />
-                                </AdminProtectedRoute>
-                            }
+                            element={<AdminDashboardPage />}
                         />
                         <Route
                             path='/users'
-                            element={
-                                <AdminProtectedRoute>
-                                    <UsersPage />
-                                </AdminProtectedRoute>
-                            }
+                            element={<UsersPage />}
                         />
                         <Route
                             path='/bookings'
-                            element={
-                                <AdminProtectedRoute>
-                                    <BookingsPage />
-                                </AdminProtectedRoute>
-                            }
+                            element={<BookingsPage />}
                         />
                         <Route
                             path='/hotel'
-                            element={
-                                <AdminProtectedRoute>
-                                    <HotelPage />
-                                </AdminProtectedRoute>
-                            }
+                            element={<HotelPage />}
                         />
                         <Route
                             path='/about'
-                            element={
-                                <AdminProtectedRoute>
-                                    <AboutPage />
-                                </AdminProtectedRoute>
-                            }
+                            element={<AboutPage />}
                         />
                         <Route
                             path='/settings'
-                            element={
-                                <AdminProtectedRoute>
-                                    <SettingsPage />
-                                </AdminProtectedRoute>
-                            }
+                            element={<SettingsPage />}
                         />
 
                         {/* Redirect admin root to dashboard */}
                         <Route
                             path='/'
-                            element={
-                                <AdminProtectedRoute>
-                                    <Navigate to='/admin/dashboard' replace />
-                                </AdminProtectedRoute>
-                            }
+                            element={<Navigate to='/admin/dashboard' replace />}
                         />
                         {/* 404 for admin routes */}
                         <Route
                             path='*'
-                            element={
-                                <AdminProtectedRoute>
-                                    <Navigate to='/admin/dashboard' replace />
-                                </AdminProtectedRoute>
-                            }
+                            element={<Navigate to='/admin/dashboard' replace />}
                         />
                     </Routes>
                 </Suspense>

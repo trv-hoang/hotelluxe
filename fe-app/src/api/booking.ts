@@ -14,7 +14,7 @@ const apiClient = axios.create({
 
 // Add auth token to requests
 apiClient.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('user-token');
     const adminToken = localStorage.getItem('admin-token');
 
     // Check if this is an admin endpoint

@@ -6,7 +6,6 @@ import HomePage from '@/pages/HomePage.tsx';
 import Navbar from '@/components/NavBar.tsx';
 import BackToTop from '@/components/BackToTop.tsx';
 import AdminApp from './AdminApp.tsx';
-import AdminAuthProvider from '@/contexts/AdminAuthContext.tsx';
 import AboutProvider from '@/contexts/AboutContext.tsx';
 import ProfileUserPage from '@/pages/ProfileUserPage.tsx';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage.tsx';
@@ -23,20 +22,21 @@ import ClientAboutPage from '@/pages/ClientAboutPage.tsx';
 import MyBookingPage from '@/pages/MyBookingPage.tsx';
 
 function App() {
+    console.log('App: Current URL:', window.location.href);
+    console.log('App: Current pathname:', window.location.pathname);
+    
     return (
         <BrowserRouter>
-            <AdminAuthProvider>
-                <AboutProvider>
-                    <ScrollToTop />
-                    <Routes>
-                        {/* Admin routes - sử dụng AdminApp độc lập */}
-                        <Route path='/admin/*' element={<AdminApp />} />
+            <AboutProvider>
+                <ScrollToTop />
+                <Routes>
+                    {/* Admin routes - ĐẶT TRƯỚC để có ưu tiên */}
+                    <Route path='/admin/*' element={<AdminApp />} />
 
-                        {/* Client routes */}
-                        <Route path='/*' element={<ClientApp />} />
-                    </Routes>
-                </AboutProvider>
-            </AdminAuthProvider>
+                    {/* Client routes - chỉ handle non-admin routes */}
+                    <Route path='*' element={<ClientApp />} />
+                </Routes>
+            </AboutProvider>
         </BrowserRouter>
     );
 }
@@ -44,6 +44,9 @@ function App() {
 // Component cho client routes
 function ClientApp() {
     const location = useLocation();
+    
+    console.log('ClientApp: Rendering for path:', location.pathname);
+    
     const hideNavbar = [
         '/login',
         '/register',
