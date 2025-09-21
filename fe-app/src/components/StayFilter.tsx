@@ -9,7 +9,13 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ArrowUp, ArrowDown, RotateCcw, SlidersHorizontal } from 'lucide-react';
+import {
+    ArrowUp,
+    ArrowDown,
+    RotateCcw,
+    SlidersHorizontal,
+    Search,
+} from 'lucide-react';
 import { debounce } from 'lodash';
 import {
     Popover,
@@ -293,10 +299,16 @@ export const StayFilter: React.FC<Props> = ({ data, onFilter }) => {
                         </Select>
 
                         {/* Tìm kiếm */}
-                        <Input
-                            placeholder='Tìm kiếm khách sạn...'
-                            onChange={(e) => debouncedSearch(e.target.value)}
-                        />
+                        <div className='relative w-full'>
+                            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none' />
+                            <Input
+                                placeholder='Tìm kiếm khách sạn...'
+                                onChange={(e) =>
+                                    debouncedSearch(e.target.value)
+                                }
+                                className='pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white'
+                            />
+                        </div>
 
                         <Button
                             variant='outline'

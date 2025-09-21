@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import {
     Card,
@@ -21,16 +21,8 @@ import {
     Phone,
     Linkedin,
     Github,
-    Edit,
-    RotateCcw,
 } from 'lucide-react';
 import { useAbout } from '@/hooks/useAbout';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
-import {
-    EditModal,
-    BasicSectionEdit,
-    TeamMemberEdit,
-} from '@/components/admin/AboutEditModals';
 
 // Animation variants
 const containerVariants = {
@@ -55,77 +47,8 @@ const itemVariants = {
     },
 };
 
-const AboutPage: React.FC = () => {
-    const {
-        aboutData,
-        isLoading,
-        updateAboutData,
-        addTeamMember,
-        updateTeamMember,
-        deleteTeamMember,
-        resetToDefault,
-    } = useAbout();
-    const { adminUser } = useAdminAuth();
-    const [editModalOpen, setEditModalOpen] = useState<string | null>(null);
-
-    const isAdmin = adminUser?.role === 'admin';
-
-    // Handle edit states
-    const handleSectionEdit = (
-        section: string,
-        title: string,
-        description: string,
-    ) => {
-        if (!aboutData) return;
-
-        const updatedData = { ...aboutData };
-
-        switch (section) {
-            case 'hero':
-                updatedData.heroSection = { title, description };
-                break;
-            case 'mission':
-                updatedData.mission = { title, description };
-                break;
-            case 'services':
-                updatedData.services = {
-                    ...updatedData.services,
-                    title,
-                    subtitle: description,
-                };
-                break;
-            case 'team':
-                updatedData.team = {
-                    ...updatedData.team,
-                    title,
-                    subtitle: description,
-                };
-                break;
-            case 'values':
-                updatedData.values = { ...updatedData.values, title };
-                break;
-        }
-
-        updateAboutData(updatedData);
-        setEditModalOpen(null);
-    };
-
-    // Handle reset to default
-    const handleResetToDefault = async () => {
-        if (
-            window.confirm(
-                'Bạn có chắc chắn muốn khôi phục tất cả thông tin về mặc định? Tất cả thay đổi sẽ bị mất!',
-            )
-        ) {
-            try {
-                await resetToDefault();
-                alert('Đã khôi phục thành công về thông tin mặc định!');
-            } catch (error) {
-                console.error('Error resetting to default:', error);
-                alert('Có lỗi xảy ra khi khôi phục. Vui lòng thử lại!');
-            }
-        }
-    };
+const ClientAboutPage: React.FC = () => {
+    const { aboutData, isLoading } = useAbout();
 
     if (isLoading || !aboutData) {
         return (
@@ -167,19 +90,7 @@ const AboutPage: React.FC = () => {
     };
 
     return (
-        <div className='relative smin-h-screen max-w-7xl flex items-center mx-auto bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900'>
-            {/* Reset Button - Fixed position at top left */}
-            {isAdmin && (
-                <button
-                    onClick={handleResetToDefault}
-                    className='absolute top-4 left-6 z-50 flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-lg transition-all duration-200 hover:scale-105'
-                    title='Khôi phục về mặc định'
-                >
-                    <RotateCcw className='w-5 h-5' />
-                    <span className='hidden sm:inline'>Khôi phục</span>
-                </button>
-            )}
-
+        <div className='min-h-screen max-w-7xl flex items-center mx-auto bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900'>
             <motion.div
                 className='container mx-auto px-4 py-16'
                 variants={containerVariants}
@@ -188,19 +99,9 @@ const AboutPage: React.FC = () => {
             >
                 {/* Hero Section */}
                 <motion.div
-                    className='text-center mb-20 relative'
+                    className='text-center mb-20'
                     variants={itemVariants}
                 >
-                    {isAdmin && (
-                        <button
-                            onClick={() => setEditModalOpen('hero')}
-                            className='absolute top-0 right-0 p-2 text-blue-600 hover:bg-blue-50 rounded-lg'
-                            title='Chỉnh sửa Hero Section'
-                        >
-                            <Edit className='w-5 h-5' />
-                        </button>
-                    )}
-
                     <motion.h1
                         className='text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6'
                         initial={{ scale: 0.5, opacity: 0 }}
@@ -218,20 +119,7 @@ const AboutPage: React.FC = () => {
                 </motion.div>
 
                 {/* Mission Section */}
-                <motion.section
-                    className='mb-20 relative'
-                    variants={itemVariants}
-                >
-                    {isAdmin && (
-                        <button
-                            onClick={() => setEditModalOpen('mission')}
-                            className='absolute top-0 right-0 p-2 text-blue-600 hover:bg-blue-50 rounded-lg z-10'
-                            title='Chỉnh sửa Mission'
-                        >
-                            <Edit className='w-5 h-5' />
-                        </button>
-                    )}
-
+                <motion.section className='mb-20' variants={itemVariants}>
                     <Card className='bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-0 shadow-2xl'>
                         <CardHeader className='text-center pb-8'>
                             <motion.div
@@ -257,20 +145,7 @@ const AboutPage: React.FC = () => {
                 </motion.section>
 
                 {/* Services Section */}
-                <motion.section
-                    className='mb-20 relative'
-                    variants={itemVariants}
-                >
-                    {isAdmin && (
-                        <button
-                            onClick={() => setEditModalOpen('services')}
-                            className='absolute top-0 right-0 p-2 text-blue-600 hover:bg-blue-50 rounded-lg z-10'
-                            title='Chỉnh sửa Services'
-                        >
-                            <Edit className='w-5 h-5' />
-                        </button>
-                    )}
-
+                <motion.section className='mb-20' variants={itemVariants}>
                     <div className='text-center mb-12'>
                         <h2 className='text-4xl font-bold text-gray-800 dark:text-white mb-4'>
                             {services.title}
@@ -325,20 +200,7 @@ const AboutPage: React.FC = () => {
                 </motion.section>
 
                 {/* Team Section */}
-                <motion.section
-                    className='mb-20 relative'
-                    variants={itemVariants}
-                >
-                    {isAdmin && (
-                        <button
-                            onClick={() => setEditModalOpen('team')}
-                            className='absolute top-0 right-0 p-2 text-blue-600 hover:bg-blue-50 rounded-lg z-10'
-                            title='Chỉnh sửa Team'
-                        >
-                            <Edit className='w-5 h-5' />
-                        </button>
-                    )}
-
+                <motion.section className='mb-20' variants={itemVariants}>
                     <div className='text-center mb-12'>
                         <h2 className='text-4xl font-bold text-gray-800 dark:text-white mb-4'>
                             {team.title}
@@ -453,20 +315,7 @@ const AboutPage: React.FC = () => {
                 </motion.section>
 
                 {/* Values Section */}
-                <motion.section
-                    className='mb-20 relative'
-                    variants={itemVariants}
-                >
-                    {isAdmin && (
-                        <button
-                            onClick={() => setEditModalOpen('values')}
-                            className='absolute top-0 right-0 p-2 text-blue-600 hover:bg-blue-50 rounded-lg z-10'
-                            title='Chỉnh sửa Values'
-                        >
-                            <Edit className='w-5 h-5' />
-                        </button>
-                    )}
-
+                <motion.section className='mb-20' variants={itemVariants}>
                     <div className='text-center mb-12'>
                         <h2 className='text-4xl font-bold text-gray-800 dark:text-white mb-4'>
                             {values.title}
@@ -500,95 +349,9 @@ const AboutPage: React.FC = () => {
                         })}
                     </div>
                 </motion.section>
-
-                {/* Edit Modals */}
-                {editModalOpen === 'hero' && (
-                    <EditModal
-                        isOpen={true}
-                        onClose={() => setEditModalOpen(null)}
-                        title='Chỉnh sửa Hero Section'
-                    >
-                        <BasicSectionEdit
-                            title={heroSection.title}
-                            description={heroSection.description}
-                            onSave={(title, description) =>
-                                handleSectionEdit('hero', title, description)
-                            }
-                            onCancel={() => setEditModalOpen(null)}
-                        />
-                    </EditModal>
-                )}
-
-                {editModalOpen === 'mission' && (
-                    <EditModal
-                        isOpen={true}
-                        onClose={() => setEditModalOpen(null)}
-                        title='Chỉnh sửa Mission'
-                    >
-                        <BasicSectionEdit
-                            title={mission.title}
-                            description={mission.description}
-                            onSave={(title, description) =>
-                                handleSectionEdit('mission', title, description)
-                            }
-                            onCancel={() => setEditModalOpen(null)}
-                        />
-                    </EditModal>
-                )}
-
-                {editModalOpen === 'services' && (
-                    <EditModal
-                        isOpen={true}
-                        onClose={() => setEditModalOpen(null)}
-                        title='Chỉnh sửa Services'
-                    >
-                        <BasicSectionEdit
-                            title={services.title}
-                            description={services.subtitle}
-                            onSave={(title, description) =>
-                                handleSectionEdit(
-                                    'services',
-                                    title,
-                                    description,
-                                )
-                            }
-                            onCancel={() => setEditModalOpen(null)}
-                        />
-                    </EditModal>
-                )}
-
-                {editModalOpen === 'team' && (
-                    <EditModal
-                        isOpen={true}
-                        onClose={() => setEditModalOpen(null)}
-                        title='Quản lý Team'
-                    >
-                        <div className='space-y-6'>
-                            <BasicSectionEdit
-                                title={team.title}
-                                description={team.subtitle}
-                                onSave={(title, description) =>
-                                    handleSectionEdit(
-                                        'team',
-                                        title,
-                                        description,
-                                    )
-                                }
-                                onCancel={() => setEditModalOpen(null)}
-                            />
-                            <Separator />
-                            <TeamMemberEdit
-                                members={team.members}
-                                onAddMember={addTeamMember}
-                                onUpdateMember={updateTeamMember}
-                                onDeleteMember={deleteTeamMember}
-                            />
-                        </div>
-                    </EditModal>
-                )}
             </motion.div>
         </div>
     );
 };
 
-export default AboutPage;
+export default ClientAboutPage;
