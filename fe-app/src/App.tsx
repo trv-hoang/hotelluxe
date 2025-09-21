@@ -23,8 +23,8 @@ import MyBookingPage from '@/pages/MyBookingPage.tsx';
 
 function App() {
     return (
-        <AdminAuthProvider>
-            <BrowserRouter>
+        <BrowserRouter>
+            <AdminAuthProvider>
                 <ScrollToTop />
                 <Routes>
                     {/* Admin routes - sử dụng AdminApp độc lập */}
@@ -33,8 +33,8 @@ function App() {
                     {/* Client routes */}
                     <Route path='/*' element={<ClientApp />} />
                 </Routes>
-            </BrowserRouter>
-        </AdminAuthProvider>
+            </AdminAuthProvider>
+        </BrowserRouter>
     );
 }
 

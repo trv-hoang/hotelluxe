@@ -296,6 +296,7 @@ const AdminApp: React.FC = () => {
 const AdminAppContent: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
+    const { isAdminAuthenticated, isLoading } = useAdminAuth();
 
     // Don't show sidebar on auth pages
     const isAuthPage = [
@@ -303,6 +304,16 @@ const AdminAppContent: React.FC = () => {
         '/admin/forgot-password',
         '/admin/reset-password',
     ].includes(location.pathname);
+
+    // Redirect authenticated admin from auth pages to dashboard
+    if (isAuthPage && isAdminAuthenticated && !isLoading) {
+        return <Navigate to='/admin/dashboard' replace />;
+    }
+
+    // Show loading while checking authentication
+    if (isLoading) {
+        return <AdminLoading />;
+    }
 
     if (isAuthPage) {
         return (
@@ -405,12 +416,20 @@ const AdminAppContent: React.FC = () => {
                         {/* Redirect admin root to dashboard */}
                         <Route
                             path='/'
-                            element={<Navigate to='/admin/dashboard' replace />}
+                            element={
+                                <AdminProtectedRoute>
+                                    <Navigate to='/admin/dashboard' replace />
+                                </AdminProtectedRoute>
+                            }
                         />
                         {/* 404 for admin routes */}
                         <Route
                             path='*'
-                            element={<Navigate to='/admin/dashboard' replace />}
+                            element={
+                                <AdminProtectedRoute>
+                                    <Navigate to='/admin/dashboard' replace />
+                                </AdminProtectedRoute>
+                            }
                         />
                     </Routes>
                 </Suspense>
