@@ -82,8 +82,8 @@ DB_PASSWORD=
 ```bash
 # Run this
 cd be-app
-composer install
 cp .env.example .env
+composer install
 php artisan key:generate
 php artisan jwt:secret
 php artisan migrate:fresh --seed
