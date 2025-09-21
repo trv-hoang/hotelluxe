@@ -61,7 +61,10 @@ Hệ thống quản lý khách sạn toàn diện với React frontend và Larav
 - **Composer** - PHP dependency manager
 - **MySQL** v8.0+
 - **Git** for version control
-### SET-UP CHO DỰ ÁN
+
+---
+### === SET-UP CHO DỰ ÁN ===
+
 ### 🚀 Xampp Setup (Database)
 - Đảm bảo file `.env.example` đã có DB_CONNECTION và  DB_DATABASE
 ```bash
