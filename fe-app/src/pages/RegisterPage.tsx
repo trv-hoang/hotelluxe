@@ -127,14 +127,13 @@ export default function RegisterPage() {
                                 }
                             >
                                 {showPassword ? (
-                                    <EyeIcon className='h-5 w-5' />
-                                ) : (
                                     <EyeOffIcon className='h-5 w-5' />
+                                ) : (
+                                    <EyeIcon className='h-5 w-5' />
                                 )}
                             </button>
                         </div>
 
-                        {/* 👇👇👇 BỔ SUNG CHO Ô XÁC NHẬN MẬT KHẨU */}
                         <div className='relative'>
                             <Input
                                 name='password_confirmation'
@@ -158,9 +157,9 @@ export default function RegisterPage() {
                                 }
                             >
                                 {showConfirmPassword ? (
-                                    <EyeIcon className='h-5 w-5' />
-                                ) : (
                                     <EyeOffIcon className='h-5 w-5' />
+                                ) : (
+                                    <EyeIcon className='h-5 w-5' />
                                 )}
                             </button>
                         </div>

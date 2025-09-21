@@ -117,9 +117,9 @@ export default function LoginPage() {
                                     }
                                 >
                                     {showPassword ? (
-                                        <EyeIcon className='h-5 w-5' />
-                                    ) : (
                                         <EyeOffIcon className='h-5 w-5' />
+                                    ) : (
+                                        <EyeIcon className='h-5 w-5' />
                                     )}
                                 </button>
                             </div>
